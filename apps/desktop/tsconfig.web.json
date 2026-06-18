@@ -1,0 +1,11 @@
+{
+  "extends": "@cockpitzero/tsconfig/electron-renderer.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": ["src/renderer/*"]
+    }
+  },
+  "include": ["src/renderer/**/*", "src/preload/index.d.ts"]
+}

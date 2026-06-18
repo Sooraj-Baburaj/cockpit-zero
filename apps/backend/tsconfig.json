@@ -1,0 +1,8 @@
+{
+  "extends": "@cockpitzero/tsconfig/node.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src/**/*", "drizzle.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}

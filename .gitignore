@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Electron build artifacts
+apps/desktop/release/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+apps/backend/drizzle/*.sqlite*
+
+# Logs & OS
+*.log
+.DS_Store
+coverage/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/

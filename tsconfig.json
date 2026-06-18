@@ -1,0 +1,5 @@
+{
+  "//": "Root config for editor tooling. Each package has its own tsconfig; builds and typechecks run per-package.",
+  "files": [],
+  "include": []
+}

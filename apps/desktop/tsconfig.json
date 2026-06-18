@@ -1,0 +1,13 @@
+{
+  "//": "Editor default. Strict per-target checks run via tsconfig.node.json + tsconfig.web.json (see the typecheck script).",
+  "extends": "@cockpitzero/tsconfig/electron-renderer.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": ["src/renderer/*"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*", "electron.vite.config.ts"]
+}

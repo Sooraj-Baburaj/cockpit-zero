@@ -1,0 +1,17 @@
+# electron-builder config — packaging is a follow-up (see CLAUDE.md).
+# Run `pnpm --filter @cockpitzero/desktop package` to produce installers.
+appId: app.cockpitzero.desktop
+productName: CockpitZero
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**
+mac:
+  category: public.app-category.productivity
+  target: dmg
+win:
+  target: nsis
+linux:
+  target: AppImage
+  category: Utility

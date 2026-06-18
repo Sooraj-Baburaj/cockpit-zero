@@ -1,0 +1,36 @@
+{
+  "name": "@cockpitzero/shared",
+  "version": "0.1.0",
+  "description": "Shared types, Zod schemas, and utilities for CockpitZero",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cockpitzero/eslint-config": "workspace:*",
+    "@cockpitzero/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "tsup": "^8.3.5",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
