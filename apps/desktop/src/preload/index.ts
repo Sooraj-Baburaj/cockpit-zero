@@ -11,6 +11,8 @@ const api: IpcApi = {
   setConfig: (config) => ipcRenderer.invoke(IpcChannels.setConfig, config),
   resolveQuery: (input) => ipcRenderer.invoke(IpcChannels.resolveQuery, input),
   runAction: (actionId, argument) => ipcRenderer.invoke(IpcChannels.runAction, actionId, argument),
+  runWorkflow: (workflowId) => ipcRenderer.invoke(IpcChannels.runWorkflow, workflowId),
+  openPath: (path) => ipcRenderer.invoke(IpcChannels.openPath, path),
   openSettings: () => ipcRenderer.invoke(IpcChannels.openSettings),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
 };

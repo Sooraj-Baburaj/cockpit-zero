@@ -7,8 +7,10 @@ Guidance for working in this repository. Read this before making changes.
 CockpitZero is a **keyboard-first, cross-platform desktop launcher** (think Spotlight /
 Raycast). The user summons a frameless command bar with a global hotkey, types to fuzzy-search
 their configured **actions** (open a URL, open an app, run a command, paste a snippet), and runs
-one with Enter. Actions, aliases, and workflows are stored locally; an optional backend syncs
-config across devices.
+one with Enter. When the query doesn't match a configured item, the launcher also searches
+installed **applications and files** (Spotlight on macOS, the Search index on Windows). Actions can
+be chained into **workflows**. Actions, aliases, and workflows are stored locally; an optional
+backend syncs config across devices.
 
 ## Monorepo structure
 
@@ -17,8 +19,11 @@ dependency versions — reference them as `"dep": "catalog:"`.
 
 The desktop main process is layered (app / services / infra / windows / ipc) and the renderer
 follows atomic design (atoms → molecules → organisms → templates → screens + hooks/lib). Launcher
-search/ranking uses the `fzf` library via `packages/shared/src/search.ts`. See
-[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full layer breakdown and data flow.
+search/ranking uses the `fzf` library via `packages/shared/src/search.ts` for configured
+actions/workflows; installed-app and file results come from search providers in the main process
+(`src/main/services/search`). Every launcher row is a `LauncherItem` (a discriminated union — see
+below). See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full layer breakdown and data
+flow.
 
 ```
 apps/
@@ -100,11 +105,11 @@ components get full typing and autocomplete.
 
 electron-store writes a `config.json` to the OS app-data directory:
 
-| OS      | Path                                                  |
-| ------- | ----------------------------------------------------- |
+| OS      | Path                                                    |
+| ------- | ------------------------------------------------------- |
 | macOS   | `~/Library/Application Support/CockpitZero/config.json` |
-| Windows | `%APPDATA%\CockpitZero\config.json`                   |
-| Linux   | `~/.config/CockpitZero/config.json`                   |
+| Windows | `%APPDATA%\CockpitZero\config.json`                     |
+| Linux   | `~/.config/CockpitZero/config.json`                     |
 
 Every read/write goes through `ConfigSchema` (`apps/desktop/src/main/infra/store.ts`); a corrupt
 file falls back to `defaultConfig()`.
@@ -121,8 +126,8 @@ Actions are a discriminated union on `type`. To add one (e.g. `search-web`):
    registry's mapped type (`{ [K in ActionKind]: ActionHandler<K> }`) makes TS error until every
    kind has a handler. Handlers receive `(action, ports)` — reach the OS only through `ports`
    (`ActionPorts`), never `electron` directly, so they stay unit-testable.
-3. **Subtitle/preview** — add a `case` to `actionSubtitle` in
-   `apps/desktop/src/renderer/lib/format.ts` (and `templatedStrings` in
+3. **Subtitle/preview** — add a `case` to `actionSubtitle` and an entry to `actionTypeLabel` (the
+   badge) in `apps/desktop/src/renderer/lib/format.ts` (and `templatedStrings` in
    `packages/shared/src/actions.ts` if the new type has templatable fields).
 4. **UI** — the launcher and `ActionForm` render generically; add a branch to `ActionForm`
    (`src/renderer/components/organisms/`) only if the new type has bespoke fields.
@@ -137,6 +142,45 @@ captures the text after a matching alias keyword as the argument; the IPC layer 
 `applyArgument(action, value)` (`packages/shared/src/actions.ts`) to substitute tokens
 (URL-encoding for `open-url`) before the action runner executes it. `resolveQuery` decides between
 normal results and the argument-capture state. All of this is pure and lives in `shared`.
+
+### Workflows (Level 3)
+
+A workflow (`WorkflowSchema`) is a name + an ordered list of action ids. It's edited in Settings →
+Workflows (`WorkflowEditor` / `WorkflowForm`), shows up in the launcher as a `workflow` result, and
+runs via the `runWorkflow` IPC channel → `services/workflow-runner.ts`, which resolves each step id
+to an action and runs them in sequence through the existing action-runner. Execution is intentionally
+**basic** (sequential, no per-step arguments or conditionals).
+
+## How launcher results are produced
+
+Every row the launcher renders is a `LauncherItem` (`packages/shared/src/types.ts`) — a discriminated
+union on `kind`: `action` / `workflow` (from config) and `app` / `file` (from system search). Run a
+row by switching on `kind` (`LauncherBar.run`): `runAction(id)`, `runWorkflow(id)`, or
+`openPath(path)`.
+
+Resolution has two halves:
+
+- **Pure, config-only (`shared`).** `resolveQuery(input, config)` decides argument-capture vs ranked
+  results; `searchConfig` ranks actions + workflows. `fuzzyRank<T>` is the generic `fzf` ranker —
+  reuse it for any new source, never hand-roll matching.
+- **System search (desktop main).** For a non-empty plain query, `services/search-service.ts` also
+  fans out to the app + file providers in parallel and `aggregate.mergeResults` dedupes + section-
+  orders (Actions → Workflows → Applications → Files) + caps. OS access lives **only** in
+  `infra/app-scanner.ts` (installed apps) and `infra/file-search.ts` (files: macOS `mdfind`, Windows
+  `SystemIndex`), each time-boxed and degrading to `[]` so a slow index never blocks the bar.
+
+### How to add a search provider
+
+1. Define any new OS capability as a port type in `services/search/provider.ts` and implement it in
+   an `infra/` adapter (platform-branch + timeouts there; keep it the only OS-touching code).
+2. Add `services/search/<name>-provider.ts` exporting a `create<Name>Provider(adapter)` that returns
+   a `SearchProvider` — take the adapter **injected** (dependency inversion) and map results to
+   `LauncherItem`s via `fuzzyRank` + `toRanges`. This is what keeps provider tests electron-free.
+3. Wire it into `services/search-service.ts` (parallel `Promise.allSettled` + `mergeResults`); if it
+   introduces a new `LauncherItemKind`, extend the union, `format.ts` (`itemSubtitle`/`itemBadge`),
+   `ResultIcon`, the `SECTION_RANK`/`SECTION_LABEL` maps, and `LauncherBar.run`.
+4. If the row runs differently, add an IPC channel (recipe above); else reuse `openPath`.
+5. Test the provider with a fake adapter under `apps/desktop/test/` (see `apps-provider.test.ts`).
 
 ## How to add a backend route
 
@@ -195,11 +239,26 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
   plugin; the web app uses `@tailwindcss/postcss`. Styles start with `@import "tailwindcss";`.
 - **electron-vite multi-entry.** The renderer has two HTML entries (`launcher.html`,
   `settings.html`); add new windows by adding an entry in `electron.vite.config.ts`.
+- **The preload bridge is dev-gated.** `renderer/lib/api.ts` falls back to a mock `window.api` only
+  when `import.meta.env.DEV` (browser/dev). In production a missing bridge **throws** — don't
+  "fix" a preload error by widening the fallback; that would hide the real failure behind a silent
+  no-op launcher.
+- **System search shells out.** `infra/file-search.ts` runs `mdfind` / PowerShell; keep new OS calls
+  there, always time-boxed and wrapped so failures return `[]`. Linux is unimplemented (returns
+  empty) for both apps and files.
+
+## Code intelligence (codegraph)
+
+The repo is indexed by **codegraph** (a local SQLite symbol graph in `.codegraph/`, git-ignored).
+Query it before editing to trace call paths / blast radius (MCP tools, or the `codegraph` CLI:
+`query`, `callers`, `callees`, `impact`). It lags writes by ~1s via a file watcher; after large
+changes run `codegraph sync`. If absent, run `codegraph init .`. It's an authoring aid only —
+nothing at runtime depends on it.
 
 ## Non-goals / follow-ups
 
 - electron-builder packaging (`electron-builder.yml`) is scaffolded but not a focus; add signing
-  + icons before shipping installers.
+  - icons before shipping installers.
 - Backend `/sync` and `/auth` are stubs (shape-validated, no real persistence/auth yet).
 - SQLite is the dev default; Postgres is supported structurally (swap the driver in
   `apps/backend/src/db/index.ts` + `drizzle.config.ts`).

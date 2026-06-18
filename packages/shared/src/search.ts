@@ -1,42 +1,53 @@
 import { Fzf } from 'fzf';
 import { hasArgument } from './actions.js';
-import type { Action, Config, ResolvedQuery, SearchResult } from './types.js';
+import type { ActionItem, Config, LauncherItem, ResolvedQuery, WorkflowItem } from './types.js';
 
 /**
  * Search + query resolution — the launcher's brain. Ranking is delegated to
  * `fzf` (the same algorithm as the fzf CLI: smart-case, consecutive-run and
  * word-boundary bonuses, sensible tiebreakers), which also returns the matched
  * character positions we turn into highlight ranges.
+ *
+ * Everything here is **pure and config-only**: it never touches the OS. System
+ * results (installed apps, files) are produced by providers in the desktop main
+ * process and merged with these — see `apps/desktop/src/main/services/search`.
  */
 
-/** One searchable surface for an action: its title, or an alias keyword/label. */
-interface IndexEntry {
-  action: Action;
-  label: string;
+/** One ranked result from `fuzzyRank`. */
+export interface RankResult<T> {
+  item: T;
+  /** Relative match score; higher is better. */
+  score: number;
+  /** Matched character indices within the selected string. */
+  positions: Set<number>;
 }
 
 /**
- * Flattens config into searchable entries. Each action is searchable by its
- * title and by every alias keyword/label that points to it, so typing `gh` can
- * match the "Open GitHub" action via its `gh` alias.
+ * Generic fuzzy ranker over any list — reused for actions/workflows, apps and
+ * files so every source shares fzf's ranking. An empty query returns the items
+ * unranked (score 0), which callers use as a resting state.
  */
-export function buildSearchIndex(config: Config): IndexEntry[] {
-  const byId = new Map(config.actions.map((a) => [a.id, a]));
-  const entries: IndexEntry[] = config.actions.map((action) => ({ action, label: action.title }));
-
-  for (const alias of config.aliases) {
-    const action = byId.get(alias.actionId);
-    if (!action) continue;
-    entries.push({ action, label: alias.keyword });
-    if (alias.label && alias.label !== alias.keyword) {
-      entries.push({ action, label: alias.label });
-    }
+export function fuzzyRank<T>(
+  query: string,
+  items: T[],
+  selector: (item: T) => string,
+): RankResult<T>[] {
+  if (query.trim() === '') {
+    return items.map((item) => ({ item, score: 0, positions: new Set<number>() }));
   }
-  return entries;
+  // Wrap in a concrete object shape so fzf's overloaded constructor resolves the
+  // `selector` form for any generic `T` (it can't infer it from a bare `T[]`).
+  const fzf = new Fzf(
+    items.map((item) => ({ item, key: selector(item) })),
+    { selector: (entry) => entry.key },
+  );
+  return fzf
+    .find(query)
+    .map((r) => ({ item: r.item.item, score: r.score, positions: r.positions }));
 }
 
-/** Merge a set of matched indices into sorted, half-open `[start, end)` ranges. */
-function toRanges(positions: Set<number>): Array<[number, number]> {
+/** Merge matched indices into sorted, half-open `[start, end)` ranges. */
+export function toRanges(positions: Set<number>): Array<[number, number]> {
   const sorted = [...positions].sort((a, b) => a - b);
   const ranges: Array<[number, number]> = [];
   for (const pos of sorted) {
@@ -47,42 +58,106 @@ function toRanges(positions: Set<number>): Array<[number, number]> {
   return ranges;
 }
 
+/** The launcher's resting list: every configured action and workflow, unranked. */
+function configItems(config: Config): LauncherItem[] {
+  const actions: ActionItem[] = config.actions.map((action) => ({
+    kind: 'action',
+    id: action.id,
+    title: action.title,
+    score: 0,
+    matches: [],
+    action,
+  }));
+  const workflows: WorkflowItem[] = config.workflows.map((workflow) => ({
+    kind: 'workflow',
+    id: workflow.id,
+    title: workflow.name,
+    score: 0,
+    matches: [],
+    workflow,
+  }));
+  return [...actions, ...workflows];
+}
+
 /**
- * Ranks actions against a query, best first. An empty query returns every
- * action unranked (the launcher's resting state). Results are deduplicated by
- * action id, keeping the highest-scoring matched surface.
+ * One searchable surface pointing back at a config entity by id. Each action is
+ * searchable by its title and by every alias keyword/label that targets it (so
+ * typing `gh` matches "Open GitHub" via its `gh` alias); workflows by name.
+ * `isTitle` marks the display surface, so highlights only render on the title.
  */
-export function searchActions(query: string, config: Config): SearchResult[] {
-  const q = query.trim();
-  if (q === '') {
-    return config.actions.map((action) => ({ action, score: 0, matches: [], label: action.title }));
+interface Surface {
+  id: string;
+  text: string;
+  isTitle: boolean;
+}
+
+function configSurfaces(config: Config): Surface[] {
+  const actionIds = new Set(config.actions.map((a) => a.id));
+  const surfaces: Surface[] = [];
+
+  for (const action of config.actions) {
+    surfaces.push({ id: action.id, text: action.title, isTitle: true });
   }
+  for (const workflow of config.workflows) {
+    surfaces.push({ id: workflow.id, text: workflow.name, isTitle: true });
+  }
+  for (const alias of config.aliases) {
+    if (!actionIds.has(alias.actionId)) continue;
+    surfaces.push({ id: alias.actionId, text: alias.keyword, isTitle: false });
+    if (alias.label && alias.label !== alias.keyword) {
+      surfaces.push({ id: alias.actionId, text: alias.label, isTitle: false });
+    }
+  }
+  return surfaces;
+}
 
-  const entries = buildSearchIndex(config);
-  const fzf = new Fzf(entries, { selector: (e) => e.label });
+/**
+ * Ranks the user's configured actions and workflows against a query, best first.
+ * An empty query returns every item unranked (the launcher's resting state).
+ * Deduplicated by id, keeping the highest-scoring matched surface; highlight
+ * ranges are produced only when the title itself matched.
+ */
+export function searchConfig(query: string, config: Config): LauncherItem[] {
+  const items = configItems(config);
+  if (query.trim() === '') return items;
 
-  const best = new Map<string, SearchResult>();
-  for (const result of fzf.find(q)) {
-    const { action, label } = result.item;
-    const existing = best.get(action.id);
-    if (!existing || result.score > existing.score) {
-      best.set(action.id, {
-        action,
-        score: result.score,
-        matches: toRanges(result.positions),
-        label,
-      });
+  const best = new Map<string, { score: number; positions: Set<number>; isTitle: boolean }>();
+  for (const { item: surface, score, positions } of fuzzyRank(
+    query,
+    configSurfaces(config),
+    (s) => s.text,
+  )) {
+    const current = best.get(surface.id);
+    if (!current || score > current.score) {
+      best.set(surface.id, { score, positions, isTitle: surface.isTitle });
     }
   }
 
-  return [...best.values()].sort((a, b) => b.score - a.score);
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const out: LauncherItem[] = [];
+  for (const [id, match] of best) {
+    const base = byId.get(id);
+    if (!base) continue;
+    out.push({
+      ...base,
+      score: match.score,
+      matches: match.isTitle ? toRanges(match.positions) : [],
+    });
+  }
+  return out.sort((a, b) => b.score - a.score);
+}
+
+/** Ranks just the configured actions (workflows excluded). */
+export function searchActions(query: string, config: Config): ActionItem[] {
+  return searchConfig(query, config).filter((item): item is ActionItem => item.kind === 'action');
 }
 
 /**
  * Interprets raw launcher input. When the leading token (text before the first
  * space) is the keyword of a parameterized action, switches to "argument
  * capture" so the rest of the input becomes the action's argument (Level 2).
- * Otherwise falls back to a normal ranked search.
+ * Otherwise falls back to a ranked search over config (actions + workflows); the
+ * desktop main process merges in system results (apps/files) for non-empty input.
  */
 export function resolveQuery(input: string, config: Config): ResolvedQuery {
   const trimmed = input.replace(/^\s+/, '');
@@ -100,5 +175,5 @@ export function resolveQuery(input: string, config: Config): ResolvedQuery {
     }
   }
 
-  return { kind: 'results', results: searchActions(input, config) };
+  return { kind: 'results', results: searchConfig(input, config) };
 }

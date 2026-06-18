@@ -1,4 +1,4 @@
-import type { Action, ActionKind } from '@cockpitzero/shared';
+import type { Action, ActionKind, LauncherItem } from '@cockpitzero/shared';
 
 /** Short, human label for each action kind (shown in badges). */
 export const actionTypeLabel: Record<ActionKind, string> = {
@@ -21,6 +21,44 @@ export function actionSubtitle(action: Action): string {
       return action.content;
     default: {
       const _never: never = action;
+      return _never;
+    }
+  }
+}
+
+/** The secondary line for any launcher result row (action / workflow / app / file). */
+export function itemSubtitle(item: LauncherItem): string {
+  switch (item.kind) {
+    case 'action':
+      return actionSubtitle(item.action);
+    case 'workflow': {
+      const n = item.workflow.steps.length;
+      return `${n} step${n === 1 ? '' : 's'}`;
+    }
+    case 'app':
+      return item.subtitle ?? 'Application';
+    case 'file':
+      return item.subtitle ?? item.path;
+    default: {
+      const _never: never = item;
+      return _never;
+    }
+  }
+}
+
+/** Short uppercase badge label for any launcher result row. */
+export function itemBadge(item: LauncherItem): string {
+  switch (item.kind) {
+    case 'action':
+      return actionTypeLabel[item.action.type];
+    case 'workflow':
+      return 'Workflow';
+    case 'app':
+      return 'App';
+    case 'file':
+      return 'File';
+    default: {
+      const _never: never = item;
       return _never;
     }
   }

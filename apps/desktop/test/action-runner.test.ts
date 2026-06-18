@@ -37,7 +37,12 @@ describe('runAction', () => {
 
   it('routes open-app to openPath', async () => {
     const ports = fakePorts();
-    const action: Action = { id: '2', title: 'App', type: 'open-app', target: '/Applications/X.app' };
+    const action: Action = {
+      id: '2',
+      title: 'App',
+      type: 'open-app',
+      target: '/Applications/X.app',
+    };
     await runAction(action, ports);
     expect(ports.openPath).toHaveBeenCalledWith('/Applications/X.app');
   });

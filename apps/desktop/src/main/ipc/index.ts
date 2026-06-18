@@ -3,6 +3,7 @@ import { IpcChannels, applyArgument, hasArgument } from '@cockpitzero/shared';
 import { getConfig, updateConfig } from '../services/config-service.js';
 import { resolveLauncherQuery } from '../services/search-service.js';
 import { runAction } from '../services/action-runner/index.js';
+import { runWorkflow } from '../services/workflow-runner.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openSettings } from '../windows/index.js';
 
@@ -31,6 +32,31 @@ export function registerIpcHandlers(): void {
     try {
       const resolved = arg !== '' ? applyArgument(action, arg) : action;
       await runAction(resolved, electronPorts);
+      hideLauncher();
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+  ipcMain.handle(IpcChannels.runWorkflow, async (_e, workflowId: string) => {
+    const config = getConfig();
+    const workflow = config.workflows.find((w) => w.id === workflowId);
+    if (!workflow) return { ok: false, error: `Unknown workflow: ${workflowId}` };
+
+    const byId = new Map(config.actions.map((a) => [a.id, a]));
+    try {
+      await runWorkflow(workflow, (id) => byId.get(id), electronPorts);
+      hideLauncher();
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+  ipcMain.handle(IpcChannels.openPath, async (_e, path: string) => {
+    try {
+      await electronPorts.openPath(path);
       hideLauncher();
       return { ok: true };
     } catch (err) {

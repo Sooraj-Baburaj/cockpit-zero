@@ -13,6 +13,8 @@ export const IpcChannels = {
   setConfig: 'config:set',
   resolveQuery: 'launcher:resolve-query',
   runAction: 'launcher:run-action',
+  runWorkflow: 'launcher:run-workflow',
+  openPath: 'launcher:open-path',
   openSettings: 'window:open-settings',
   hideLauncher: 'window:hide-launcher',
 } as const;
@@ -31,6 +33,10 @@ export interface IpcApi {
   resolveQuery(input: string): Promise<ResolvedQuery>;
   /** Run an action; `argument` fills `{token}`s for parameterized actions. */
   runAction(actionId: string, argument?: string): Promise<{ ok: boolean; error?: string }>;
+  /** Run a workflow's steps in sequence (Level 3). */
+  runWorkflow(workflowId: string): Promise<{ ok: boolean; error?: string }>;
+  /** Open a file or application by absolute path (system-search results). */
+  openPath(path: string): Promise<{ ok: boolean; error?: string }>;
   openSettings(): Promise<void>;
   hideLauncher(): Promise<void>;
 }

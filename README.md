@@ -12,12 +12,16 @@ This is a Turborepo + pnpm monorepo. For architecture, conventions, and how to e
 - **Parameterized actions** (Level 2) — `{token}` templates turn one action into many: an
   alias `npm` → `https://www.npmjs.com/package/{query}` runs `npm react` straight to the package
   page; `g hello world` → a Google search. The bar shows a live preview as you type.
-- **Fuzzy search** — fzf-powered ranking with match highlighting across titles and aliases.
-- **GUI config editor** — manage actions, aliases, the global hotkey, and theme in the settings
-  window; changes persist and the hotkey re-registers instantly.
+- **Workflows** (Level 3) — chain several actions under one name and run them in sequence.
+- **System search** (Level 4) — type anything that isn't a configured item and the launcher also
+  finds **installed apps and files**, cross-platform: Spotlight (`mdfind`) and `/Applications` on
+  macOS; the Start-Menu and Search index on Windows. Results are grouped into sections.
+- **Fuzzy search** — fzf-powered ranking with match highlighting, across actions, apps and files.
+- **GUI config editor** — manage actions, aliases, workflows, the global hotkey, and theme in the
+  settings window; changes persist and the hotkey re-registers instantly.
 
-Roadmap: multi-step workflows (L3), live/dynamic results (L4), and plugins (L5) — the schemas and
-layering are already set up for them.
+Roadmap: live/dynamic provider results and plugins (L5) — the schemas and layering are already set
+up for them.
 
 ## Quick start
 
@@ -27,11 +31,11 @@ pnpm install
 pnpm dev                 # run desktop + backend + web via Turborepo
 ```
 
-| App                       | Command                                   | Notes                                |
-| ------------------------- | ----------------------------------------- | ------------------------------------ |
-| Desktop (Electron)        | `pnpm --filter @cockpitzero/desktop dev`  | Hotkey: `Cmd/Ctrl+Shift+Space`       |
-| Backend (Hono)            | `pnpm --filter @cockpitzero/backend dev`  | http://localhost:8787                |
-| Web (Next.js)             | `pnpm --filter @cockpitzero/web dev`      | http://localhost:3000                |
+| App                | Command                                  | Notes                          |
+| ------------------ | ---------------------------------------- | ------------------------------ |
+| Desktop (Electron) | `pnpm --filter @cockpitzero/desktop dev` | Hotkey: `Cmd/Ctrl+Shift+Space` |
+| Backend (Hono)     | `pnpm --filter @cockpitzero/backend dev` | http://localhost:8787          |
+| Web (Next.js)      | `pnpm --filter @cockpitzero/web dev`     | http://localhost:3000          |
 
 ## Common scripts
 

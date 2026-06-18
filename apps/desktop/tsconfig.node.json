@@ -7,10 +7,5 @@
       "@renderer/*": ["src/renderer/*"]
     }
   },
-  "include": [
-    "src/main/**/*",
-    "src/preload/**/*",
-    "electron.vite.config.ts",
-    "test/**/*"
-  ]
+  "include": ["src/main/**/*", "src/preload/**/*", "electron.vite.config.ts", "test/**/*"]
 }

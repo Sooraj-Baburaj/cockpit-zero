@@ -13,6 +13,8 @@ describe('IPC contract', () => {
       'setConfig',
       'resolveQuery',
       'runAction',
+      'runWorkflow',
+      'openPath',
       'openSettings',
       'hideLauncher',
     ];

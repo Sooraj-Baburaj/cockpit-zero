@@ -7,7 +7,7 @@ import { SettingsPanel } from '../components/organisms/SettingsPanel.js';
 import { ActionList } from '../components/organisms/ActionList.js';
 import { ActionForm } from '../components/organisms/ActionForm.js';
 import { AliasEditor } from '../components/organisms/AliasEditor.js';
-import { EmptyState } from '../components/atoms/EmptyState.js';
+import { WorkflowEditor } from '../components/organisms/WorkflowEditor.js';
 import { Button } from '../components/atoms/Button.js';
 
 const TABS = ['general', 'actions', 'aliases', 'workflows'];
@@ -85,9 +85,10 @@ export function Settings() {
       )}
 
       {tab === 'workflows' && (
-        <EmptyState
-          title="Workflows are coming soon"
-          hint="Chain several actions into one keyword to set up your whole context."
+        <WorkflowEditor
+          workflows={config.workflows}
+          actions={config.actions}
+          onChange={(workflows) => persist({ ...config, workflows })}
         />
       )}
     </SettingsLayout>

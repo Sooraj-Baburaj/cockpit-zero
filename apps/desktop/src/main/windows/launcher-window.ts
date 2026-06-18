@@ -27,8 +27,10 @@ export function getLauncherWindow(): BrowserWindow {
     webPreferences: secureWebPreferences,
   });
 
-  // Hide on blur so it behaves like Spotlight.
-  launcherWindow.on('blur', () => launcherWindow?.hide());
+  // Hide on blur so it behaves like Spotlight (only in production so DevTools don't auto-hide it in dev).
+  if (!isDev) {
+    launcherWindow.on('blur', () => launcherWindow?.hide());
+  }
 
   // Open external links in the user's browser, never in-app.
   launcherWindow.webContents.setWindowOpenHandler(({ url }) => {

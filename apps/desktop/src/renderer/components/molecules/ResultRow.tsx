@@ -1,17 +1,18 @@
-import type { SearchResult } from '@cockpitzero/shared';
+import type { LauncherItem } from '@cockpitzero/shared';
 import { cn } from '../../lib/cn.js';
-import { actionSubtitle } from '../../lib/format.js';
+import { itemBadge, itemSubtitle } from '../../lib/format.js';
 import { Highlight } from '../../lib/highlight.js';
-import { ActionTypeBadge } from './ActionTypeBadge.js';
+import { Badge } from '../atoms/Badge.js';
+import { ResultIcon } from './ResultIcon.js';
 
-/** A single launcher result: highlighted title, subtitle, and a type badge. */
+/** A single launcher result: icon, highlighted title, subtitle, and a kind badge. */
 export function ResultRow({
-  result,
+  item,
   selected,
   onHover,
   onClick,
 }: {
-  result: SearchResult;
+  item: LauncherItem;
   selected: boolean;
   onHover: () => void;
   onClick: () => void;
@@ -21,17 +22,20 @@ export function ResultRow({
       onMouseEnter={onHover}
       onClick={onClick}
       className={cn(
-        'flex cursor-pointer items-center justify-between gap-3 px-5 py-3',
+        'flex cursor-pointer items-center justify-between gap-3 px-5 py-2.5',
         selected && 'bg-surface-2',
       )}
     >
-      <div className="min-w-0">
-        <div className="truncate text-fg">
-          <Highlight text={result.label} ranges={result.matches} />
+      <div className="flex min-w-0 items-center gap-3">
+        <ResultIcon kind={item.kind} />
+        <div className="min-w-0">
+          <div className="truncate text-fg">
+            <Highlight text={item.title} ranges={item.matches} />
+          </div>
+          <div className="truncate text-xs text-subtle">{itemSubtitle(item)}</div>
         </div>
-        <div className="truncate text-xs text-subtle">{actionSubtitle(result.action)}</div>
       </div>
-      <ActionTypeBadge kind={result.action.type} />
+      <Badge>{itemBadge(item)}</Badge>
     </li>
   );
 }
