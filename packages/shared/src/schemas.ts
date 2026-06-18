@@ -18,34 +18,73 @@ export const AliasSchema = z.object({
 });
 
 /**
+ * Declares that an action accepts a runtime argument (Level 2 — parameterized
+ * actions). The argument's value is substituted into `{name}` tokens in the
+ * action's templated fields. Example: an `open-url` with
+ * `url: "https://npmjs.com/package/{query}"` and `argument: { name: "query" }`
+ * turns `npm react` into npmjs.com/package/react.
+ */
+export const ArgumentSchema = z.object({
+  /** Token name referenced as `{name}` in templated fields. */
+  name: z.string().min(1).default('query'),
+  /** Hint text shown in the launcher while capturing the argument. */
+  placeholder: z.string().optional(),
+  /** When true, the action only runs once a non-empty argument is given. */
+  required: z.boolean().default(true),
+});
+
+/**
+ * Fields shared by every action member. `argument` is opt-in; an action without
+ * it behaves exactly like a Level-1 static action. Spread into each union member
+ * so the shape stays DRY (discriminated unions can't share a base object).
+ */
+const baseActionShape = {
+  id: z.string().min(1),
+  title: z.string().min(1),
+  argument: ArgumentSchema.optional(),
+} as const;
+
+/**
+ * A scheme + body URL skeleton, e.g. `https://example.com/x` or `mailto:a@b.c`.
+ * Kept as a dependency-free regex so the shared package needs no DOM/Node libs.
+ */
+const URL_SKELETON = /^[a-z][a-z0-9+.-]*:(\/\/)?[^\s]+$/i;
+
+/**
+ * Accepts either a well-formed URL or a templated URL containing `{tokens}`.
+ * Tokens are stripped before validation so a template like
+ * `https://npmjs.com/package/{query}` validates as a real URL skeleton.
+ */
+const templatableUrl = () =>
+  z.string().refine((value) => URL_SKELETON.test(value.replace(/\{[^}]+\}/g, 'x')), {
+    message: 'Must be a valid URL (templates may use {tokens})',
+  });
+
+/**
  * Actions are a discriminated union on `type`. To add a new action kind,
  * add a member here, then handle it in the desktop main process and render
  * it in the launcher (see CLAUDE.md → "How to add a new action type").
  */
 export const ActionSchema = z.discriminatedUnion('type', [
   z.object({
-    id: z.string().min(1),
-    title: z.string().min(1),
+    ...baseActionShape,
     type: z.literal('open-url'),
-    url: z.string().url(),
+    url: templatableUrl(),
   }),
   z.object({
-    id: z.string().min(1),
-    title: z.string().min(1),
+    ...baseActionShape,
     type: z.literal('open-app'),
     /** Application name or absolute path. */
     target: z.string().min(1),
   }),
   z.object({
-    id: z.string().min(1),
-    title: z.string().min(1),
+    ...baseActionShape,
     type: z.literal('run-command'),
     command: z.string().min(1),
     args: z.array(z.string()).default([]),
   }),
   z.object({
-    id: z.string().min(1),
-    title: z.string().min(1),
+    ...baseActionShape,
     type: z.literal('snippet'),
     /** Text copied to the clipboard / typed out. */
     content: z.string(),

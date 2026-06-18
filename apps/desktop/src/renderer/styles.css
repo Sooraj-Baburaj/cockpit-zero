@@ -1,5 +1,48 @@
 @import 'tailwindcss';
 
+/*
+ * Design tokens. Semantic colors are defined as CSS variables (so they can be
+ * themed at runtime) and exposed to Tailwind via @theme, which generates
+ * utilities like `bg-surface`, `text-muted`, `border-border`, `bg-accent`.
+ * Dark is the default (:root); `.theme-light` overrides for the settings window.
+ */
+@theme {
+  --color-bg: var(--cz-bg);
+  --color-surface: var(--cz-surface);
+  --color-surface-2: var(--cz-surface-2);
+  --color-border: var(--cz-border);
+  --color-fg: var(--cz-fg);
+  --color-muted: var(--cz-muted);
+  --color-subtle: var(--cz-subtle);
+  --color-accent: var(--cz-accent);
+  --color-accent-fg: var(--cz-accent-fg);
+}
+
+:root,
+.theme-dark {
+  --cz-bg: #0b0b0f;
+  --cz-surface: rgba(24, 24, 27, 0.85);
+  --cz-surface-2: rgba(255, 255, 255, 0.06);
+  --cz-border: rgba(255, 255, 255, 0.1);
+  --cz-fg: #fafafa;
+  --cz-muted: rgba(255, 255, 255, 0.55);
+  --cz-subtle: rgba(255, 255, 255, 0.32);
+  --cz-accent: #7c6cff;
+  --cz-accent-fg: #ffffff;
+}
+
+.theme-light {
+  --cz-bg: #f5f5f7;
+  --cz-surface: rgba(255, 255, 255, 0.92);
+  --cz-surface-2: rgba(0, 0, 0, 0.04);
+  --cz-border: rgba(0, 0, 0, 0.1);
+  --cz-fg: #18181b;
+  --cz-muted: rgba(0, 0, 0, 0.55);
+  --cz-subtle: rgba(0, 0, 0, 0.38);
+  --cz-accent: #6d5cff;
+  --cz-accent-fg: #ffffff;
+}
+
 html,
 body,
 #root {
@@ -7,10 +50,12 @@ body,
   margin: 0;
 }
 
-/* Transparent background so the frameless launcher floats over the desktop. */
+/* Transparent so the frameless launcher floats over the desktop; the settings
+   window paints its own opaque background via SettingsLayout. */
 body {
   background: transparent;
+  color: var(--cz-fg);
   font-family:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: #fafafa;
+  -webkit-font-smoothing: antialiased;
 }

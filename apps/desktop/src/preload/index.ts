@@ -9,8 +9,8 @@ import { IpcChannels, type IpcApi } from '@cockpitzero/shared';
 const api: IpcApi = {
   getConfig: () => ipcRenderer.invoke(IpcChannels.getConfig),
   setConfig: (config) => ipcRenderer.invoke(IpcChannels.setConfig, config),
-  search: (query) => ipcRenderer.invoke(IpcChannels.search, query),
-  runAction: (actionId) => ipcRenderer.invoke(IpcChannels.runAction, actionId),
+  resolveQuery: (input) => ipcRenderer.invoke(IpcChannels.resolveQuery, input),
+  runAction: (actionId, argument) => ipcRenderer.invoke(IpcChannels.runAction, actionId, argument),
   openSettings: () => ipcRenderer.invoke(IpcChannels.openSettings),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
 };

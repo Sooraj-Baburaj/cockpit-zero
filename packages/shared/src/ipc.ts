@@ -1,4 +1,4 @@
-import type { Config, SearchResult } from './types.js';
+import type { Config, ResolvedQuery } from './types.js';
 
 /**
  * IPC channel names — the contract between the desktop main process and the
@@ -11,7 +11,7 @@ import type { Config, SearchResult } from './types.js';
 export const IpcChannels = {
   getConfig: 'config:get',
   setConfig: 'config:set',
-  search: 'launcher:search',
+  resolveQuery: 'launcher:resolve-query',
   runAction: 'launcher:run-action',
   openSettings: 'window:open-settings',
   hideLauncher: 'window:hide-launcher',
@@ -27,8 +27,10 @@ export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
 export interface IpcApi {
   getConfig(): Promise<Config>;
   setConfig(config: Config): Promise<Config>;
-  search(query: string): Promise<SearchResult[]>;
-  runAction(actionId: string): Promise<{ ok: boolean; error?: string }>;
+  /** Interpret raw input → ranked results or an argument-capture state (L2). */
+  resolveQuery(input: string): Promise<ResolvedQuery>;
+  /** Run an action; `argument` fills `{token}`s for parameterized actions. */
+  runAction(actionId: string, argument?: string): Promise<{ ok: boolean; error?: string }>;
   openSettings(): Promise<void>;
   hideLauncher(): Promise<void>;
 }

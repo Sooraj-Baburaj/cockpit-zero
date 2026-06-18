@@ -4,7 +4,20 @@ A keyboard-first, cross-platform desktop launcher — summon a command bar with 
 fuzzy-search your actions, and run one with Enter.
 
 This is a Turborepo + pnpm monorepo. For architecture, conventions, and how to extend things, see
-**[CLAUDE.md](./CLAUDE.md)**.
+**[CLAUDE.md](./CLAUDE.md)** and **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)**.
+
+## Features
+
+- **Launch anything** — open URLs and apps, run shell commands, copy snippets.
+- **Parameterized actions** (Level 2) — `{token}` templates turn one action into many: an
+  alias `npm` → `https://www.npmjs.com/package/{query}` runs `npm react` straight to the package
+  page; `g hello world` → a Google search. The bar shows a live preview as you type.
+- **Fuzzy search** — fzf-powered ranking with match highlighting across titles and aliases.
+- **GUI config editor** — manage actions, aliases, the global hotkey, and theme in the settings
+  window; changes persist and the hotkey re-registers instantly.
+
+Roadmap: multi-step workflows (L3), live/dynamic results (L4), and plugins (L5) — the schemas and
+layering are already set up for them.
 
 ## Quick start
 

@@ -1,0 +1,42 @@
+import { describe, it, expect } from 'vitest';
+import { defaultConfig, validateConfig, safeValidateConfig } from './config.js';
+import { slugify, createId } from './utils.js';
+
+describe('config', () => {
+  it('produces a valid default config', () => {
+    const cfg = defaultConfig();
+    expect(() => validateConfig(cfg)).not.toThrow();
+    expect(cfg.version).toBe(1);
+    expect(cfg.settings.hotkey).toBe('CommandOrControl+Shift+Space');
+  });
+
+  it('rejects malformed config', () => {
+    expect(safeValidateConfig({ version: 99 }).success).toBe(false);
+  });
+
+  it('accepts templated URLs in actions', () => {
+    const result = safeValidateConfig({
+      ...defaultConfig(),
+      actions: [
+        {
+          id: 'a1',
+          title: 'npm package',
+          type: 'open-url',
+          url: 'https://www.npmjs.com/package/{query}',
+          argument: { name: 'query' },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('utils', () => {
+  it('slugifies text', () => {
+    expect(slugify('  Open GitHub! ')).toBe('open-github');
+  });
+
+  it('creates prefixed ids', () => {
+    expect(createId('act')).toMatch(/^act_/);
+  });
+});

@@ -1,25 +1,15 @@
+import { existsSync } from 'node:fs';
 import { BrowserWindow, screen, shell } from 'electron';
-import { join } from 'node:path';
+import { isDev, loadEntry, secureWebPreferences } from './internal.js';
 
-const isDev = !!process.env['ELECTRON_RENDERER_URL'];
-const preload = join(__dirname, '../preload/index.js');
-
-/** Load a named renderer entry (launcher | settings) in dev or prod. */
-function loadEntry(win: BrowserWindow, entry: 'launcher' | 'settings') {
-  if (isDev) {
-    void win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/${entry}.html`);
-  } else {
-    void win.loadFile(join(__dirname, `../renderer/${entry}.html`));
-  }
-}
-
-let launcherWindow: BrowserWindow | null = null;
-let settingsWindow: BrowserWindow | null = null;
+/** The frameless, transparent Spotlight-style command bar. */
 
 const LAUNCHER_WIDTH = 720;
 const LAUNCHER_HEIGHT = 480;
 
-/** Create (once) the frameless, transparent launcher bar. Hidden by default. */
+let launcherWindow: BrowserWindow | null = null;
+
+/** Create (once) the launcher bar. Hidden by default; pre-created at startup. */
 export function getLauncherWindow(): BrowserWindow {
   if (launcherWindow && !launcherWindow.isDestroyed()) return launcherWindow;
 
@@ -34,12 +24,7 @@ export function getLauncherWindow(): BrowserWindow {
     skipTaskbar: true,
     alwaysOnTop: true,
     fullscreenable: false,
-    webPreferences: {
-      preload,
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
+    webPreferences: secureWebPreferences,
   });
 
   // Hide on blur so it behaves like Spotlight.
@@ -51,7 +36,15 @@ export function getLauncherWindow(): BrowserWindow {
     return { action: 'deny' };
   });
 
+  console.log(
+    `[preload-path] sandbox=${secureWebPreferences.sandbox} preload=${secureWebPreferences.preload} exists=${existsSync(secureWebPreferences.preload)}`,
+  );
+  launcherWindow.webContents.on('preload-error', (_e, path, error) => {
+    console.error(`[preload-error] ${path}\n${error.stack ?? error}`);
+  });
   loadEntry(launcherWindow, 'launcher');
+  // TEMP DIAGNOSTIC: open detached devtools in dev to read the real renderer console.
+  if (isDev) launcherWindow.webContents.openDevTools({ mode: 'detach' });
   return launcherWindow;
 }
 
@@ -77,27 +70,4 @@ export function toggleLauncher(): void {
 
 export function hideLauncher(): void {
   if (launcherWindow && !launcherWindow.isDestroyed()) launcherWindow.hide();
-}
-
-/** Open (or focus) the normal-chrome settings window. */
-export function openSettings(): void {
-  if (settingsWindow && !settingsWindow.isDestroyed()) {
-    settingsWindow.focus();
-    return;
-  }
-  settingsWindow = new BrowserWindow({
-    width: 880,
-    height: 640,
-    title: 'CockpitZero Settings',
-    webPreferences: {
-      preload,
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-  settingsWindow.on('closed', () => {
-    settingsWindow = null;
-  });
-  loadEntry(settingsWindow, 'settings');
 }

@@ -6,8 +6,10 @@ import { type Config, defaultConfig, safeValidateConfig } from '@cockpitzero/sha
  * the OS app-data dir (see CLAUDE.md): macOS ~/Library/Application Support/CockpitZero,
  * Windows %APPDATA%/CockpitZero, Linux ~/.config/CockpitZero.
  *
- * All reads/writes go through ConfigSchema so the file can never drift from the
- * shared shape — if the stored value is corrupt, we fall back to defaults.
+ * This is the low-level persistence adapter (infra layer). All reads/writes go
+ * through ConfigSchema so the file can never drift from the shared shape — a
+ * corrupt value falls back to defaults. Business rules (e.g. re-registering the
+ * hotkey on change) live in the config-service, not here.
  */
 const store = new Store<{ config: Config }>({
   name: 'config',
@@ -22,7 +24,7 @@ export function readConfig(): Config {
   return fresh;
 }
 
-export function writeConfig(input: unknown): Config {
+export function persistConfig(input: unknown): Config {
   const config = safeValidateConfig(input);
   if (!config.success) {
     throw new Error(`Invalid config: ${config.error.message}`);

@@ -11,7 +11,7 @@ describe('IPC contract', () => {
     const apiMethods: Array<keyof IpcApi> = [
       'getConfig',
       'setConfig',
-      'search',
+      'resolveQuery',
       'runAction',
       'openSettings',
       'hideLauncher',

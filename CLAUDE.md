@@ -15,6 +15,11 @@ config across devices.
 Turborepo + pnpm workspaces. pnpm **catalogs** (in `pnpm-workspace.yaml`) centralize shared
 dependency versions — reference them as `"dep": "catalog:"`.
 
+The desktop main process is layered (app / services / infra / windows / ipc) and the renderer
+follows atomic design (atoms → molecules → organisms → templates → screens + hooks/lib). Launcher
+search/ranking uses the `fzf` library via `packages/shared/src/search.ts`. See
+[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full layer breakdown and data flow.
+
 ```
 apps/
   desktop/   Electron app (electron-vite, React, Tailwind v4) — the launcher
@@ -101,20 +106,37 @@ electron-store writes a `config.json` to the OS app-data directory:
 | Windows | `%APPDATA%\CockpitZero\config.json`                   |
 | Linux   | `~/.config/CockpitZero/config.json`                   |
 
-Every read/write goes through `ConfigSchema` (`apps/desktop/src/main/store.ts`); a corrupt file
-falls back to `defaultConfig()`.
+Every read/write goes through `ConfigSchema` (`apps/desktop/src/main/infra/store.ts`); a corrupt
+file falls back to `defaultConfig()`.
 
 ## How to add a new action type
 
 Actions are a discriminated union on `type`. To add one (e.g. `search-web`):
 
-1. **Schema** — add a member to `ActionSchema` in `packages/shared/src/schemas.ts`. The type is
-   inferred automatically (`Action` in `types.ts`); never hand-write it.
-2. **Execution** — add a `case` to the `switch` in `apps/desktop/src/main/actions.ts`. The
-   `never` exhaustiveness check makes TS error until you handle it.
-3. **UI** — the launcher renders any action generically; add custom rendering in
-   `apps/desktop/src/renderer/screens/LauncherBar.tsx` only if needed.
-4. Add/extend a test in `packages/shared/src/shared.test.ts`.
+1. **Schema** — add a member to `ActionSchema` in `packages/shared/src/schemas.ts` (spread
+   `baseActionShape` so it inherits `id`/`title`/`argument`). The type is inferred automatically
+   (`Action` in `types.ts`); never hand-write it.
+2. **Execution** — drop a handler file in
+   `apps/desktop/src/main/services/action-runner/handlers/` and register it in `registry.ts`. The
+   registry's mapped type (`{ [K in ActionKind]: ActionHandler<K> }`) makes TS error until every
+   kind has a handler. Handlers receive `(action, ports)` — reach the OS only through `ports`
+   (`ActionPorts`), never `electron` directly, so they stay unit-testable.
+3. **Subtitle/preview** — add a `case` to `actionSubtitle` in
+   `apps/desktop/src/renderer/lib/format.ts` (and `templatedStrings` in
+   `packages/shared/src/actions.ts` if the new type has templatable fields).
+4. **UI** — the launcher and `ActionForm` render generically; add a branch to `ActionForm`
+   (`src/renderer/components/organisms/`) only if the new type has bespoke fields.
+5. Add/extend tests in `packages/shared/src/actions.test.ts` (or `search.test.ts`) and
+   `apps/desktop/test/action-runner.test.ts`.
+
+### Parameterized actions (Level 2)
+
+Any action can declare an optional `argument` (`{ name, placeholder, required }`) and use `{name}`
+tokens in its templated fields (url / target / command / args / content). At runtime the launcher
+captures the text after a matching alias keyword as the argument; the IPC layer calls
+`applyArgument(action, value)` (`packages/shared/src/actions.ts`) to substitute tokens
+(URL-encoding for `open-url`) before the action runner executes it. `resolveQuery` decides between
+normal results and the argument-capture state. All of this is pure and lives in `shared`.
 
 ## How to add a backend route
 

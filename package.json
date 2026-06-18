@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "turbo run dev",
+    "dev:app": "pnpm --filter @cockpitzero/desktop dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
@@ -32,7 +33,10 @@
     "typescript": "catalog:"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["electron", "esbuild"]
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [

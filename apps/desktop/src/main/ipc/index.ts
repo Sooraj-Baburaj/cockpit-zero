@@ -1,28 +1,36 @@
 import { ipcMain } from 'electron';
-import { IpcChannels, searchActions, type Config } from '@cockpitzero/shared';
-import { readConfig, writeConfig } from '../store.js';
-import { runAction } from '../actions.js';
-import { hideLauncher, openSettings } from '../windows.js';
+import { IpcChannels, applyArgument, hasArgument } from '@cockpitzero/shared';
+import { getConfig, updateConfig } from '../services/config-service.js';
+import { resolveLauncherQuery } from '../services/search-service.js';
+import { runAction } from '../services/action-runner/index.js';
+import { electronPorts } from '../infra/electron-ports.js';
+import { hideLauncher, openSettings } from '../windows/index.js';
 
 /**
  * Registers every IPC handler. Each handler maps 1:1 to an IpcChannels constant
- * and to a method on the preload bridge (src/preload/index.ts). Add new channels
- * in packages/shared first, then wire them here and in preload.
+ * and to a method on the preload bridge (src/preload/index.ts). This layer is
+ * thin: it validates/serializes and delegates to services. Add new channels in
+ * packages/shared first, then wire them here and in preload.
  */
 export function registerIpcHandlers(): void {
-  ipcMain.handle(IpcChannels.getConfig, (): Config => readConfig());
+  ipcMain.handle(IpcChannels.getConfig, () => getConfig());
 
-  ipcMain.handle(IpcChannels.setConfig, (_e, config: unknown): Config => writeConfig(config));
+  ipcMain.handle(IpcChannels.setConfig, (_e, config: unknown) => updateConfig(config));
 
-  ipcMain.handle(IpcChannels.search, (_e, query: string) =>
-    searchActions(query, readConfig().actions),
-  );
+  ipcMain.handle(IpcChannels.resolveQuery, (_e, input: string) => resolveLauncherQuery(input));
 
-  ipcMain.handle(IpcChannels.runAction, async (_e, actionId: string) => {
-    const action = readConfig().actions.find((a) => a.id === actionId);
+  ipcMain.handle(IpcChannels.runAction, async (_e, actionId: string, argument?: string) => {
+    const action = getConfig().actions.find((a) => a.id === actionId);
     if (!action) return { ok: false, error: `Unknown action: ${actionId}` };
+
+    const arg = argument?.trim() ?? '';
+    if (hasArgument(action) && action.argument?.required && arg === '') {
+      return { ok: false, error: 'This action requires an argument.' };
+    }
+
     try {
-      await runAction(action);
+      const resolved = arg !== '' ? applyArgument(action, arg) : action;
+      await runAction(resolved, electronPorts);
       hideLauncher();
       return { ok: true };
     } catch (err) {
