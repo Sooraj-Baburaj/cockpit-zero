@@ -20,13 +20,13 @@ extension recipes); this doc covers the layering and data flow.
 | ------------ | --------------------------------------------------------------------------------------- |
 | `schemas.ts` | Zod schemas — actions (discriminated union), aliases, workflows, settings.              |
 | `types.ts`   | Types inferred from schemas (`Action`, `Config`, …) + the `LauncherItem` result union.  |
-| `actions.ts` | Pure Level-2 helpers: `hasArgument`, `applyArgument`, `extractTokens`.                  |
+| `actions.ts` | Pure Level-2 helpers: `effectiveArguments`, `applyArguments`, `splitArgumentValues`.     |
 | `search.ts`  | `fzf`-backed `fuzzyRank` (generic), `searchConfig`/`searchActions`, and `resolveQuery`. |
 | `ipc.ts`     | The `IpcChannels` + `IpcApi` contract shared by main and preload.                       |
 | `config.ts`  | `validateConfig` / `defaultConfig`.                                                     |
 
 Both the desktop main process and the renderer reuse these — e.g. the launcher previews a
-parameterized action with the same `applyArgument` the main process uses to execute it, and the
+parameterized action with the same `applyArguments` the main process uses to execute it, and the
 generic `fuzzyRank` ranks actions, apps and files with one algorithm.
 
 ### The result model — `LauncherItem`
@@ -118,7 +118,7 @@ user types in LauncherBar
              └─ files-provider.search (OS index, time-boxed)   ⟶ aggregate.mergeResults
            → ResultList (sectioned: Actions / Workflows / Applications / Files)
 user presses Enter (run by item kind)
-  → action   → window.api.runAction(id, argument?) → applyArgument → action-runner → handler → OS
+  → action   → window.api.runAction(id, values?) → applyArguments → action-runner → handler → OS
   → workflow → window.api.runWorkflow(id)           → workflow-runner → action-runner per step
   → app/file → window.api.openPath(path)            → shell.openPath
 ```

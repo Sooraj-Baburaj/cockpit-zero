@@ -49,7 +49,7 @@ export function WorkflowEditor({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Workflows ({workflows.length})</h2>
+        <h2 className="text-lg font-semibold">Workflows ({workflows.length})</h2>
         <Button variant="primary" onClick={() => setEditing('new')} disabled={actions.length === 0}>
           New workflow
         </Button>
@@ -66,9 +66,12 @@ export function WorkflowEditor({
           hint="Chain several actions into one keyword to set up your whole context."
         />
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border">
+        <ul className="divide-y [divide-color:var(--cz-line-faint)] overflow-hidden rounded-lg border border-border">
           {workflows.map((workflow) => (
-            <li key={workflow.id} className="flex items-center justify-between gap-3 px-4 py-3">
+            <li
+              key={workflow.id}
+              className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface-2"
+            >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="truncate text-fg">{workflow.name}</span>
@@ -76,11 +79,13 @@ export function WorkflowEditor({
                     {workflow.steps.length} step{workflow.steps.length === 1 ? '' : 's'}
                   </Badge>
                 </div>
-                <div className="truncate text-xs text-subtle">{stepSummary(workflow)}</div>
+                <div className="truncate text-sm text-subtle">{stepSummary(workflow)}</div>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <Button onClick={() => setEditing(workflow)}>Edit</Button>
-                <Button variant="danger" onClick={() => remove(workflow.id)}>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Button variant="outline" size="sm" onClick={() => setEditing(workflow)}>
+                  Edit
+                </Button>
+                <Button variant="danger" size="sm" onClick={() => remove(workflow.id)}>
                   Delete
                 </Button>
               </div>

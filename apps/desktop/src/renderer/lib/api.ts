@@ -6,6 +6,7 @@ const MOCK_CONFIG: Config = {
   settings: {
     hotkey: 'CommandOrControl+Shift+Space',
     theme: 'system',
+    glass: true,
     launchAtLogin: false,
     telemetryEnabled: false,
   },
@@ -22,11 +23,16 @@ const mockApi: IpcApi = {
   getConfig: async () => MOCK_CONFIG,
   setConfig: async (config) => config,
   resolveQuery: async () => ({ kind: 'results', results: [] }),
+  searchSystem: async () => [],
   runAction: async () => ({ ok: true }),
   runWorkflow: async () => ({ ok: true }),
   openPath: async () => ({ ok: true }),
+  getFileIcon: async () => null,
+  getFavicon: async () => null,
+  completePath: async () => [],
   openSettings: async () => {},
   hideLauncher: async () => {},
+  platform: 'darwin',
 };
 
 /**

@@ -2,7 +2,7 @@ import { createId, type Action, type Alias } from '@cockpitzero/shared';
 import { Button } from '../atoms/Button.js';
 import { EmptyState } from '../atoms/EmptyState.js';
 import { Input } from '../atoms/Input.js';
-import { Select } from '../atoms/Select.js';
+import { Dropdown } from '../molecules/Dropdown.js';
 
 /**
  * Edits the keyword → action mappings. A keyword is what the user types to
@@ -52,19 +52,14 @@ export function AliasEditor({
             placeholder="keyword"
             className="w-40 font-mono"
           />
-          <Select
+          <Dropdown
+            ariaLabel="Action"
+            className="flex-1"
             value={alias.actionId}
-            onChange={(e) =>
-              update(alias.id, { actionId: e.target.value, label: titleOf(e.target.value) })
-            }
-          >
-            {actions.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.title}
-              </option>
-            ))}
-          </Select>
-          <Button variant="danger" onClick={() => remove(alias.id)}>
+            options={actions.map((a) => ({ value: a.id, label: a.title }))}
+            onChange={(v) => update(alias.id, { actionId: v, label: titleOf(v) })}
+          />
+          <Button variant="danger" size="sm" onClick={() => remove(alias.id)}>
             Remove
           </Button>
         </div>

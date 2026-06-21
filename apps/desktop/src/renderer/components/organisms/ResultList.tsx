@@ -21,26 +21,38 @@ export function ResultList({
   selected,
   onSelect,
   onHover,
+  listboxId,
 }: {
   results: LauncherItem[];
   selected: number;
   onSelect: (index: number) => void;
   onHover: (index: number) => void;
+  listboxId?: string;
 }) {
   return (
-    <ul className="max-h-80 overflow-y-auto py-1">
+    <ul
+      id={listboxId}
+      role="listbox"
+      aria-label="Results"
+      className="max-h-80 overflow-y-auto py-1"
+    >
       {results.map((item, i) => {
         const startsSection = i === 0 || results[i - 1]?.kind !== item.kind;
         return (
           <Fragment key={item.id}>
             {startsSection && (
-              <li className="px-5 pt-3 pb-1 text-[10px] font-semibold tracking-wide text-subtle uppercase">
+              <li
+                role="presentation"
+                className="px-5 pt-3 pb-1 text-xs font-semibold tracking-[0.08em] text-muted uppercase"
+              >
                 {SECTION_LABEL[item.kind]}
               </li>
             )}
             <ResultRow
               item={item}
+              optionId={`cz-opt-${i}`}
               selected={i === selected}
+              shortcut={i < 9 ? String(i + 1) : undefined}
               onHover={() => onHover(i)}
               onClick={() => onSelect(i)}
             />

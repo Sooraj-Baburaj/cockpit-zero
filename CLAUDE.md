@@ -136,12 +136,15 @@ Actions are a discriminated union on `type`. To add one (e.g. `search-web`):
 
 ### Parameterized actions (Level 2)
 
-Any action can declare an optional `argument` (`{ name, placeholder, required }`) and use `{name}`
-tokens in its templated fields (url / target / command / args / content). At runtime the launcher
-captures the text after a matching alias keyword as the argument; the IPC layer calls
-`applyArgument(action, value)` (`packages/shared/src/actions.ts`) to substitute tokens
-(URL-encoding for `open-url`) before the action runner executes it. `resolveQuery` decides between
-normal results and the argument-capture state. All of this is pure and lives in `shared`.
+Any action can declare optional `arguments` (an ordered array of
+`{ name, placeholder, required }`) and use `{name}` tokens in its templated fields (url / target /
+command / args / content). `effectiveArguments(action)` returns the declared parameters, or — when
+none are declared — synthesizes one per `{token}` found, so "tokens imply parameters" still works.
+At runtime the launcher captures the text after a matching alias keyword and splits it positionally
+into one value per parameter (`splitArgumentValues`; the **last** parameter is greedy); the IPC
+layer calls `applyArguments(action, values)` (`packages/shared/src/actions.ts`) to substitute each
+token (URL-encoding for `open-url`) before the action runner executes it. `resolveQuery` decides
+between normal results and the argument-capture state. All of this is pure and lives in `shared`.
 
 ### Workflows (Level 3)
 
@@ -158,16 +161,21 @@ union on `kind`: `action` / `workflow` (from config) and `app` / `file` (from sy
 row by switching on `kind` (`LauncherBar.run`): `runAction(id)`, `runWorkflow(id)`, or
 `openPath(path)`.
 
-Resolution has two halves:
+Resolution has two halves, delivered over **two separate IPC calls** so the slow OS index never
+delays the configured matches (the renderer fires both in parallel and merges — see
+`hooks/useLauncherSearch.ts`):
 
-- **Pure, config-only (`shared`).** `resolveQuery(input, config)` decides argument-capture vs ranked
+- **Config (instant).** `resolveQuery(input, config)` (`shared`) decides argument-capture vs ranked
   results; `searchConfig` ranks actions + workflows. `fuzzyRank<T>` is the generic `fzf` ranker —
-  reuse it for any new source, never hand-roll matching.
-- **System search (desktop main).** For a non-empty plain query, `services/search-service.ts` also
-  fans out to the app + file providers in parallel and `aggregate.mergeResults` dedupes + section-
-  orders (Actions → Workflows → Applications → Files) + caps. OS access lives **only** in
-  `infra/app-scanner.ts` (installed apps) and `infra/file-search.ts` (files: macOS `mdfind`, Windows
-  `SystemIndex`), each time-boxed and degrading to `[]` so a slow index never blocks the bar.
+  reuse it for any new source, never hand-roll matching. The main-process `resolveLauncherQuery`
+  (channel `resolveQuery`) wraps this **synchronously** — it does NOT await system search.
+- **System search (async, desktop main).** For a non-empty plain query the renderer also calls the
+  `searchSystem` channel → `search-service.searchSystem`, which fans out to the app + file providers
+  in parallel and `aggregate.mergeResults` dedupes + section-orders (Applications → Files) + caps.
+  The renderer appends these to the config rows (final order Actions → Workflows → Applications →
+  Files, capped at `RESULT_LIMIT`). OS access lives **only** in `infra/app-scanner.ts` (installed
+  apps) and `infra/file-search.ts` (files: macOS `mdfind`, Windows `SystemIndex`), each time-boxed
+  and degrading to `[]` so a slow index never blocks the bar.
 
 ### How to add a search provider
 
@@ -176,9 +184,10 @@ Resolution has two halves:
 2. Add `services/search/<name>-provider.ts` exporting a `create<Name>Provider(adapter)` that returns
    a `SearchProvider` — take the adapter **injected** (dependency inversion) and map results to
    `LauncherItem`s via `fuzzyRank` + `toRanges`. This is what keeps provider tests electron-free.
-3. Wire it into `services/search-service.ts` (parallel `Promise.allSettled` + `mergeResults`); if it
-   introduces a new `LauncherItemKind`, extend the union, `format.ts` (`itemSubtitle`/`itemBadge`),
-   `ResultIcon`, the `SECTION_RANK`/`SECTION_LABEL` maps, and `LauncherBar.run`.
+3. Wire it into `search-service.searchSystem` (the async phase — parallel `Promise.allSettled` +
+   `mergeResults`), not the synchronous `resolveLauncherQuery`. If it introduces a new
+   `LauncherItemKind`, extend the union, `format.ts` (`itemSubtitle`/`itemBadge`), `ResultIcon`, the
+   `SECTION_RANK`/`SECTION_LABEL` maps, and `LauncherBar.run`.
 4. If the row runs differently, add an IPC channel (recipe above); else reuse `openPath`.
 5. Test the provider with a fake adapter under `apps/desktop/test/` (see `apps-provider.test.ts`).
 
@@ -205,6 +214,11 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
   never maintain a parallel hand-written type.
 - Prefer `import type { … }` for type-only imports (enforced by ESLint).
 - Format with Prettier (`.prettierrc`); lint with the shared ESLint config.
+- **No native `<select>`.** Use the custom `Dropdown` molecule
+  (`renderer/components/molecules/Dropdown.tsx`) for every single-choice picker — it's a themed,
+  keyboard-navigable ARIA listbox so the popup matches the warm surfaces (the OS-drawn `<select>`
+  menu can't be themed). Pass `options: {value,label}[]` + `onChange(value)`, and an `ariaLabel`
+  when it isn't already inside a `<Field>`.
 
 ## Testing conventions
 
@@ -246,6 +260,23 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
 - **System search shells out.** `infra/file-search.ts` runs `mdfind` / PowerShell; keep new OS calls
   there, always time-boxed and wrapped so failures return `[]`. Linux is unimplemented (returns
   empty) for both apps and files.
+- **macOS app icons ≠ `app.getFileIcon`.** Electron's `app.getFileIcon` returns a *generic
+  placeholder* for `.app` bundles (byte-identical across apps), so icons for app rows are read from
+  the bundle's real `.icns` via `infra/mac-app-icon.ts` (`defaults` + `sips`, time-boxed) — which
+  **persists** the converted PNG under `userData/icon-cache` (keyed by path, invalidated by bundle
+  mtime) so `sips` runs once per app, not per restart. Files and other platforms (Windows `.lnk`
+  shortcuts) still use `app.getFileIcon`, which resolves their real icon. `services/icon-service.ts`
+  picks the path per target and keeps an in-memory cache on top. Don't "simplify" app icons back to
+  `getFileIcon` — they'll go blank on macOS.
+- **Keyboard-focus ring.** A global `:focus-visible` outline lives in `styles.css`. The launcher's
+  always-auto-focused search input is excluded via `input:not(.cz-search-input):focus-visible`
+  (browsers treat text inputs as perpetually focus-visible) — it has its own focus treatment, so
+  don't drop the `cz-search-input` class or the ring will sit on the bar permanently.
+- **Translucency is one token.** Both the launcher panel (`.cz-panel`) and the settings window
+  (`.cz-window`) share `--cz-panel-bg`'s alpha (per theme); the "Frosted glass" toggle swaps both to
+  opaque via `.cz-no-glass`. Tune transparency on that token, not on components.
+- **Settings nav order** is the `TABS` array in `screens/Settings.tsx` (actions → workflows →
+  aliases → general → appearance); the initial tab must be a member of it.
 
 ## Code intelligence (codegraph)
 

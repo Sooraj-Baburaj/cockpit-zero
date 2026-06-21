@@ -13,7 +13,10 @@ export function Highlight({ text, ranges }: { text: string; ranges: Array<[numbe
   ranges.forEach(([start, end], i) => {
     if (start > cursor) parts.push(<Fragment key={`t${i}`}>{text.slice(cursor, start)}</Fragment>);
     parts.push(
-      <mark key={`m${i}`} className="bg-transparent font-semibold text-accent">
+      <mark
+        key={`m${i}`}
+        className="bg-transparent font-semibold text-[var(--cz-accent-bright)]"
+      >
         {text.slice(start, end)}
       </mark>,
     );

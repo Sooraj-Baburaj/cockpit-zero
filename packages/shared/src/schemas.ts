@@ -18,11 +18,13 @@ export const AliasSchema = z.object({
 });
 
 /**
- * Declares that an action accepts a runtime argument (Level 2 — parameterized
- * actions). The argument's value is substituted into `{name}` tokens in the
- * action's templated fields. Example: an `open-url` with
- * `url: "https://npmjs.com/package/{query}"` and `argument: { name: "query" }`
- * turns `npm react` into npmjs.com/package/react.
+ * Declares one runtime parameter an action accepts (Level 2 — parameterized
+ * actions). The parameter's value is substituted into `{name}` tokens in the
+ * action's templated fields. An action may declare several (see `arguments` on
+ * `baseActionShape`); the launcher captures them positionally. Example: an
+ * `open-url` with `url: "https://github.com/{owner}/{repo}"` and
+ * `arguments: [{ name: "owner" }, { name: "repo" }]` turns `gh anthropic claude`
+ * into github.com/anthropic/claude.
  */
 export const ArgumentSchema = z.object({
   /** Token name referenced as `{name}` in templated fields. */
@@ -34,14 +36,16 @@ export const ArgumentSchema = z.object({
 });
 
 /**
- * Fields shared by every action member. `argument` is opt-in; an action without
- * it behaves exactly like a Level-1 static action. Spread into each union member
- * so the shape stays DRY (discriminated unions can't share a base object).
+ * Fields shared by every action member. `arguments` is opt-in; an action without
+ * it behaves exactly like a Level-1 static action. Each declared parameter is
+ * captured positionally in the launcher and substituted into its `{name}` token.
+ * Spread into each union member so the shape stays DRY (discriminated unions
+ * can't share a base object).
  */
 const baseActionShape = {
   id: z.string().min(1),
   title: z.string().min(1),
-  argument: ArgumentSchema.optional(),
+  arguments: z.array(ArgumentSchema).optional(),
 } as const;
 
 /**
@@ -102,6 +106,8 @@ export const SettingsSchema = z.object({
   /** Electron accelerator string, e.g. "CommandOrControl+Shift+Space". */
   hotkey: z.string().min(1).default('CommandOrControl+Shift+Space'),
   theme: z.enum(['system', 'light', 'dark']).default('system'),
+  /** Frosted-glass translucency for the launcher + settings windows (Appearance). */
+  glass: z.boolean().default(true),
   launchAtLogin: z.boolean().default(false),
   telemetryEnabled: z.boolean().default(false),
 });

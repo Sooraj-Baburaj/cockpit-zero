@@ -10,11 +10,16 @@ const api: IpcApi = {
   getConfig: () => ipcRenderer.invoke(IpcChannels.getConfig),
   setConfig: (config) => ipcRenderer.invoke(IpcChannels.setConfig, config),
   resolveQuery: (input) => ipcRenderer.invoke(IpcChannels.resolveQuery, input),
-  runAction: (actionId, argument) => ipcRenderer.invoke(IpcChannels.runAction, actionId, argument),
+  searchSystem: (input) => ipcRenderer.invoke(IpcChannels.searchSystem, input),
+  runAction: (actionId, values) => ipcRenderer.invoke(IpcChannels.runAction, actionId, values),
   runWorkflow: (workflowId) => ipcRenderer.invoke(IpcChannels.runWorkflow, workflowId),
   openPath: (path) => ipcRenderer.invoke(IpcChannels.openPath, path),
+  getFileIcon: (path) => ipcRenderer.invoke(IpcChannels.getFileIcon, path),
+  getFavicon: (url) => ipcRenderer.invoke(IpcChannels.getFavicon, url),
+  completePath: (input) => ipcRenderer.invoke(IpcChannels.completePath, input),
   openSettings: () => ipcRenderer.invoke(IpcChannels.openSettings),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
+  platform: process.platform,
 };
 
 contextBridge.exposeInMainWorld('api', api);

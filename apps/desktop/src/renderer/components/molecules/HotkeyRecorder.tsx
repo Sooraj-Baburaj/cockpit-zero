@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { cn } from '../../lib/cn.js';
+import { formatAccelerator } from '../../lib/platform.js';
+import { Kbd } from '../atoms/Kbd.js';
 
 /** Translate a keydown into an Electron accelerator string, or null if only
  *  modifier keys are held. */
@@ -44,11 +46,15 @@ export function HotkeyRecorder({
         }
       }}
       className={cn(
-        'w-full rounded-lg border bg-surface-2 px-3 py-2 text-left font-mono text-sm text-fg transition',
-        recording ? 'border-accent text-muted' : 'border-border hover:border-accent',
+        'cz-input flex cursor-pointer items-center gap-1.5 text-left',
+        recording && '[box-shadow:var(--cz-ring-focus)] [&]:[border-color:var(--cz-accent)]',
       )}
     >
-      {recording ? 'Press keys…' : value}
+      {recording ? (
+        <span className="text-muted">Press keys…</span>
+      ) : (
+        formatAccelerator(value).map((key, i) => <Kbd key={i}>{key}</Kbd>)
+      )}
     </button>
   );
 }

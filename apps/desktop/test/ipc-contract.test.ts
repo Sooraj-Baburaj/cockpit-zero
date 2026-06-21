@@ -8,17 +8,21 @@ import { IpcChannels, type IpcApi } from '@cockpitzero/shared';
  */
 describe('IPC contract', () => {
   it('every IpcApi method has a matching channel', () => {
-    const apiMethods: Array<keyof IpcApi> = [
+    const channelMethods: Array<keyof IpcApi> = [
       'getConfig',
       'setConfig',
       'resolveQuery',
+      'searchSystem',
       'runAction',
       'runWorkflow',
       'openPath',
+      'getFileIcon',
+      'getFavicon',
+      'completePath',
       'openSettings',
       'hideLauncher',
     ];
-    expect(Object.keys(IpcChannels).sort()).toEqual([...apiMethods].sort());
+    expect(Object.keys(IpcChannels).sort()).toEqual([...channelMethods].sort());
   });
 
   it('channel values are unique', () => {

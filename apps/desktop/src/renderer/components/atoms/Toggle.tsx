@@ -19,10 +19,17 @@ export function Toggle({
           onChange={(e) => onChange(e.target.checked)}
           className="peer sr-only"
         />
-        <span className="absolute inset-0 rounded-full bg-border transition peer-checked:bg-accent" />
         <span
           className={cn(
-            'absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition',
+            'absolute inset-0 rounded-full border transition',
+            checked
+              ? 'bg-accent [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-accent-soft)]'
+              : 'bg-[var(--cz-glass-3)] border-border',
+          )}
+        />
+        <span
+          className={cn(
+            'absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition [box-shadow:0_1px_3px_rgba(58,48,42,0.28)]',
             checked && 'translate-x-4',
           )}
         />

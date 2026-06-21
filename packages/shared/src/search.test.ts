@@ -13,12 +13,20 @@ const config: Config = {
       title: 'Google search',
       type: 'open-url',
       url: 'https://www.google.com/search?q={query}',
-      argument: { name: 'query', placeholder: 'search terms', required: true },
+      arguments: [{ name: 'query', placeholder: 'search terms', required: true }],
+    },
+    {
+      id: 'repo',
+      title: 'Open repo',
+      type: 'open-url',
+      url: 'https://github.com/{owner}/{repo}',
+      arguments: [{ name: 'owner', required: true }, { name: 'repo', required: true }],
     },
   ],
   aliases: [
     { id: 'al1', keyword: 'gh', label: 'GitHub', actionId: 'a1' },
     { id: 'al2', keyword: 'g', label: 'Google', actionId: 'g' },
+    { id: 'al3', keyword: 'repo', label: 'Repo', actionId: 'repo' },
   ],
 };
 
@@ -34,6 +42,27 @@ describe('fuzzyRank', () => {
 
   it('returns every item unranked for an empty query', () => {
     expect(fuzzyRank('', ['a', 'b'], (s) => s)).toHaveLength(2);
+  });
+
+  it('tolerates a typo via the edit-distance fallback', () => {
+    // "chrtme" is not a subsequence of "chrome" (no "t"), so fzf alone misses it.
+    const matched = fuzzyRank('chrtme', ['Chrome', 'Firefox', 'Safari'], (s) => s).map(
+      (r) => r.item,
+    );
+    expect(matched).toContain('Chrome');
+    expect(matched).not.toContain('Safari');
+  });
+
+  it('matches a typo against one word of a multi-word title', () => {
+    const matched = fuzzyRank('chrme', ['Google Chrome', 'Disk Utility'], (s) => s).map(
+      (r) => r.item,
+    );
+    expect(matched).toContain('Google Chrome');
+  });
+
+  it('ranks exact subsequence matches ahead of typo matches', () => {
+    const ranked = fuzzyRank('chrome', ['chrome', 'chrme'], (s) => s).map((r) => r.item);
+    expect(ranked[0]).toBe('chrome');
   });
 });
 
@@ -67,13 +96,41 @@ describe('searchConfig / searchActions', () => {
 });
 
 describe('resolveQuery', () => {
-  it('captures an argument for a parameterized alias keyword', () => {
+  it('captures a single (greedy) argument for a parameterized alias keyword', () => {
     const resolved = resolveQuery('g hello world', config);
     expect(resolved.kind).toBe('argument');
     if (resolved.kind === 'argument') {
       expect(resolved.action.id).toBe('g');
       expect(resolved.keyword).toBe('g');
-      expect(resolved.argument).toBe('hello world');
+      expect(resolved.values).toEqual(['hello world']);
+      expect(resolved.activeIndex).toBe(0);
+    }
+  });
+
+  it('captures multiple positional arguments, last one greedy', () => {
+    const resolved = resolveQuery('repo anthropic claude code', config);
+    expect(resolved.kind).toBe('argument');
+    if (resolved.kind === 'argument') {
+      expect(resolved.values).toEqual(['anthropic', 'claude code']);
+      expect(resolved.activeIndex).toBe(1);
+    }
+  });
+
+  it('advances the active parameter when the current word ends with a space', () => {
+    const resolved = resolveQuery('repo anthropic ', config);
+    expect(resolved.kind).toBe('argument');
+    if (resolved.kind === 'argument') {
+      expect(resolved.values).toEqual(['anthropic', '']);
+      expect(resolved.activeIndex).toBe(1);
+    }
+  });
+
+  it('keeps the caret on the first parameter until a space is typed', () => {
+    const resolved = resolveQuery('repo anth', config);
+    expect(resolved.kind).toBe('argument');
+    if (resolved.kind === 'argument') {
+      expect(resolved.values).toEqual(['anth', '']);
+      expect(resolved.activeIndex).toBe(0);
     }
   });
 

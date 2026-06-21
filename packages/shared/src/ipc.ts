@@ -1,4 +1,4 @@
-import type { Config, ResolvedQuery } from './types.js';
+import type { Config, LauncherItem, ResolvedQuery } from './types.js';
 
 /**
  * IPC channel names — the contract between the desktop main process and the
@@ -12,9 +12,13 @@ export const IpcChannels = {
   getConfig: 'config:get',
   setConfig: 'config:set',
   resolveQuery: 'launcher:resolve-query',
+  searchSystem: 'launcher:search-system',
   runAction: 'launcher:run-action',
   runWorkflow: 'launcher:run-workflow',
   openPath: 'launcher:open-path',
+  getFileIcon: 'system:get-file-icon',
+  getFavicon: 'system:get-favicon',
+  completePath: 'system:complete-path',
   openSettings: 'window:open-settings',
   hideLauncher: 'window:hide-launcher',
 } as const;
@@ -29,14 +33,29 @@ export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
 export interface IpcApi {
   getConfig(): Promise<Config>;
   setConfig(config: Config): Promise<Config>;
-  /** Interpret raw input → ranked results or an argument-capture state (L2). */
+  /** Interpret raw input → ranked **config** results or an argument-capture state
+   *  (L2). Returns instantly; system (app/file) results come from `searchSystem`. */
   resolveQuery(input: string): Promise<ResolvedQuery>;
-  /** Run an action; `argument` fills `{token}`s for parameterized actions. */
-  runAction(actionId: string, argument?: string): Promise<{ ok: boolean; error?: string }>;
+  /** System-search results (installed apps + files) for a plain query. Split from
+   *  `resolveQuery` so the slow OS index never delays the instant config matches. */
+  searchSystem(input: string): Promise<LauncherItem[]>;
+  /** Run an action; `values` fill the action's `{token}`s positionally (L2). */
+  runAction(actionId: string, values?: string[]): Promise<{ ok: boolean; error?: string }>;
   /** Run a workflow's steps in sequence (Level 3). */
   runWorkflow(workflowId: string): Promise<{ ok: boolean; error?: string }>;
   /** Open a file or application by absolute path (system-search results). */
   openPath(path: string): Promise<{ ok: boolean; error?: string }>;
+  /** Native icon for an app/file path as a data URL, or null if unavailable. */
+  getFileIcon(path: string): Promise<string | null>;
+  /** Favicon for an http(s) URL as a data URL, or null if unavailable. */
+  getFavicon(url: string): Promise<string | null>;
+  /** Filesystem path suggestions for a partial absolute path (autocomplete). */
+  completePath(input: string): Promise<string[]>;
   openSettings(): Promise<void>;
   hideLauncher(): Promise<void>;
+  /** The host platform, so the renderer can render OS-correct shortcut glyphs. */
+  platform: Platform;
 }
+
+/** Host platform (mirrors Node's `process.platform`, kept dependency-free here). */
+export type Platform = 'darwin' | 'win32' | 'linux' | (string & {});

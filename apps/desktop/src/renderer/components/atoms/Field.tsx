@@ -9,10 +9,12 @@ export function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block space-y-1.5">
+    <label className="block">
       <span className="block text-sm font-medium text-fg">{label}</span>
-      {description && <span className="block text-xs text-muted">{description}</span>}
-      {children}
+      {description && (
+        <span className="mt-0.5 mb-2 block text-xs leading-normal text-muted">{description}</span>
+      )}
+      <span className={description ? 'block' : 'mt-1.5 block'}>{children}</span>
     </label>
   );
 }

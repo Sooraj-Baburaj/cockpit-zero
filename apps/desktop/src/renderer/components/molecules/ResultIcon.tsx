@@ -1,4 +1,6 @@
-import type { LauncherItemKind } from '@cockpitzero/shared';
+import type { LauncherItem, LauncherItemKind } from '@cockpitzero/shared';
+import { cn } from '../../lib/cn.js';
+import { useResultIcon } from '../../hooks/useResultIcon.js';
 
 /** A small outline glyph per result kind, so apps/files read at a glance. */
 const glyphs: Record<LauncherItemKind, React.ReactNode> = {
@@ -26,10 +28,34 @@ const glyphs: Record<LauncherItemKind, React.ReactNode> = {
   ),
 };
 
-/** Themed icon chip shown at the start of a launcher result row. */
-export function ResultIcon({ kind }: { kind: LauncherItemKind }) {
+/**
+ * Themed icon chip at the start of a launcher result row. Apps and files show
+ * their real OS icon once it loads; configured actions/workflows (and any icon
+ * that fails to load) fall back to the thin-line kind glyph. Default chip is a
+ * quiet warm surface; `lit` (the selected row): sienna fill, white glyph and a
+ * soft glow — the row's one accent moment.
+ */
+export function ResultIcon({ item, lit = false }: { item: LauncherItem; lit?: boolean }) {
+  const kind: LauncherItemKind = item.kind;
+  const nativeIcon = useResultIcon(item);
+
+  if (nativeIcon) {
+    return (
+      <span className="flex size-7 shrink-0 items-center justify-center">
+        <img src={nativeIcon} alt="" className="size-[22px] rounded-[5px] object-contain" />
+      </span>
+    );
+  }
+
   return (
-    <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted">
+    <span
+      className={cn(
+        'flex size-7 shrink-0 items-center justify-center rounded-md border transition-[background,box-shadow,color] duration-200',
+        lit
+          ? '[background:var(--cz-accent-grad)] text-accent-fg [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-chip)]'
+          : 'bg-surface-2 border-border text-muted',
+      )}
+    >
       <svg
         viewBox="0 0 16 16"
         className="size-4"

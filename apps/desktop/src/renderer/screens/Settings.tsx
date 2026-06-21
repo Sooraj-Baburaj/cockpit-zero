@@ -1,27 +1,30 @@
 import { useState } from 'react';
-import type { Action, Settings as SettingsType } from '@cockpitzero/shared';
+import { createId, type Action, type Alias, type Settings as SettingsType } from '@cockpitzero/shared';
 import { useConfig } from '../hooks/useConfig.js';
-import { useTheme } from '../hooks/useTheme.js';
+import { useAppearance } from '../hooks/useAppearance.js';
 import { SettingsLayout } from '../components/templates/SettingsLayout.js';
 import { SettingsPanel } from '../components/organisms/SettingsPanel.js';
+import { AppearancePanel } from '../components/organisms/AppearancePanel.js';
 import { ActionList } from '../components/organisms/ActionList.js';
 import { ActionForm } from '../components/organisms/ActionForm.js';
 import { AliasEditor } from '../components/organisms/AliasEditor.js';
 import { WorkflowEditor } from '../components/organisms/WorkflowEditor.js';
 import { Button } from '../components/atoms/Button.js';
 
-const TABS = ['general', 'actions', 'aliases', 'workflows'];
+// Primary config tabs first; General/Appearance are housekeeping, kept last.
+const TABS = ['actions', 'workflows', 'aliases', 'general', 'appearance'];
 
 /**
  * The settings / config-editor window — thin composition over `useConfig`.
  * Every change is persisted immediately through the main process (which also
- * re-registers the hotkey live). `useTheme` keeps the window's palette in sync.
+ * re-registers the hotkey live). `useAppearance` keeps the window's palette and
+ * frosted-glass in sync with the saved config.
  */
 export function Settings() {
   const { config, setConfig, save } = useConfig();
-  useTheme(config?.settings.theme);
+  useAppearance(config?.settings.theme, config?.settings.glass);
 
-  const [tab, setTab] = useState('general');
+  const [tab, setTab] = useState('actions');
   const [editing, setEditing] = useState<Action | 'new' | null>(null);
 
   if (!config) {
@@ -35,14 +38,33 @@ export function Settings() {
 
   const updateSettings = (settings: SettingsType) => persist({ ...config, settings });
 
-  const upsertAction = (action: Action) => {
+  /** The action's primary trigger keyword, shown/edited inline in the form. */
+  const keywordOf = (actionId: string) =>
+    config.aliases.find((a) => a.actionId === actionId)?.keyword ?? '';
+
+  const upsertAction = (action: Action, keyword: string) => {
     const exists = config.actions.some((a) => a.id === action.id);
-    persist({
-      ...config,
-      actions: exists
-        ? config.actions.map((a) => (a.id === action.id ? action : a))
-        : [...config.actions, action],
-    });
+    const actions = exists
+      ? config.actions.map((a) => (a.id === action.id ? action : a))
+      : [...config.actions, action];
+
+    // Sync the inline keyword to the action's primary alias.
+    const primary = config.aliases.find((a) => a.actionId === action.id);
+    let aliases: Alias[];
+    if (keyword === '') {
+      aliases = primary ? config.aliases.filter((a) => a.id !== primary.id) : config.aliases;
+    } else if (primary) {
+      aliases = config.aliases.map((a) =>
+        a.id === primary.id ? { ...a, keyword, label: action.title } : a,
+      );
+    } else {
+      aliases = [
+        ...config.aliases,
+        { id: createId('al'), keyword, label: action.title, actionId: action.id },
+      ];
+    }
+
+    persist({ ...config, actions, aliases });
     setEditing(null);
   };
 
@@ -57,17 +79,22 @@ export function Settings() {
     <SettingsLayout tabs={TABS} active={tab} onSelect={setTab}>
       {tab === 'general' && <SettingsPanel settings={config.settings} onChange={updateSettings} />}
 
+      {tab === 'appearance' && (
+        <AppearancePanel settings={config.settings} onChange={updateSettings} />
+      )}
+
       {tab === 'actions' &&
         (editing ? (
           <ActionForm
             initial={editing === 'new' ? undefined : editing}
+            initialKeyword={editing === 'new' ? undefined : keywordOf(editing.id)}
             onSubmit={upsertAction}
             onCancel={() => setEditing(null)}
           />
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium">Actions ({config.actions.length})</h2>
+              <h2 className="text-lg font-semibold">Actions ({config.actions.length})</h2>
               <Button variant="primary" onClick={() => setEditing('new')}>
                 New action
               </Button>

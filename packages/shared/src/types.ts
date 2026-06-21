@@ -76,6 +76,8 @@ export type ResolvedQuery =
       action: Action;
       /** The matched alias keyword (rendered as a chip). */
       keyword: string;
-      /** The text typed after the keyword (the live argument value). */
-      argument: string;
+      /** Live values for the action's parameters, in declaration order. */
+      values: string[];
+      /** Index of the parameter currently being typed (for caret/highlight). */
+      activeIndex: number;
     };

@@ -1,9 +1,13 @@
 import { ipcMain } from 'electron';
-import { IpcChannels, applyArgument, hasArgument } from '@cockpitzero/shared';
+import { IpcChannels, applyArguments, effectiveArguments, valuesToRecord } from '@cockpitzero/shared';
 import { getConfig, updateConfig } from '../services/config-service.js';
-import { resolveLauncherQuery } from '../services/search-service.js';
+import { resolveLauncherQuery, searchSystem } from '../services/search-service.js';
 import { runAction } from '../services/action-runner/index.js';
 import { runWorkflow } from '../services/workflow-runner.js';
+import { getFileIcon } from '../services/icon-service.js';
+import { getFavicon } from '../services/favicon-service.js';
+import { completePath } from '../services/path-complete.js';
+import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openSettings } from '../windows/index.js';
 
@@ -20,19 +24,25 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IpcChannels.resolveQuery, (_e, input: string) => resolveLauncherQuery(input));
 
-  ipcMain.handle(IpcChannels.runAction, async (_e, actionId: string, argument?: string) => {
+  ipcMain.handle(IpcChannels.searchSystem, (_e, input: string) => searchSystem(input));
+
+  ipcMain.handle(IpcChannels.runAction, async (_e, actionId: string, values?: string[]) => {
     const action = getConfig().actions.find((a) => a.id === actionId);
     if (!action) return { ok: false, error: `Unknown action: ${actionId}` };
 
-    const arg = argument?.trim() ?? '';
-    if (hasArgument(action) && action.argument?.required && arg === '') {
-      return { ok: false, error: 'This action requires an argument.' };
+    const args = effectiveArguments(action);
+    const vals = args.map((_, i) => values?.[i]?.trim() ?? '');
+    const missing = args.find((arg, i) => arg.required && vals[i] === '');
+    if (missing) {
+      return { ok: false, error: `This action requires “${missing.name}”.` };
     }
 
     try {
-      const resolved = arg !== '' ? applyArgument(action, arg) : action;
+      const resolved =
+        args.length > 0 ? applyArguments(action, valuesToRecord(args, vals)) : action;
       await runAction(resolved, electronPorts);
-      hideLauncher();
+      recordUse(action.id);
+      // The renderer hides the launcher after showing run feedback.
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err) };
@@ -47,7 +57,7 @@ export function registerIpcHandlers(): void {
     const byId = new Map(config.actions.map((a) => [a.id, a]));
     try {
       await runWorkflow(workflow, (id) => byId.get(id), electronPorts);
-      hideLauncher();
+      recordUse(workflow.id);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err) };
@@ -57,12 +67,18 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.openPath, async (_e, path: string) => {
     try {
       await electronPorts.openPath(path);
-      hideLauncher();
+      recordUse(path);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err) };
     }
   });
+
+  ipcMain.handle(IpcChannels.getFileIcon, (_e, path: string) => getFileIcon(path));
+
+  ipcMain.handle(IpcChannels.getFavicon, (_e, url: string) => getFavicon(url));
+
+  ipcMain.handle(IpcChannels.completePath, (_e, input: string) => completePath(input));
 
   ipcMain.handle(IpcChannels.openSettings, () => {
     openSettings();

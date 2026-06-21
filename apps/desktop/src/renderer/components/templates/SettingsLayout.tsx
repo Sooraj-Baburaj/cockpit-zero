@@ -1,6 +1,39 @@
+import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn.js';
 
-/** Frame for the settings window: opaque themed background, header, and tabs. */
+/** Thin-line nav glyph per settings tab. */
+const NAV_GLYPH: Record<string, ReactNode> = {
+  general: (
+    <>
+      <circle cx="8" cy="8" r="2.25" />
+      <path d="M8 1.6v1.9M8 12.5v1.9M14.4 8h-1.9M3.5 8H1.6M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3M12.5 12.5l-1.3-1.3M4.8 4.8 3.5 3.5" />
+    </>
+  ),
+  appearance: (
+    <>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M8 2v12" />
+      <path d="M8 2a6 6 0 0 1 0 12" fill="currentColor" stroke="none" />
+    </>
+  ),
+  actions: <path d="M8.5 1.5 3.5 9H7l-.5 5.5L12.5 7H9l-.5-5.5Z" />,
+  aliases: (
+    <>
+      <path d="M3 8h10" />
+      <path d="m8 3-5 5 5 5" />
+    </>
+  ),
+  workflows: (
+    <>
+      <path d="M8 2 14 5l-6 3-6-3 6-3Z" />
+      <path d="m2 8 6 3 6-3" />
+      <path d="m2 11 6 3 6-3" />
+    </>
+  ),
+};
+
+/** Frame for the settings window: a warm-white surface with a left nav rail and
+ *  a scrolling content pane. */
 export function SettingsLayout({
   tabs,
   active,
@@ -10,35 +43,68 @@ export function SettingsLayout({
   tabs: string[];
   active: string;
   onSelect: (tab: string) => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-bg text-fg">
-      <div className="mx-auto max-w-3xl px-8 py-8">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold">CockpitZero</h1>
-          <p className="text-sm text-muted">Settings</p>
-        </header>
-
-        <nav className="mb-6 flex gap-1 border-b border-border">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => onSelect(tab)}
-              className={cn(
-                '-mb-px border-b-2 px-3 py-2 text-sm capitalize transition',
-                active === tab
-                  ? 'border-accent text-fg'
-                  : 'border-transparent text-muted hover:text-fg',
-              )}
+    <div className="cz-window flex h-screen text-fg">
+      <nav className="flex w-[200px] shrink-0 flex-col border-r [border-color:var(--cz-line-faint)] px-3 py-5">
+        <div className="flex items-center gap-[9px] px-2 pb-[18px]">
+          <span className="grid size-[26px] place-items-center rounded-lg [background:var(--cz-accent-grad)] [box-shadow:var(--cz-glow-accent)]">
+            <svg
+              viewBox="0 0 16 16"
+              className="size-3.5"
+              fill="none"
+              stroke="#fff"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              {tab}
-            </button>
-          ))}
-        </nav>
+              <path d="M8.5 1.5 3.5 9H7l-.5 5.5L12.5 7H9l-.5-5.5Z" />
+            </svg>
+          </span>
+          <span className="text-base font-semibold tracking-[-0.01em]">CockpitZero</span>
+        </div>
 
-        {children}
-      </div>
+        <div className="flex flex-col gap-[3px]">
+          {tabs.map((tab) => {
+            const isActive = active === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => onSelect(tab)}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  'flex w-full items-center gap-2.5 rounded-md border px-3 py-2 text-left text-sm font-medium capitalize transition',
+                  isActive
+                    ? 'border-[var(--cz-accent-line)] text-fg [background:var(--cz-glass-selected)] [box-shadow:var(--cz-glow-accent-soft)]'
+                    : 'border-transparent text-muted hover:bg-surface-2 hover:text-fg',
+                )}
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  className={cn('size-[15px]', isActive && 'text-[var(--cz-accent-bright)]')}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  {NAV_GLYPH[tab]}
+                </svg>
+                {tab}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-auto px-2 font-mono text-[11px] text-[var(--cz-fg-faint)]">
+          Settings · v1.0
+        </div>
+      </nav>
+
+      <div className="min-w-0 flex-1 overflow-y-auto px-8 py-7">{children}</div>
     </div>
   );
 }

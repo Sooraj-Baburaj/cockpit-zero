@@ -23,7 +23,7 @@ describe('config', () => {
           title: 'npm package',
           type: 'open-url',
           url: 'https://www.npmjs.com/package/{query}',
-          argument: { name: 'query' },
+          arguments: [{ name: 'query' }],
         },
       ],
     });

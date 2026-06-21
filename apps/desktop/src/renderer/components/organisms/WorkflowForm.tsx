@@ -3,7 +3,7 @@ import { createId, type Action, type Workflow } from '@cockpitzero/shared';
 import { Button } from '../atoms/Button.js';
 import { Field } from '../atoms/Field.js';
 import { Input } from '../atoms/Input.js';
-import { Select } from '../atoms/Select.js';
+import { Dropdown } from '../molecules/Dropdown.js';
 import { EmptyState } from '../atoms/EmptyState.js';
 
 /**
@@ -73,24 +73,30 @@ export function WorkflowForm({
         {steps.map((stepId, index) => (
           <div key={index} className="flex items-center gap-2">
             <span className="w-5 shrink-0 text-center text-xs text-subtle">{index + 1}</span>
-            <Select value={stepId} onChange={(e) => setStep(index, e.target.value)}>
-              {actions.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.title}
-                </option>
-              ))}
-            </Select>
-            <Button onClick={() => move(index, -1)} disabled={index === 0} aria-label="Move up">
+            <Dropdown
+              ariaLabel={`Step ${index + 1} action`}
+              className="flex-1"
+              value={stepId}
+              options={actions.map((a) => ({ value: a.id, label: a.title }))}
+              onChange={(v) => setStep(index, v)}
+            />
+            <Button
+              size="sm"
+              onClick={() => move(index, -1)}
+              disabled={index === 0}
+              aria-label="Move up"
+            >
               ↑
             </Button>
             <Button
+              size="sm"
               onClick={() => move(index, 1)}
               disabled={index === steps.length - 1}
               aria-label="Move down"
             >
               ↓
             </Button>
-            <Button variant="danger" onClick={() => removeStep(index)}>
+            <Button variant="danger" size="sm" onClick={() => removeStep(index)}>
               Remove
             </Button>
           </div>

@@ -16,8 +16,32 @@ const store = new Store<{ config: Config }>({
   defaults: { config: defaultConfig() },
 });
 
+/**
+ * Migrates configs written before actions supported multiple parameters: a
+ * legacy `action.argument` object becomes `arguments: [argument]`. Without this
+ * the unknown key would be silently stripped by Zod, losing the parameter.
+ */
+function migrateLegacyArguments(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null) return raw;
+  const config = raw as { actions?: unknown };
+  if (!Array.isArray(config.actions)) return raw;
+  for (const action of config.actions) {
+    if (
+      action &&
+      typeof action === 'object' &&
+      'argument' in action &&
+      !('arguments' in action) &&
+      action.argument !== undefined
+    ) {
+      (action as { arguments?: unknown[] }).arguments = [action.argument];
+      delete (action as { argument?: unknown }).argument;
+    }
+  }
+  return raw;
+}
+
 export function readConfig(): Config {
-  const result = safeValidateConfig(store.get('config'));
+  const result = safeValidateConfig(migrateLegacyArguments(store.get('config')));
   if (result.success) return result.data;
   const fresh = defaultConfig();
   store.set('config', fresh);

@@ -8,7 +8,7 @@ import { handlers } from './registry.js';
  * injected `ports`, so this is unit-testable with fakes.
  *
  * Parameterized actions should already have their `{tokens}` substituted (via
- * `applyArgument` in the IPC layer) before reaching here.
+ * `applyArguments` in the IPC layer) before reaching here.
  */
 export function runAction(action: Action, ports: ActionPorts): Promise<void> | void {
   const handler = handlers[action.type];

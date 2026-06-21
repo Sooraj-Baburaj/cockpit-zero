@@ -1,9 +1,10 @@
-/** Centered muted message for empty lists / no-results states. */
+/** Centered muted message for empty lists / no-results states. Colors resolve to
+ *  the warm Sahara tokens via @theme. */
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="px-5 py-8 text-center">
       <p className="text-sm text-muted">{title}</p>
-      {hint && <p className="mt-1 text-xs text-subtle">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
     </div>
   );
 }

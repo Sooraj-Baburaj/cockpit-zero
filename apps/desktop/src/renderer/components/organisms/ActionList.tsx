@@ -19,19 +19,24 @@ export function ActionList({
   }
 
   return (
-    <ul className="divide-y divide-border rounded-lg border border-border">
+    <ul className="divide-y [divide-color:var(--cz-line-faint)] overflow-hidden rounded-lg border border-border">
       {actions.map((action) => (
-        <li key={action.id} className="flex items-center justify-between gap-3 px-4 py-3">
+        <li
+          key={action.id}
+          className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface-2"
+        >
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="truncate text-fg">{action.title}</span>
               <ActionTypeBadge kind={action.type} />
             </div>
-            <div className="truncate text-xs text-subtle">{actionSubtitle(action)}</div>
+            <div className="truncate font-mono text-sm text-subtle">{actionSubtitle(action)}</div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <Button onClick={() => onEdit(action)}>Edit</Button>
-            <Button variant="danger" onClick={() => onDelete(action)}>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Button variant="outline" size="sm" onClick={() => onEdit(action)}>
+              Edit
+            </Button>
+            <Button variant="danger" size="sm" onClick={() => onDelete(action)}>
               Delete
             </Button>
           </div>
