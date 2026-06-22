@@ -38,7 +38,7 @@ export const IpcChannels = {
   taskGet: 'task:get',
   taskStop: 'task:stop',
   taskApprove: 'task:approve',
-  openSettings: 'window:open-settings',
+  openConsole: 'window:open-console',
   hideLauncher: 'window:hide-launcher',
 } as const;
 
@@ -92,7 +92,7 @@ export interface IpcApi {
   runRoutine(routineId: string): Promise<Digest>;
   /** The last-computed digest for a routine, or null if it hasn't run this session. */
   getDigest(routineId: string): Promise<Digest | null>;
-  /** The configured routines (for the Settings → Routines list). */
+  /** The configured routines (for the Console → Routines list). */
   listRoutines(): Promise<Routine[]>;
   /** Start an agent task from an intent (Phase 7). Returns the run id; progress
    *  streams via `onTaskUpdate` and the task window opens to show it. */
@@ -108,7 +108,7 @@ export interface IpcApi {
   /** Subscribe to streamed task updates (the one push channel). Returns an
    *  unsubscribe fn. Registered in preload (the only sanctioned `ipcRenderer.on`). */
   onTaskUpdate(callback: (run: TaskRun) => void): () => void;
-  openSettings(): Promise<void>;
+  openConsole(): Promise<void>;
   hideLauncher(): Promise<void>;
   /** The host platform, so the renderer can render OS-correct shortcut glyphs. */
   platform: Platform;

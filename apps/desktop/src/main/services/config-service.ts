@@ -1,7 +1,7 @@
 import type { Config } from '@cockpitzero/shared';
 import { persistConfig, readConfig } from '../infra/store.js';
 import { registerHotkey } from '../app/hotkey.js';
-import { applySettingsAppearance } from '../windows/index.js';
+import { applyConsoleAppearance } from '../windows/index.js';
 
 /**
  * Config use-cases. Wraps the persistence adapter with business rules — notably
@@ -20,7 +20,7 @@ export function updateConfig(input: unknown): Config {
     registerHotkey(next.settings.hotkey);
   }
   if (next.settings.glass !== previous.settings.glass) {
-    applySettingsAppearance(next.settings.glass);
+    applyConsoleAppearance(next.settings.glass);
   }
   return next;
 }

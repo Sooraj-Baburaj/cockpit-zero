@@ -50,7 +50,7 @@ export function AiWorkflowDrafter({
       .draftWorkflow(outcome)
       .then((result) => {
         if (result.steps.length === 0) {
-          setError('The assistant is unavailable right now. Check Settings → AI, then try again.');
+          setError('The assistant is unavailable right now. Check Console → AI, then try again.');
           setPhase('describe');
           return;
         }

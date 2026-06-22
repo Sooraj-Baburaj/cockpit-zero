@@ -84,7 +84,7 @@ function buildOutline(file: ConfigYamlFile, text: string): OutlineEntry[] {
 
 /**
  * The YAML config editor (Phase 6) — a power-user surface to edit the config by
- * hand. Rendered as a Settings tab (no new window): a file tree, a warm-syntax
+ * hand. Rendered as a Console tab (no new window): a file tree, a warm-syntax
  * YAML editor (a controlled textarea overlaid with a CSP-safe highlight layer),
  * live schema validation, and an outline/shortcuts side panel.
  *

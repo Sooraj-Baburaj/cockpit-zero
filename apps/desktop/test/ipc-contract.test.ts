@@ -33,7 +33,7 @@ describe('IPC contract', () => {
       'taskGet',
       'taskStop',
       'taskApprove',
-      'openSettings',
+      'openConsole',
       'hideLauncher',
     ];
     expect(Object.keys(IpcChannels).sort()).toEqual([...channelMethods].sort());

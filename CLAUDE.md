@@ -12,6 +12,45 @@ installed **applications and files** (Spotlight on macOS, the Search index on Wi
 be chained into **workflows**. Actions, aliases, and workflows are stored locally; an optional
 backend syncs config across devices.
 
+## Product tiers & AI architecture (production direction)
+
+The AI Cockpit shipped first as **mocks** (see `docs/roadmap/phase-1..7`). It is now being taken to
+**production**, planned phase-by-phase under [`docs/roadmap/production/`](./docs/roadmap/production/)
+(read its `README.md` for the locked decisions + dependency graph before building any AI/memory/
+backend feature). Two tiers:
+
+- **Free / BYOP / local-first / no login.** The user pastes their **own** provider key and everything
+  (memory, history, knowledge) stays on-device. No account is ever required — this is the default.
+- **Logged-in (paid) / managed.** The user depends on *our* AI; the backend routes across models
+  **automatically by task complexity**, so these users see **no Mini/Pro tier picker**. Memory/
+  knowledge sync to the backend. (Billing is deferred; auth + sync come first.)
+
+Locked technical decisions (don't relitigate inside a feature chat):
+
+- **Universal provider = Vercel AI SDK** (`ai` + `@ai-sdk/{anthropic,openai,google,xai}` +
+  `@ai-sdk/openai-compatible`). One `streamText`/`generateObject` API across Claude, OpenAI, Gemini,
+  Grok, and any OpenAI-compatible endpoint (OpenRouter/Ollama/custom). Runs in the **main process**
+  only (keys never reach the renderer). Use the `claude-api` skill for Claude model ids.
+- **Memory engine = native TS pipeline + LanceDB + local embeddings.** Extract durable facts
+  (`generateObject`) → embed (on-device `@huggingface/transformers` ONNX, no key/offline; provider
+  embeddings when a key exists) → store in **LanceDB** under `userData` → **hybrid recall**
+  (semantic + keyword + recency) with dedup/update/decay. Logged-in: the same ports back onto
+  **Postgres + pgvector**. Not the keyword JSON store of v1.
+- **Managed inference = our backend proxy + our complexity router.** The backend holds our keys,
+  picks the model per request, streams back, and meters usage. No third-party gateway in the prompt
+  path.
+- **Auth = better-auth** (Drizzle, fits the existing backend); managed (Clerk/WorkOS) is the fallback.
+
+**Naming: it's the "Console", not "Settings".** The configuration window/screen/navigation is the
+**Console** (the rename is production phase 1). The `config.settings` **domain object**
+(`SettingsSchema`, appearance/general) keeps its name — only the window/nav concept is "Console".
+
+**No mocks in production code.** Real provider, real vector store, real OAuth, real persistence.
+Mock/fake implementations live **only** in tests (`*.test.ts` / `test/`). The one survivor is the
+`mock` AI provider, kept solely so CI runs with no key — never a default once a real provider/key is
+configured. **Don't reinvent the wheel** — prefer a maintained package (AI SDK, LanceDB,
+transformers.js, better-auth, official connector SDKs) over hand-rolling; hand-roll only the glue.
+
 ## Monorepo structure
 
 Turborepo + pnpm workspaces. pnpm **catalogs** (in `pnpm-workspace.yaml`) centralize shared
@@ -148,7 +187,7 @@ between normal results and the argument-capture state. All of this is pure and l
 
 ### Workflows (Level 3)
 
-A workflow (`WorkflowSchema`) is a name + an ordered list of action ids. It's edited in Settings →
+A workflow (`WorkflowSchema`) is a name + an ordered list of action ids. It's edited in Console →
 Workflows (`WorkflowEditor` / `WorkflowForm`), shows up in the launcher as a `workflow` result, and
 runs via the `runWorkflow` IPC channel → `services/workflow-runner.ts`, which resolves each step id
 to an action and runs them in sequence through the existing action-runner. Execution is intentionally
@@ -251,8 +290,17 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
   After changing a package's public API, rebuild `shared` (or run `pnpm dev` which watches it).
 - **Tailwind v4** has no `tailwind.config.js`. The desktop/renderer uses the `@tailwindcss/vite`
   plugin; the web app uses `@tailwindcss/postcss`. Styles start with `@import "tailwindcss";`.
-- **electron-vite multi-entry.** The renderer has two HTML entries (`launcher.html`,
-  `settings.html`); add new windows by adding an entry in `electron.vite.config.ts`.
+- **electron-vite multi-entry.** The renderer has multiple HTML entries (`launcher.html`,
+  `console.html`, `digest.html`, `task.html`); add new windows by adding an entry in
+  `electron.vite.config.ts`.
+- **Secrets never touch `config.json` or the renderer.** API keys (BYOP), the backend session token,
+  and OAuth tokens live in the OS-keychain-backed **secrets vault** (Electron `safeStorage`, main
+  process). The renderer learns only *status* (set/unset) over IPC — there is no plaintext read path.
+  Don't store a key in `config.json` (it syncs!) or pass one across the preload bridge.
+- **Native AI modules are main-process only.** LanceDB (`@lancedb/lancedb`) and transformers.js
+  (`@huggingface/transformers`), plus the AI SDK provider calls, run in the **main process** — never
+  the renderer. Mark the native ones `external` in `electron.vite.config.ts` and rebuild for the
+  Electron ABI when packaging. transformers.js model weights cache under `userData/models`.
 - **The preload bridge is dev-gated.** `renderer/lib/api.ts` falls back to a mock `window.api` only
   when `import.meta.env.DEV` (browser/dev). In production a missing bridge **throws** — don't
   "fix" a preload error by widening the fallback; that would hide the real failure behind a silent
@@ -275,8 +323,9 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
 - **Translucency is one token.** Both the launcher panel (`.cz-panel`) and the settings window
   (`.cz-window`) share `--cz-panel-bg`'s alpha (per theme); the "Frosted glass" toggle swaps both to
   opaque via `.cz-no-glass`. Tune transparency on that token, not on components.
-- **Settings nav order** is the `TABS` array in `screens/Settings.tsx` (actions → workflows →
-  aliases → general → appearance); the initial tab must be a member of it.
+- **Console nav order** is the `CONSOLE_TABS` array in `screens/console-tabs.ts` (actions → ai →
+  workflows → routines → aliases → config → general → appearance); the initial tab
+  (`INITIAL_CONSOLE_TAB`) must be a member of it.
 
 ## Code intelligence (codegraph)
 
@@ -303,8 +352,15 @@ absent, run `codegraph init .`. It's an authoring aid only — nothing at runtim
 
 ## Non-goals / follow-ups
 
+- **Production roadmap.** The path from mocks → production is planned in
+  [`docs/roadmap/production/`](./docs/roadmap/production/) — Console rename, secrets vault, universal
+  BYOP providers, streaming, the local memory engine, the real agent loop, backend auth + sync, cloud
+  memory/knowledge, managed inference + router, and real integrations. Each doc is self-contained with
+  a copy-paste kickoff prompt.
 - electron-builder packaging (`electron-builder.yml`) is scaffolded but not a focus; add signing
   - icons before shipping installers.
-- Backend `/sync` and `/auth` are stubs (shape-validated, no real persistence/auth yet).
+- Backend `/sync` and `/auth` are still **stubs** (shape-validated, no real persistence/auth) — made
+  real in production phase 7 (better-auth + real `/sync`).
 - SQLite is the dev default; Postgres is supported structurally (swap the driver in
-  `apps/backend/src/db/index.ts` + `drizzle.config.ts`).
+  `apps/backend/src/db/index.ts` + `drizzle.config.ts`) and is **required** from production phase 8
+  (cloud memory needs pgvector).

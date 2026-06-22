@@ -9,8 +9,8 @@ import { AiWorkflowDrafter } from './AiWorkflowDrafter.js';
 
 /**
  * Manages workflows (Level 3): a list with create/edit/delete plus the
- * WorkflowForm for editing a single workflow. Persists via `onChange` — Settings
- * saves the whole config through the main process (which validates it). When AI
+ * WorkflowForm for editing a single workflow. Persists via `onChange` — the
+ * Console saves the whole config through the main process (which validates it). When AI
  * is available, a "Draft with AI" entry runs the `AiWorkflowDrafter`: on save it
  * materializes the draft's actions + workflow through `onSaveDraft`, then drops
  * the user into the normal editor on the now-real workflow to keep tweaking.

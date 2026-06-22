@@ -88,7 +88,7 @@ const TOOLS: { id: AiToolId; name: string; scope: string; icon: ReactNode }[] = 
 type AiStatus = Awaited<ReturnType<typeof api.aiStatus>>;
 
 /**
- * Settings → AI. Binds every control to the `ai` config block (Phase 1) and
+ * Console → AI. Binds every control to the `ai` config block (Phase 1) and
  * persists on **Save** — edits live in a local draft so the button enables only
  * when dirty (and a reopen shows the saved values). The inline composer reuses
  * the launcher's `askAI` flow + `AiAnswerPanel` (reuse, don't fork); it's an

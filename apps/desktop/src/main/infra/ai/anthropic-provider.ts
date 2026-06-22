@@ -26,7 +26,7 @@ function apiKey(): string | undefined {
 
 const NOT_CONFIGURED =
   'The Anthropic AI provider is not configured yet. Switch the provider to ' +
-  '“mock” in Settings, or add an API key once the real provider is wired.';
+  '“mock” in the Console, or add an API key once the real provider is wired.';
 
 /** Builds the (currently inert) real-provider seam. */
 export function createAnthropicProvider(): AiProvider {

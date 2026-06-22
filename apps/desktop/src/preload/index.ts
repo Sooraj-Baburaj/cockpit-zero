@@ -34,7 +34,7 @@ const api: IpcApi = {
     ipcRenderer.on(TASK_UPDATE_CHANNEL, listener);
     return () => ipcRenderer.removeListener(TASK_UPDATE_CHANNEL, listener);
   },
-  openSettings: () => ipcRenderer.invoke(IpcChannels.openSettings),
+  openConsole: () => ipcRenderer.invoke(IpcChannels.openConsole),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
   platform: process.platform,
 };

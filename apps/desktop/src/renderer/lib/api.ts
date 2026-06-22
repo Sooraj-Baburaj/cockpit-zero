@@ -208,7 +208,7 @@ const mockApi: IpcApi = {
   taskStop: async () => ({ ok: true }),
   taskApprove: async () => ({ ok: true }),
   onTaskUpdate: () => () => {},
-  openSettings: async () => {},
+  openConsole: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',
 };

@@ -2,9 +2,9 @@ import { app, BrowserWindow } from 'electron';
 import { readConfig } from '../infra/store.js';
 import { loadEntry, secureWebPreferences } from './internal.js';
 
-/** The normal-chrome settings / config-editor window. */
+/** The normal-chrome Console / config-editor window. */
 
-let settingsWindow: BrowserWindow | null = null;
+let consoleWindow: BrowserWindow | null = null;
 
 /** Opaque fallback background (warm linen) when frosted glass is off. */
 const SOLID_BG = '#faf5ee';
@@ -12,7 +12,7 @@ const SOLID_BG = '#faf5ee';
 /**
  * Bring the app to the foreground. The launcher runs as a background agent (dock
  * hidden on macOS), so opening a real window needs an explicit dock-show + focus
- * — otherwise the settings window can open behind whatever app is in front.
+ * — otherwise the Console window can open behind whatever app is in front.
  */
 function revealApp(): void {
   if (process.platform === 'darwin') {
@@ -22,26 +22,26 @@ function revealApp(): void {
 }
 
 /**
- * Apply (or remove) the OS-level frosted-glass effect on the settings window:
+ * Apply (or remove) the OS-level frosted-glass effect on the Console window:
  * macOS vibrancy, Windows acrylic. Called at creation and live when the user
  * toggles "Frosted glass" in Appearance. With glass on the window background is
  * transparent so the effect shows through the translucent CSS surface.
  */
-export function applySettingsAppearance(glass: boolean): void {
-  if (!settingsWindow || settingsWindow.isDestroyed()) return;
+export function applyConsoleAppearance(glass: boolean): void {
+  if (!consoleWindow || consoleWindow.isDestroyed()) return;
   const darwin = process.platform === 'darwin';
   const win32 = process.platform === 'win32';
-  if (darwin) settingsWindow.setVibrancy(glass ? 'under-window' : null);
-  else if (win32) settingsWindow.setBackgroundMaterial?.(glass ? 'acrylic' : 'none');
-  settingsWindow.setBackgroundColor(glass && (darwin || win32) ? '#00000000' : SOLID_BG);
+  if (darwin) consoleWindow.setVibrancy(glass ? 'under-window' : null);
+  else if (win32) consoleWindow.setBackgroundMaterial?.(glass ? 'acrylic' : 'none');
+  consoleWindow.setBackgroundColor(glass && (darwin || win32) ? '#00000000' : SOLID_BG);
 }
 
-/** Open (or focus) the settings window. */
-export function openSettings(): void {
-  if (settingsWindow && !settingsWindow.isDestroyed()) {
+/** Open (or focus) the Console window. */
+export function openConsole(): void {
+  if (consoleWindow && !consoleWindow.isDestroyed()) {
     revealApp();
-    settingsWindow.show();
-    settingsWindow.focus();
+    consoleWindow.show();
+    consoleWindow.focus();
     return;
   }
 
@@ -50,11 +50,11 @@ export function openSettings(): void {
   const win32 = process.platform === 'win32';
   const frosted = glass && (darwin || win32);
 
-  settingsWindow = new BrowserWindow({
+  consoleWindow = new BrowserWindow({
     width: 880,
     height: 640,
     show: false,
-    title: 'CockpitZero Settings',
+    title: 'CockpitZero Console',
     backgroundColor: frosted ? '#00000000' : SOLID_BG,
     ...(glass && darwin ? { vibrancy: 'under-window' as const } : {}),
     ...(glass && win32 ? { backgroundMaterial: 'acrylic' as const } : {}),
@@ -62,17 +62,17 @@ export function openSettings(): void {
   });
 
   // Show only once the renderer is painted, then pull it to the front.
-  settingsWindow.once('ready-to-show', () => {
+  consoleWindow.once('ready-to-show', () => {
     revealApp();
-    settingsWindow?.show();
-    settingsWindow?.focus();
+    consoleWindow?.show();
+    consoleWindow?.focus();
   });
 
-  settingsWindow.on('closed', () => {
-    settingsWindow = null;
+  consoleWindow.on('closed', () => {
+    consoleWindow = null;
     // Return to background-agent mode (re-hide the dock icon) on macOS.
     if (process.platform === 'darwin') app.dock?.hide();
   });
 
-  loadEntry(settingsWindow, 'settings');
+  loadEntry(consoleWindow, 'console');
 }

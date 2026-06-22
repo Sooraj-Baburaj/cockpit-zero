@@ -12,7 +12,7 @@ import { getDigest, listRoutines, runRoutine } from '../services/routines/index.
 import { approveTask, getTask, startTask, stopTask } from '../services/agent/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
-import { hideLauncher, openSettings } from '../windows/index.js';
+import { hideLauncher, openConsole } from '../windows/index.js';
 
 /**
  * Registers every IPC handler. Each handler maps 1:1 to an IpcChannels constant
@@ -113,8 +113,8 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IpcChannels.taskApprove, (_e, taskId: string) => approveTask(taskId));
 
-  ipcMain.handle(IpcChannels.openSettings, () => {
-    openSettings();
+  ipcMain.handle(IpcChannels.openConsole, () => {
+    openConsole();
   });
 
   ipcMain.handle(IpcChannels.hideLauncher, () => {

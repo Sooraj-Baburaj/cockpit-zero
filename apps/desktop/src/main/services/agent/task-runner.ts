@@ -68,8 +68,8 @@ const GRANT_LABEL: Record<AiToolId, string> = {
 function blockedNote(toolId: AgentToolId): string {
   const grant = TASK_TOOL_GRANT[toolId];
   return grant === 'memory'
-    ? 'Turn on Memory in Settings → AI to let me use your history.'
-    : `Enable “${GRANT_LABEL[grant]}” in Settings → AI to finish this task.`;
+    ? 'Turn on Memory in Console → AI to let me use your history.'
+    : `Enable “${GRANT_LABEL[grant]}” in Console → AI to finish this task.`;
 }
 
 const DEFAULT_STEP_DELAY_MS = 700;

@@ -34,19 +34,19 @@ function Wordmark() {
 
 /**
  * Persistent launcher footer. In the normal state it shows the wordmark plus a
- * discoverable Settings entry point. When `hints` are passed (AI mode) it swaps
+ * discoverable Console entry point. When `hints` are passed (AI mode) it swaps
  * to a row of keyboard hints + the wordmark, matching the AI mockups' footer.
  */
 export function LauncherFooter({
-  onOpenSettings,
+  onOpenConsole,
   bordered = true,
   hints,
 }: {
-  onOpenSettings: () => void;
+  onOpenConsole: () => void;
   /** Show the hairline separator above the footer (hidden in the resting state
    *  so there's no stray line directly under the search field). */
   bordered?: boolean;
-  /** Contextual keyboard hints — replaces the Settings button when present. */
+  /** Contextual keyboard hints — replaces the Console button when present. */
   hints?: FooterHint[];
 }) {
   const wrap = cn(
@@ -78,7 +78,7 @@ export function LauncherFooter({
       <Wordmark />
       <button
         type="button"
-        onClick={onOpenSettings}
+        onClick={onOpenConsole}
         className="flex items-center gap-[7px] rounded-md px-2 py-1 text-xs text-muted transition hover:bg-surface-2 hover:text-fg"
       >
         <svg
@@ -94,7 +94,7 @@ export function LauncherFooter({
           <circle cx="8" cy="8" r="2.25" />
           <path d="M8 1.6v1.9M8 12.5v1.9M14.4 8h-1.9M3.5 8H1.6M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3M12.5 12.5l-1.3-1.3M4.8 4.8 3.5 3.5" />
         </svg>
-        <span>Settings</span>
+        <span>Console</span>
         <span className="flex items-center gap-1">
           <Kbd>{modKey}</Kbd>
           <Kbd>,</Kbd>

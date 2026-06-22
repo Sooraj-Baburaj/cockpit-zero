@@ -6,7 +6,7 @@ import { Toggle } from '../atoms/Toggle.js';
 import { EmptyState } from '../atoms/EmptyState.js';
 
 /**
- * Settings → Routines (Phase 5, minimal). Lists the configured routines with an
+ * Console → Routines (Phase 5, minimal). Lists the configured routines with an
  * enable toggle (gates the scheduler) and a "Run now" button that computes the
  * digest and opens the briefing window. Full routine authoring is deferred to the
  * YAML editor (Phase 6) — this is the list/toggle/run surface the `cockpit-ai`

@@ -5,7 +5,7 @@ import type { Settings } from '@cockpitzero/shared';
  * Applies appearance settings to the document root for the current window:
  *  - theme → toggles `theme-light` / `theme-dark` (swapping the CSS-variable
  *    palette); `system` follows the OS preference and updates live.
- *  - glass → toggles `cz-no-glass`, which switches the launcher/settings panels
+ *  - glass → toggles `cz-no-glass`, which switches the launcher/Console panels
  *    between frosted translucency and solid surfaces.
  * Both windows call this so the look stays in sync with the saved config.
  */

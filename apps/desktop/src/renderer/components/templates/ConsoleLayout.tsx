@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn.js';
 
-/** Thin-line nav glyph per settings tab. */
+/** Thin-line nav glyph per Console tab. */
 const NAV_GLYPH: Record<string, ReactNode> = {
   general: (
     <>
@@ -53,9 +53,9 @@ const NAV_LABEL: Record<string, string> = {
   ai: 'AI',
 };
 
-/** Frame for the settings window: a warm-white surface with a left nav rail and
+/** Frame for the Console window: a warm-white surface with a left nav rail and
  *  a scrolling content pane. */
-export function SettingsLayout({
+export function ConsoleLayout({
   tabs,
   active,
   onSelect,
@@ -121,7 +121,7 @@ export function SettingsLayout({
         </div>
 
         <div className="mt-auto px-2 font-mono text-[11px] text-[var(--cz-fg-faint)]">
-          Settings · v1.0
+          Console · v1.0
         </div>
       </nav>
 

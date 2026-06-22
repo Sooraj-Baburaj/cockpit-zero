@@ -3,7 +3,7 @@ import { readConfig } from '../infra/store.js';
 import { loadEntry, secureWebPreferences } from './internal.js';
 
 /** The routine briefing window — a dedicated surface that renders a routine's
- *  digest (the delivery target for `deliver: 'window'`). Mirrors the settings
+ *  digest (the delivery target for `deliver: 'window'`). Mirrors the Console
  *  window's chrome (a real, closable, frosted window) but sized for the briefing. */
 
 let digestWindow: BrowserWindow | null = null;

@@ -1,5 +1,10 @@
 # CockpitZero — AI Cockpit roadmap (phased build plan)
 
+> **✅ These seven phases are complete — and they built the AI Cockpit as _mocks_.** The path from
+> mocks to **production** (real BYOP providers, a real local memory engine, real backend auth/sync,
+> managed inference, real integrations — _no more mocks_) is planned in
+> [`production/`](production/README.md). Start there for any new AI/memory/backend work.
+
 This folder turns the eight screens of the **Roadmap** design (the _Sahara — warm minimalism_
 language, from the CockpitZero Claude Design project) into an **executable, phased implementation
 plan**. Each phase is a self-contained doc that one fresh chat can pick up and ship without needing
@@ -16,7 +21,7 @@ the others' conversation history.
 | — | `launcher-searching` (shimmer search) | ✅ Shipped | — | already in code |
 | 1 | _foundation — no screen_ | — | [phase-1-ai-foundation.md](phase-1-ai-foundation.md) | AI service + schema + IPC |
 | 2 | `ai-mode` + `ai-ask` | 🔜 Next | [phase-2-ai-mode-and-ask.md](phase-2-ai-mode-and-ask.md) | launcher AI mode + answer |
-| 3 | `cockpit-ai` | 🔜 Next | [phase-3-cockpit-ai-settings.md](phase-3-cockpit-ai-settings.md) | Settings → AI tab |
+| 3 | `cockpit-ai` | 🔜 Next | [phase-3-cockpit-ai-settings.md](phase-3-cockpit-ai-settings.md) | Console → AI tab |
 | 4 | `ai-workflow` | 🔜 Next | [phase-4-ai-workflows.md](phase-4-ai-workflows.md) | launcher workflow-draft state |
 | 5 | `routine-digest` | 🔜 Next | [phase-5-routines-digest.md](phase-5-routines-digest.md) | routines engine + digest window |
 | 6 | `yaml-config` | ⚙️ Config | [phase-6-yaml-config-editor.md](phase-6-yaml-config-editor.md) | YAML editor window |
@@ -43,7 +48,7 @@ the pixel reference. The shipped "Searching" screen is reference-only and not re
    │                                            │
    ▼                                            │ (routines.yaml editing)
 ┌──────────┐                                    │
-│ Phase 3  │  Settings → AI tab persists the    │
+│ Phase 3  │  Console → AI tab persists the     │
 │ Cockpit  │  ai block Phases 2/4/5/7 read.     │
 │ AI       │  Best done right after Phase 2.    │
 └──────────┘                                    │

@@ -4,7 +4,7 @@ import { Toggle } from '../atoms/Toggle.js';
 import { HotkeyRecorder } from '../molecules/HotkeyRecorder.js';
 
 /** General settings: global hotkey and launch/telemetry toggles. */
-export function SettingsPanel({
+export function ConsolePanel({
   settings,
   onChange,
 }: {

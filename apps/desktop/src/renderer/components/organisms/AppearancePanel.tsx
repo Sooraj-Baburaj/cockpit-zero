@@ -34,7 +34,7 @@ export function AppearancePanel({
         />
       </Field>
 
-      <Field label="Frosted glass" description="Translucent, blurred launcher and settings windows.">
+      <Field label="Frosted glass" description="Translucent, blurred launcher and Console windows.">
         <Toggle
           checked={settings.glass}
           onChange={(v) => set('glass', v)}

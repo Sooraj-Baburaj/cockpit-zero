@@ -15,7 +15,7 @@ import type { AiProvider } from './provider.js';
  * provider from `config.ai.provider`, short-circuits when AI is disabled, and is
  * fully dependency-injected (providers + a config reader), so it's unit-testable
  * with fakes and free of `electron`/network code. Config is read fresh on every
- * call so a Settings change (provider, enabled) takes effect without a restart.
+ * call so a config change (provider, enabled) takes effect without a restart.
  */
 
 export interface AiServiceDeps {
@@ -49,7 +49,7 @@ export interface AiService {
  *  call `askAI` without checking `enabled` degrade gracefully. */
 function disabledAnswer(): AiAnswer {
   return {
-    text: 'AI features are turned off. Enable them in Settings to ask the assistant.',
+    text: 'AI features are turned off. Enable them in the Console to ask the assistant.',
     meta: 'cockpit-ai · disabled',
     suggestions: [],
   };

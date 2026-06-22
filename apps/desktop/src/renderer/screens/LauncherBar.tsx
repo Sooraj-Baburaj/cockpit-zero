@@ -192,8 +192,8 @@ export function LauncherBar() {
     onClose: () => void api.hideLauncher(),
   });
 
-  const openSettings = () => {
-    void api.openSettings();
+  const openConsole = () => {
+    void api.openConsole();
     void api.hideLauncher();
   };
 
@@ -209,10 +209,10 @@ export function LauncherBar() {
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    // ⌘, / Ctrl+, opens Settings.
+    // ⌘, / Ctrl+, opens the Console.
     if ((e.metaKey || e.ctrlKey) && e.key === ',') {
       e.preventDefault();
-      openSettings();
+      openConsole();
       return;
     }
     // ⌘↵ / Ctrl+↵ runs all suggested actions (answer view).
@@ -348,7 +348,7 @@ export function LauncherBar() {
         <div className="border-t [border-color:var(--cz-line-faint)]">
           <EmptyState
             title="No matching actions"
-            hint="Try another keyword, or add one in Settings."
+            hint="Try another keyword, or add one in the Console."
           />
         </div>
       ) : null}
@@ -356,7 +356,7 @@ export function LauncherBar() {
       {feedback && <Toast message={feedback.message} error={feedback.error} />}
 
       <LauncherFooter
-        onOpenSettings={openSettings}
+        onOpenConsole={openConsole}
         bordered={view.kind !== 'resting'}
         hints={footerHints}
       />

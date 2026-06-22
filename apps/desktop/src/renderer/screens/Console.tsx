@@ -10,8 +10,8 @@ import {
 import { api } from '../lib/api.js';
 import { useConfig } from '../hooks/useConfig.js';
 import { useAppearance } from '../hooks/useAppearance.js';
-import { SettingsLayout } from '../components/templates/SettingsLayout.js';
-import { SettingsPanel } from '../components/organisms/SettingsPanel.js';
+import { ConsoleLayout } from '../components/templates/ConsoleLayout.js';
+import { ConsolePanel } from '../components/organisms/ConsolePanel.js';
 import { AppearancePanel } from '../components/organisms/AppearancePanel.js';
 import { AiPanel } from '../components/organisms/AiPanel.js';
 import { RoutinesPanel } from '../components/organisms/RoutinesPanel.js';
@@ -21,19 +21,19 @@ import { ActionForm } from '../components/organisms/ActionForm.js';
 import { AliasEditor } from '../components/organisms/AliasEditor.js';
 import { WorkflowEditor } from '../components/organisms/WorkflowEditor.js';
 import { Button } from '../components/atoms/Button.js';
-import { SETTINGS_TABS, INITIAL_SETTINGS_TAB } from './settings-tabs.js';
+import { CONSOLE_TABS, INITIAL_CONSOLE_TAB } from './console-tabs.js';
 
 /**
- * The settings / config-editor window — thin composition over `useConfig`.
+ * The Console / config-editor window — thin composition over `useConfig`.
  * Every change is persisted immediately through the main process (which also
  * re-registers the hotkey live). `useAppearance` keeps the window's palette and
  * frosted-glass in sync with the saved config.
  */
-export function Settings() {
+export function Console() {
   const { config, setConfig, save } = useConfig();
   useAppearance(config?.settings.theme, config?.settings.glass);
 
-  const [tab, setTab] = useState<string>(INITIAL_SETTINGS_TAB);
+  const [tab, setTab] = useState<string>(INITIAL_CONSOLE_TAB);
   const [editing, setEditing] = useState<Action | 'new' | null>(null);
 
   if (!config) {
@@ -93,8 +93,8 @@ export function Settings() {
     });
 
   return (
-    <SettingsLayout tabs={SETTINGS_TABS} active={tab} onSelect={setTab}>
-      {tab === 'general' && <SettingsPanel settings={config.settings} onChange={updateSettings} />}
+    <ConsoleLayout tabs={CONSOLE_TABS} active={tab} onSelect={setTab}>
+      {tab === 'general' && <ConsolePanel settings={config.settings} onChange={updateSettings} />}
 
       {tab === 'ai' && <AiPanel ai={config.ai} onSave={(ai) => persist({ ...config, ai })} />}
 
@@ -149,6 +149,6 @@ export function Settings() {
           onSaveDraft={saveWorkflowDraft}
         />
       )}
-    </SettingsLayout>
+    </ConsoleLayout>
   );
 }

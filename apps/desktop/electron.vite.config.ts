@@ -32,7 +32,7 @@ export default defineConfig({
       rollupOptions: {
         input: {
           launcher: resolve(__dirname, 'src/renderer/launcher.html'),
-          settings: resolve(__dirname, 'src/renderer/settings.html'),
+          console: resolve(__dirname, 'src/renderer/console.html'),
           digest: resolve(__dirname, 'src/renderer/digest.html'),
           task: resolve(__dirname, 'src/renderer/task.html'),
         },
