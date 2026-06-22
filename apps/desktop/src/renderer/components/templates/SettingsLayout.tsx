@@ -16,6 +16,9 @@ const NAV_GLYPH: Record<string, ReactNode> = {
       <path d="M8 2a6 6 0 0 1 0 12" fill="currentColor" stroke="none" />
     </>
   ),
+  ai: (
+    <path d="M8 1.5 9.2 6.8 14.5 8 9.2 9.2 8 14.5 6.8 9.2 1.5 8 6.8 6.8Z" />
+  ),
   actions: <path d="M8.5 1.5 3.5 9H7l-.5 5.5L12.5 7H9l-.5-5.5Z" />,
   aliases: (
     <>
@@ -32,6 +35,11 @@ const NAV_GLYPH: Record<string, ReactNode> = {
   ),
 };
 
+/** Display labels where the tab id doesn't capitalize cleanly (e.g. "ai" → "AI"). */
+const NAV_LABEL: Record<string, string> = {
+  ai: 'AI',
+};
+
 /** Frame for the settings window: a warm-white surface with a left nav rail and
  *  a scrolling content pane. */
 export function SettingsLayout({
@@ -40,7 +48,7 @@ export function SettingsLayout({
   onSelect,
   children,
 }: {
-  tabs: string[];
+  tabs: readonly string[];
   active: string;
   onSelect: (tab: string) => void;
   children: ReactNode;
@@ -93,7 +101,7 @@ export function SettingsLayout({
                 >
                   {NAV_GLYPH[tab]}
                 </svg>
-                {tab}
+                {NAV_LABEL[tab] ?? tab}
               </button>
             );
           })}

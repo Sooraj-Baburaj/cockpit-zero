@@ -5,14 +5,13 @@ import { useAppearance } from '../hooks/useAppearance.js';
 import { SettingsLayout } from '../components/templates/SettingsLayout.js';
 import { SettingsPanel } from '../components/organisms/SettingsPanel.js';
 import { AppearancePanel } from '../components/organisms/AppearancePanel.js';
+import { AiPanel } from '../components/organisms/AiPanel.js';
 import { ActionList } from '../components/organisms/ActionList.js';
 import { ActionForm } from '../components/organisms/ActionForm.js';
 import { AliasEditor } from '../components/organisms/AliasEditor.js';
 import { WorkflowEditor } from '../components/organisms/WorkflowEditor.js';
 import { Button } from '../components/atoms/Button.js';
-
-// Primary config tabs first; General/Appearance are housekeeping, kept last.
-const TABS = ['actions', 'workflows', 'aliases', 'general', 'appearance'];
+import { SETTINGS_TABS, INITIAL_SETTINGS_TAB } from './settings-tabs.js';
 
 /**
  * The settings / config-editor window — thin composition over `useConfig`.
@@ -24,7 +23,7 @@ export function Settings() {
   const { config, setConfig, save } = useConfig();
   useAppearance(config?.settings.theme, config?.settings.glass);
 
-  const [tab, setTab] = useState('actions');
+  const [tab, setTab] = useState<string>(INITIAL_SETTINGS_TAB);
   const [editing, setEditing] = useState<Action | 'new' | null>(null);
 
   if (!config) {
@@ -76,8 +75,10 @@ export function Settings() {
     });
 
   return (
-    <SettingsLayout tabs={TABS} active={tab} onSelect={setTab}>
+    <SettingsLayout tabs={SETTINGS_TABS} active={tab} onSelect={setTab}>
       {tab === 'general' && <SettingsPanel settings={config.settings} onChange={updateSettings} />}
+
+      {tab === 'ai' && <AiPanel ai={config.ai} onSave={(ai) => persist({ ...config, ai })} />}
 
       {tab === 'appearance' && (
         <AppearancePanel settings={config.settings} onChange={updateSettings} />

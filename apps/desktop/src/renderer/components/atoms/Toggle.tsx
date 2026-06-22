@@ -1,14 +1,18 @@
 import { cn } from '../../lib/cn.js';
 
-/** Themed on/off switch backed by a real checkbox for accessibility. */
+/** Themed on/off switch backed by a real checkbox for accessibility. Pass `label`
+ *  for a visible inline caption, or `ariaLabel` when the switch's name is rendered
+ *  elsewhere (e.g. a settings row title or a tool card). */
 export function Toggle({
   checked,
   onChange,
   label,
+  ariaLabel,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
+  ariaLabel?: string;
 }) {
   return (
     <label className="inline-flex cursor-pointer items-center gap-2 select-none">
@@ -17,6 +21,7 @@ export function Toggle({
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
+          aria-label={ariaLabel}
           className="peer sr-only"
         />
         <span
