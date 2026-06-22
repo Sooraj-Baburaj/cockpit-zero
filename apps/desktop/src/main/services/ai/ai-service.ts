@@ -1,3 +1,4 @@
+import { WorkflowDraftSchema } from '@cockpitzero/shared';
 import type { AiAnswer, AiProviderId, Config, WorkflowDraft } from '@cockpitzero/shared';
 import type { AiProvider } from './provider.js';
 
@@ -50,8 +51,12 @@ export function createAiService({ providers, getConfig }: AiServiceDeps): AiServ
 
     async draftWorkflow(description) {
       const ai = getConfig().ai;
-      if (!ai.enabled) return { name: '', steps: [] };
-      return providers[ai.provider].draftWorkflow(description, { settings: ai });
+      if (!ai.enabled) return { name: '', keyword: '', steps: [] };
+      const draft = await providers[ai.provider].draftWorkflow(description, { settings: ai });
+      // Never trust raw provider/model output — validate the structure (and each
+      // step's action) before it reaches the renderer (CLAUDE.md: schemas are the
+      // source of truth; the real provider emits model JSON we must not trust).
+      return WorkflowDraftSchema.parse(draft);
     },
 
     status() {

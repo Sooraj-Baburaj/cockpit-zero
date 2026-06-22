@@ -1,25 +1,36 @@
 import { useState } from 'react';
-import type { Action, Workflow } from '@cockpitzero/shared';
+import type { Action, DraftMaterialization, Workflow } from '@cockpitzero/shared';
 import { Badge } from '../atoms/Badge.js';
 import { Button } from '../atoms/Button.js';
 import { EmptyState } from '../atoms/EmptyState.js';
+import { Sparkle } from '../atoms/Sparkle.js';
 import { WorkflowForm } from './WorkflowForm.js';
+import { AiWorkflowDrafter } from './AiWorkflowDrafter.js';
 
 /**
  * Manages workflows (Level 3): a list with create/edit/delete plus the
  * WorkflowForm for editing a single workflow. Persists via `onChange` — Settings
- * saves the whole config through the main process (which validates it).
+ * saves the whole config through the main process (which validates it). When AI
+ * is available, a "Draft with AI" entry runs the `AiWorkflowDrafter`: on save it
+ * materializes the draft's actions + workflow through `onSaveDraft`, then drops
+ * the user into the normal editor on the now-real workflow to keep tweaking.
  */
 export function WorkflowEditor({
   workflows,
   actions,
+  aiAvailable = false,
   onChange,
+  onSaveDraft,
 }: {
   workflows: Workflow[];
   actions: Action[];
+  /** Whether AI is enabled — gates the "Draft with AI" entry point. */
+  aiAvailable?: boolean;
   onChange: (workflows: Workflow[]) => void;
+  /** Persist a materialized AI draft (append step actions + the workflow). */
+  onSaveDraft: (result: DraftMaterialization) => void;
 }) {
-  const [editing, setEditing] = useState<Workflow | 'new' | null>(null);
+  const [editing, setEditing] = useState<Workflow | 'new' | 'draft' | null>(null);
 
   const upsert = (workflow: Workflow) => {
     const exists = workflows.some((w) => w.id === workflow.id);
@@ -32,8 +43,18 @@ export function WorkflowEditor({
   };
   const remove = (id: string) => onChange(workflows.filter((w) => w.id !== id));
 
+  /** Persist the draft, then continue editing the freshly-created workflow. */
+  const saveDraft = (result: DraftMaterialization) => {
+    onSaveDraft(result);
+    setEditing(result.workflow);
+  };
+
   const stepSummary = (workflow: Workflow) =>
     workflow.steps.map((id) => actions.find((a) => a.id === id)?.title ?? '(deleted)').join(' → ');
+
+  if (editing === 'draft') {
+    return <AiWorkflowDrafter onSave={saveDraft} onCancel={() => setEditing(null)} />;
+  }
 
   if (editing) {
     return (
@@ -48,22 +69,35 @@ export function WorkflowEditor({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">Workflows ({workflows.length})</h2>
-        <Button variant="primary" onClick={() => setEditing('new')} disabled={actions.length === 0}>
-          New workflow
-        </Button>
+        <div className="flex items-center gap-2">
+          {aiAvailable && (
+            <Button variant="outline" onClick={() => setEditing('draft')}>
+              <Sparkle className="size-4 text-accent" />
+              Draft with AI
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            onClick={() => setEditing('new')}
+            disabled={actions.length === 0}
+          >
+            New workflow
+          </Button>
+        </div>
       </div>
 
-      {actions.length === 0 ? (
-        <EmptyState
-          title="No actions yet"
-          hint="Create actions first, then chain them into a workflow."
-        />
-      ) : workflows.length === 0 ? (
+      {workflows.length === 0 ? (
         <EmptyState
           title="No workflows yet"
-          hint="Chain several actions into one keyword to set up your whole context."
+          hint={
+            actions.length === 0
+              ? aiAvailable
+                ? 'Create actions and chain them — or describe an outcome and let AI draft one.'
+                : 'Create actions first, then chain them into a workflow.'
+              : 'Chain several actions into one keyword to set up your whole context.'
+          }
         />
       ) : (
         <ul className="divide-y [divide-color:var(--cz-line-faint)] overflow-hidden rounded-lg border border-border">

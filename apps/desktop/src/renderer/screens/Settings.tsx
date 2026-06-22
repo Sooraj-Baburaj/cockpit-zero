@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { createId, type Action, type Alias, type Settings as SettingsType } from '@cockpitzero/shared';
+import {
+  createId,
+  type Action,
+  type Alias,
+  type DraftMaterialization,
+  type Settings as SettingsType,
+} from '@cockpitzero/shared';
 import { useConfig } from '../hooks/useConfig.js';
 import { useAppearance } from '../hooks/useAppearance.js';
 import { SettingsLayout } from '../components/templates/SettingsLayout.js';
@@ -74,6 +80,14 @@ export function Settings() {
       aliases: config.aliases.filter((al) => al.actionId !== action.id),
     });
 
+  /** Save an AI-drafted workflow: append its new step actions + the workflow. */
+  const saveWorkflowDraft = ({ actions, workflow }: DraftMaterialization) =>
+    persist({
+      ...config,
+      actions: [...config.actions, ...actions],
+      workflows: [...config.workflows, workflow],
+    });
+
   return (
     <SettingsLayout tabs={SETTINGS_TABS} active={tab} onSelect={setTab}>
       {tab === 'general' && <SettingsPanel settings={config.settings} onChange={updateSettings} />}
@@ -116,7 +130,9 @@ export function Settings() {
         <WorkflowEditor
           workflows={config.workflows}
           actions={config.actions}
+          aiAvailable={config.ai.enabled}
           onChange={(workflows) => persist({ ...config, workflows })}
+          onSaveDraft={saveWorkflowDraft}
         />
       )}
     </SettingsLayout>

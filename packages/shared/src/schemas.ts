@@ -102,6 +102,46 @@ export const WorkflowSchema = z.object({
   steps: z.array(z.string().min(1)).min(1).describe('Ordered list of action ids'),
 });
 
+/**
+ * One proposed step in an AI-drafted workflow (Phase 4). Either references an
+ * existing action (`actionId`) or carries a not-yet-persisted `action` to create
+ * on save — the `.refine` guarantees a step is always materializable, so a
+ * validated draft can never yield a workflow with a dangling/empty step. The
+ * `title` / `target` / `kindLabel` are the review surface's display fields, kept
+ * distinct from the action so the AI's human summary (e.g. the `URL ×3` badge)
+ * can differ from the materialized action's concrete kind.
+ */
+export const WorkflowStepDraftSchema = z
+  .object({
+    /** An existing action id, or null when the step is a newly-proposed action. */
+    actionId: z.string().nullable(),
+    /** The action to create on save (present when `actionId` is null). */
+    action: ActionSchema.optional(),
+    /** Step title shown in the review list ("Open dashboards"). */
+    title: z.string(),
+    /** Mono subtitle under the title ("Datadog · Linear · Stripe"). */
+    target: z.string().optional(),
+    /** Kind badge ("URL ×3", "Command", "Snippet", "App"). */
+    kindLabel: z.string(),
+  })
+  .refine((step) => step.actionId !== null || step.action !== undefined, {
+    message: 'A draft step must reference an existing action or carry one to create.',
+  });
+
+/**
+ * A workflow proposed from a natural-language description (the `draftWorkflow`
+ * channel, Phase 4). Deliberately NOT part of `ConfigSchema` — it's a transient
+ * draft, materialized into actions + a `Workflow` on save (see `draftToConfig`).
+ * Model/mock output is validated against this before it's ever rendered.
+ */
+export const WorkflowDraftSchema = z.object({
+  /** Serif heading ("Morning routine"). */
+  name: z.string(),
+  /** Mono keyword pill ("morning") — a suggested handle for the workflow. */
+  keyword: z.string(),
+  steps: z.array(WorkflowStepDraftSchema).min(1),
+});
+
 export const SettingsSchema = z.object({
   /** Electron accelerator string, e.g. "CommandOrControl+Shift+Space". */
   hotkey: z.string().min(1).default('CommandOrControl+Shift+Space'),

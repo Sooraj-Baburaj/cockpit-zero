@@ -2,6 +2,7 @@ export * from './schemas.js';
 export * from './types.js';
 export * from './config.js';
 export * from './actions.js';
+export * from './workflow-draft.js';
 export * from './search.js';
 export * from './ai-mode.js';
 export * from './ai-settings.js';

@@ -4,6 +4,8 @@ import type {
   AliasSchema,
   ArgumentSchema,
   WorkflowSchema,
+  WorkflowStepDraftSchema,
+  WorkflowDraftSchema,
   SettingsSchema,
   ConfigSchema,
   AiSettingsSchema,
@@ -18,6 +20,8 @@ export type ActionKind = Action['type'];
 export type Argument = z.infer<typeof ArgumentSchema>;
 export type Alias = z.infer<typeof AliasSchema>;
 export type Workflow = z.infer<typeof WorkflowSchema>;
+export type WorkflowStepDraft = z.infer<typeof WorkflowStepDraftSchema>;
+export type WorkflowDraft = z.infer<typeof WorkflowDraftSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
 
@@ -115,16 +119,4 @@ export interface AiAnswer {
   /** Provenance line, e.g. "cockpit-ai · 0.6s · 31 messages read". */
   meta?: string;
   suggestions: AiSuggestedAction[];
-}
-
-/**
- * A workflow proposed from a natural-language description (the `draftWorkflow`
- * channel). STUB — Phase 4 owns the real shape; Phase 1 defines just enough for
- * the channel to typecheck and return a placeholder.
- */
-export interface WorkflowDraft {
-  /** Proposed workflow name. */
-  name: string;
-  /** Ordered proposed steps (Phase 4 fleshes out the per-step shape). */
-  steps: AiSuggestedAction[];
 }
