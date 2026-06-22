@@ -3,7 +3,9 @@
  * React / `electron`) so the ordering is a unit-testable invariant and so the
  * `INITIAL_SETTINGS_TAB` is provably a member. Only list tabs that exist in the
  * product: "Routines" arrives with Phase 5; "Scripts" is still out of scope, so
- * the mockup's full nav is intentionally not mirrored yet.
+ * the mockup's full nav is intentionally not mirrored yet. "Config" is the
+ * power-user YAML editor (Phase 6) — a hand-edit view over the same schemas the
+ * other tabs edit via GUI.
  */
 export const SETTINGS_TABS = [
   'actions',
@@ -11,6 +13,7 @@ export const SETTINGS_TABS = [
   'workflows',
   'routines',
   'aliases',
+  'config',
   'general',
   'appearance',
 ] as const;

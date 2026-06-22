@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "fzf": "catalog:",
+    "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -15,6 +15,7 @@ import { SettingsPanel } from '../components/organisms/SettingsPanel.js';
 import { AppearancePanel } from '../components/organisms/AppearancePanel.js';
 import { AiPanel } from '../components/organisms/AiPanel.js';
 import { RoutinesPanel } from '../components/organisms/RoutinesPanel.js';
+import { YamlConfigEditor } from '../components/organisms/YamlConfigEditor.js';
 import { ActionList } from '../components/organisms/ActionList.js';
 import { ActionForm } from '../components/organisms/ActionForm.js';
 import { AliasEditor } from '../components/organisms/AliasEditor.js';
@@ -104,6 +105,8 @@ export function Settings() {
           onRun={(routineId) => api.runRoutine(routineId)}
         />
       )}
+
+      {tab === 'config' && <YamlConfigEditor config={config} onSave={persist} />}
 
       {tab === 'appearance' && (
         <AppearancePanel settings={config.settings} onChange={updateSettings} />

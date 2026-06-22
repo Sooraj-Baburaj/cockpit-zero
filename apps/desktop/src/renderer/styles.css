@@ -371,6 +371,43 @@ input:not(.cz-search-input):focus-visible {
 }
 
 /* ============================================================
+   YAML config editor (Phase 6)
+   ============================================================ */
+
+/* Syntax-highlight token colours, scoped so the short class names can't leak.
+   Keys carry the accent; strings are the one warm-green moment, reserved strictly
+   for YAML scalars; numbers the dusty rose; comments faint italic. */
+.cz-yaml .k {
+  color: var(--cz-accent-bright);
+}
+.cz-yaml .s {
+  color: #5a7d3f;
+}
+.cz-yaml .num {
+  color: var(--cz-tertiary);
+}
+.cz-yaml .cm {
+  color: var(--cz-fg-faint);
+  font-style: italic;
+}
+.cz-yaml .pl {
+  color: var(--cz-fg);
+}
+.cz-yaml .p {
+  color: var(--cz-fg-subtle);
+}
+
+/* The active (caret) line: a soft accent wash + a 2px sienna left rail, mirrored
+   on the gutter so the line number lights up in accent-bright. */
+.cz-yaml-line.act {
+  background: var(--cz-accent-soft);
+  box-shadow: inset 2px 0 0 var(--cz-accent);
+}
+.cz-yaml-gutter-num.act {
+  color: var(--cz-accent-bright);
+}
+
+/* ============================================================
    Motion
    ============================================================ */
 @keyframes czAppear {
