@@ -1,0 +1,71 @@
+/* ============================================================
+   CockpitZero — Color tokens
+   "Sun-baked simplicity." Light only. Warm linen backdrop, burnt
+   sienna accent, dusty-rose emphasis. Every neutral is warm-shifted.
+   ============================================================ */
+
+:root {
+  /* --- Backdrop: warm linen, never cold white --- */
+  --cz-bg-0: #f1e9dd; /* deepest linen (far corners) */
+  --cz-bg-1: #f6efe4; /* mid linen */
+  --cz-bg-2: #faf5ee; /* near linen / page base */
+  --cz-bg-grad: radial-gradient(
+    130% 130% at 50% 0%,
+    #fdf9f3 0%,
+    #faf5ee 42%,
+    #f1e9dd 100%
+  );
+
+  /* --- Surfaces: warm whites that float above the linen --- */
+  --cz-glass-1: #fffdf9; /* panel / card fill (warm white) */
+  --cz-glass-2: rgba(58, 48, 42, 0.035); /* quiet inset: chips, kbd, ghost-rest */
+  --cz-glass-3: rgba(58, 48, 42, 0.07); /* hover / raised / selected tab */
+  --cz-glass-selected: rgba(194, 101, 42, 0.1); /* selected row wash (sienna) */
+  --cz-scrim: rgba(58, 48, 42, 0.2); /* modal scrim over the page */
+
+  /* --- Hairline borders (warm gray, #d8d0c8 family) --- */
+  --cz-line: rgba(216, 208, 200, 0.6); /* default hairline */
+  --cz-line-strong: rgba(204, 194, 182, 0.85); /* raised / hover edge */
+  --cz-line-faint: rgba(216, 208, 200, 0.4); /* internal dividers */
+
+  /* --- Foreground text (warm near-black) --- */
+  --cz-fg: #3a302a; /* primary text (warm ink) */
+  --cz-fg-muted: rgba(58, 48, 42, 0.64); /* subtitles, labels */
+  --cz-fg-subtle: rgba(58, 48, 42, 0.46); /* placeholders, section labels */
+  --cz-fg-faint: rgba(58, 48, 42, 0.3); /* disabled text */
+
+  /* --- Accent: burnt sienna (warm, earthy energy) --- */
+  --cz-accent: #c2652a; /* core sienna */
+  --cz-accent-bright: #a8511f; /* deeper sienna for emphasis TEXT on linen */
+  --cz-accent-deep: #8a4017; /* pressed / shadow side */
+  --cz-accent-fg: #fffaf3; /* text on sienna fill */
+  --cz-accent-grad: linear-gradient(180deg, #cd7236 0%, #c2652a 100%); /* @kind color */
+  --cz-accent-soft: rgba(194, 101, 42, 0.12); /* tint fill (chips, washes) */
+  --cz-accent-line: rgba(194, 101, 42, 0.42); /* accent hairline / focus ring */
+
+  /* --- Tertiary: dusty rose (sparse emphasis only) --- */
+  --cz-tertiary: #8c3c3c;
+  --cz-tertiary-soft: rgba(140, 60, 60, 0.1);
+  --cz-tertiary-line: rgba(140, 60, 60, 0.38);
+
+  /* --- Sheen: a faint warm-white top highlight on raised surfaces. --- */
+  --cz-rim: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(255, 255, 255, 0.18) 22%,
+    rgba(255, 255, 255, 0) 46%
+  ); /* @kind color */
+  --cz-bloom: rgba(194, 101, 42, 0.08); /* whisper of warm light in the shadow */
+
+  /* --- Semantic status (warm-shifted, kept quiet) --- */
+  --cz-danger: #b3261e;
+  --cz-danger-soft: rgba(179, 38, 30, 0.1);
+  --cz-warn: #b06a16;
+  --cz-success: #5a7d3f;
+
+  /* --- Result-kind icon-chip tints (subtle, warm) --- */
+  --cz-kind-action: #c2652a;
+  --cz-kind-workflow: #8c3c3c;
+  --cz-kind-app: #a0692e;
+  --cz-kind-file: #8a7a66;
+}

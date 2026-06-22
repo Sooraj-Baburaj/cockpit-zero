@@ -1,0 +1,118 @@
+<!-- @dsCard group="Roadmap" viewport="1150x900" name="Launcher — Ask AI" subtitle="Natural-language query answered behind the bar, with AI-proposed actions to run" -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CockpitZero — Ask AI</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      html, body { margin: 0; height: 100%; }
+      .desktop { position: fixed; inset: 0; overflow: hidden; background: var(--cz-bg-grad); background-color: var(--cz-bg-2); }
+      .desktop::before, .desktop::after { content:""; position:absolute; border-radius:50%; filter: blur(85px); }
+      .desktop::before { width: 640px; height: 640px; left: 5%; top: 14%; background: radial-gradient(circle, rgba(214,158,84,.40), transparent 70%); }
+      .desktop::after  { width: 560px; height: 560px; right: 6%; bottom: 0%; background: radial-gradient(circle, rgba(176,108,74,.28), transparent 70%); }
+
+      .stage { position: relative; z-index: 2; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 32px; box-sizing: border-box; }
+      .panel { width: 720px; max-width: 94vw; overflow: hidden; }
+
+      .search { display: flex; align-items: center; gap: 16px; padding: 22px 26px; }
+      .spark { width: 24px; height: 24px; color: var(--cz-accent); flex: none; }
+      .query { font: 400 21px var(--cz-font-sans); color: var(--cz-fg); letter-spacing: -.01em; display: flex; align-items: center; line-height: 1.3; }
+      .caret { display:inline-block; width:2px; height:23px; background: var(--cz-accent); margin-left: 2px; }
+      @media (prefers-reduced-motion: no-preference){ .caret{ animation: blink 1.1s steps(1) infinite; } }
+      @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+
+      .answer { padding: 22px 26px 8px; border-top: 1px solid var(--cz-line-faint); }
+      .meta-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+      .ai-tag { display: inline-flex; align-items: center; gap: 7px; font: 600 11px var(--cz-font-sans); letter-spacing: .12em; text-transform: uppercase; color: var(--cz-accent-bright); }
+      .ai-tag svg { width: 14px; height: 14px; }
+      .src { font: 400 12px var(--cz-font-mono); color: var(--cz-fg-subtle); }
+      .a-body { font: 400 16px var(--cz-font-sans); color: var(--cz-fg); line-height: 1.62; max-width: 60ch; text-wrap: pretty; }
+      .a-body b { font-weight: 600; }
+
+      .sec { padding: 18px 26px 4px; font: 600 11px var(--cz-font-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--cz-fg-subtle); }
+      .list { padding: 2px 14px 8px; }
+      .res { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-radius: var(--cz-radius-md); border: 1px solid transparent; }
+      .res.sel { background: var(--cz-accent-soft); border-color: var(--cz-accent-line); box-shadow: var(--cz-ring-focus); }
+      .res-l { display: flex; align-items: center; gap: 14px; min-width: 0; }
+      .chip { width: 34px; height: 34px; flex: none; border-radius: var(--cz-radius-md); display: grid; place-items: center; color: var(--cz-fg-muted); background: var(--cz-glass-2); border: 1px solid var(--cz-line); }
+      .chip svg { width: 18px; height: 18px; }
+      .res.sel .chip { color: var(--cz-accent-fg); background: var(--cz-accent-grad); border-color: var(--cz-accent-line); box-shadow: var(--cz-glow-chip); }
+      .name { font: 500 15px var(--cz-font-sans); color: var(--cz-fg); display: flex; align-items: center; gap: 9px; }
+      .desc { font: 400 13px var(--cz-font-sans); color: var(--cz-fg-subtle); margin-top: 3px; }
+
+      .badge { font: 600 9.5px var(--cz-font-sans); letter-spacing: .1em; text-transform: uppercase; padding: 3px 7px; border-radius: var(--cz-radius-xs); border: 1px solid; flex: none; }
+      .b-neutral { color: var(--cz-fg-muted); background: var(--cz-glass-2); border-color: var(--cz-line); }
+      .b-accent { color: var(--cz-accent-bright); background: var(--cz-accent-soft); border-color: var(--cz-accent-line); }
+      .run { font: 500 12px var(--cz-font-mono); color: var(--cz-accent-bright); padding: 4px 9px; background: var(--cz-accent-soft); border: 1px solid var(--cz-accent-line); border-radius: var(--cz-radius-xs); flex: none; }
+
+      .foot { display: flex; align-items: center; justify-content: space-between; padding: 13px 22px; border-top: 1px solid var(--cz-line-faint); }
+      .foot-grp { display: flex; align-items: center; gap: 16px; }
+      .hintkey { display: flex; align-items: center; gap: 7px; font: 400 12px var(--cz-font-sans); color: var(--cz-fg-muted); }
+      .cap { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; font: 500 11px var(--cz-font-mono); color: var(--cz-fg-muted); background: var(--cz-glass-2); border: 1px solid var(--cz-line-strong); border-radius: var(--cz-radius-xs); }
+      .brand { font: 600 11px var(--cz-font-sans); letter-spacing: .16em; color: var(--cz-fg-subtle); display: flex; align-items: center; gap: 8px; }
+      .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cz-accent); }
+    </style>
+  </head>
+  <body class="cz-root">
+    <div class="desktop"></div>
+    <div class="stage">
+      <div class="cz-glass panel">
+        <div class="search">
+          <svg class="spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.5 4 1.5 5 5.5 5.5-4 .5-5 1.5-5.5 5.5-.5-4-1.5-5-5.5-5.5 4-.5 5-1.5 5.5-5.5Z"/><path d="M18.5 14c.3 1.7.7 2.2 2.5 2.5-1.8.3-2.2.8-2.5 2.5-.3-1.7-.7-2.2-2.5-2.5 1.8-.3 2.2-.8 2.5-2.5Z"/></svg>
+          <div class="query">Summarize the #helix-launch thread and draft a reply to Priya<span class="caret"></span></div>
+        </div>
+
+        <div class="answer">
+          <div class="meta-row">
+            <span class="ai-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.5 4 1.5 5 5.5 5.5-4 .5-5 1.5-5.5 5.5-.5-4-1.5-5-5.5-5.5 4-.5 5-1.5 5.5-5.5Z"/></svg> Answer</span>
+            <span class="src">cockpit-ai · 0.6s · 31 messages read</span>
+          </div>
+          <p class="a-body">Launch slipped to <b>Thursday</b> — staging is green, but the CDN cutover still needs sign-off from infra. Priya asked for the <b>rollback plan</b> before end of day and flagged that QA is blocked until the feature flag is flipped.</p>
+        </div>
+
+        <div class="sec">Suggested actions</div>
+        <div class="list">
+          <div class="res sel">
+            <div class="res-l">
+              <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+              <div>
+                <div class="name">Draft reply to Priya <span class="badge b-accent">Draft</span></div>
+                <div class="desc">“Rollback plan attached — flipping the flag now, QA can start at 2pm.”</div>
+              </div>
+            </div>
+            <span class="run">↵ run</span>
+          </div>
+          <div class="res">
+            <div class="res-l">
+              <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-1 4 8.5 8.5 0 0 1-7.5 4.5 8.4 8.4 0 0 1-4-1L3 21l1-3.5a8.4 8.4 0 0 1-1-4A8.5 8.5 0 0 1 7.5 6 8.4 8.4 0 0 1 11.5 5h.5A8.5 8.5 0 0 1 21 11v.5Z"/></svg></span>
+              <div>
+                <div class="name">Open #helix-launch <span class="badge b-neutral">App</span></div>
+                <div class="desc">Slack · 3 unread mentions</div>
+              </div>
+            </div>
+          </div>
+          <div class="res">
+            <div class="res-l">
+              <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span>
+              <div>
+                <div class="name">Add “CDN sign-off” to Today <span class="badge b-neutral">Task</span></div>
+                <div class="desc">Linear · due before EOD</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div class="foot-grp">
+            <span class="hintkey"><span class="cap">↵</span> run</span>
+            <span class="hintkey"><span class="cap">⌘↵</span> run all</span>
+            <span class="hintkey"><span class="cap">↑↓</span> navigate</span>
+          </div>
+          <div class="brand">COCKPIT ZERO <span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

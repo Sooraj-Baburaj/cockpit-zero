@@ -1,0 +1,44 @@
+/* ============================================================
+   CockpitZero — Effects: shadow, focus, sheen
+   Sahara is built on whitespace and barely-there elevation.
+   Shadows are ultra-soft and warm; there is no neon glow.
+   ============================================================ */
+
+:root {
+  /* --- Backdrop blur (light, mostly decorative now) --- */
+  --cz-blur-panel: 16px; /* command panel / settings window */
+  --cz-blur-chip: 8px; /* inset chips, inputs */
+
+  /* --- Elevation shadows: warm, ultra-soft, barely visible --- */
+  --cz-shadow-sm: 0 1px 3px rgba(58, 48, 42, 0.05);
+  --cz-shadow-md: 0 2px 16px rgba(58, 48, 42, 0.06);
+  /* Floating panel: a wide soft warm shadow so it lifts off the linen
+     without ever looking heavy. */
+  --cz-shadow-panel:
+    0 2px 16px rgba(58, 48, 42, 0.04),
+    0 24px 56px -28px rgba(58, 48, 42, 0.14),
+    0 0 48px -24px var(--cz-bloom);
+
+  /* --- Accent emphasis (soft, never glowing) --- */
+  --cz-glow-accent: 0 0 0 1px var(--cz-accent-line); /* primary button edge */
+  --cz-glow-accent-soft: 0 1px 4px rgba(194, 101, 42, 0.16);
+  --cz-glow-accent-strong:
+    0 0 0 1px var(--cz-accent-line), 0 4px 12px -2px rgba(194, 101, 42, 0.22);
+  /* Focus ring — a soft sienna halo for inputs / buttons */
+  --cz-ring-focus: 0 0 0 1px var(--cz-accent), 0 0 0 4px var(--cz-accent-soft);
+  /* Lit icon chip in a selected row */
+  --cz-glow-chip: 0 1px 6px rgba(194, 101, 42, 0.24);
+
+  /* --- Surface sheen --- */
+  /* Faint warm-white inner top highlight on raised panels */
+  --cz-rim-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+  /* Selected-row accent left rail (soft, not glowing) */
+  --cz-rail-glow: 0 1px 4px rgba(194, 101, 42, 0.28);
+
+  /* --- Motion --- */
+  --cz-ease: cubic-bezier(0.2, 0.8, 0.2, 1); /* default ease-out */
+  --cz-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --cz-dur-fast: 110ms; /* hover, press */
+  --cz-dur-base: 180ms; /* selection, panel transitions */
+  --cz-dur-slow: 260ms; /* launcher appear */
+}

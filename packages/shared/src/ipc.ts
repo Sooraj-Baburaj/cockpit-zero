@@ -1,4 +1,4 @@
-import type { Config, LauncherItem, ResolvedQuery } from './types.js';
+import type { AiAnswer, Config, LauncherItem, ResolvedQuery, WorkflowDraft } from './types.js';
 
 /**
  * IPC channel names — the contract between the desktop main process and the
@@ -19,6 +19,9 @@ export const IpcChannels = {
   getFileIcon: 'system:get-file-icon',
   getFavicon: 'system:get-favicon',
   completePath: 'system:complete-path',
+  askAI: 'ai:ask',
+  draftWorkflow: 'ai:draft-workflow',
+  aiStatus: 'ai:status',
   openSettings: 'window:open-settings',
   hideLauncher: 'window:hide-launcher',
 } as const;
@@ -51,6 +54,14 @@ export interface IpcApi {
   getFavicon(url: string): Promise<string | null>;
   /** Filesystem path suggestions for a partial absolute path (autocomplete). */
   completePath(input: string): Promise<string[]>;
+  /** Ask the assistant a free-text question; resolves to an answer + suggested
+   *  actions. Promise-based (resolve-once) — token streaming is a later phase. */
+  askAI(prompt: string): Promise<AiAnswer>;
+  /** Draft a workflow from a natural-language description. Stub here; Phase 4
+   *  implements the real drafting. */
+  draftWorkflow(description: string): Promise<WorkflowDraft>;
+  /** Whether AI is enabled + reachable, for surfaces that show connected state. */
+  aiStatus(): Promise<{ enabled: boolean; provider: string; ok: boolean }>;
   openSettings(): Promise<void>;
   hideLauncher(): Promise<void>;
   /** The host platform, so the renderer can render OS-correct shortcut glyphs. */

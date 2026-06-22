@@ -7,6 +7,7 @@ import { runWorkflow } from '../services/workflow-runner.js';
 import { getFileIcon } from '../services/icon-service.js';
 import { getFavicon } from '../services/favicon-service.js';
 import { completePath } from '../services/path-complete.js';
+import { aiService } from '../services/ai/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openSettings } from '../windows/index.js';
@@ -79,6 +80,16 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.getFavicon, (_e, url: string) => getFavicon(url));
 
   ipcMain.handle(IpcChannels.completePath, (_e, input: string) => completePath(input));
+
+  // AI foundation (Phase 1). The service selects the provider from config and
+  // short-circuits when AI is disabled; `draftWorkflow` is a stub until Phase 4.
+  ipcMain.handle(IpcChannels.askAI, (_e, prompt: string) => aiService.ask(prompt));
+
+  ipcMain.handle(IpcChannels.draftWorkflow, (_e, description: string) =>
+    aiService.draftWorkflow(description),
+  );
+
+  ipcMain.handle(IpcChannels.aiStatus, () => aiService.status());
 
   ipcMain.handle(IpcChannels.openSettings, () => {
     openSettings();

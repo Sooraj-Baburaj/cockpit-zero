@@ -13,6 +13,14 @@ const MOCK_CONFIG: Config = {
   actions: [],
   aliases: [],
   workflows: [],
+  ai: {
+    enabled: true,
+    provider: 'mock',
+    modelTier: 'pro',
+    askFromBar: true,
+    memoryEnabled: true,
+    tools: ['files', 'calendar', 'slack'],
+  },
 };
 
 /**
@@ -30,6 +38,13 @@ const mockApi: IpcApi = {
   getFileIcon: async () => null,
   getFavicon: async () => null,
   completePath: async () => [],
+  askAI: async (prompt) => ({
+    text: `**Mock answer** for “${prompt.trim()}” (dev bridge — no main process).`,
+    meta: 'cockpit-ai · mock',
+    suggestions: [{ id: 'mock-suggestion', title: 'Example suggestion', badge: 'Draft' }],
+  }),
+  draftWorkflow: async (description) => ({ name: `Draft: ${description.trim()}`, steps: [] }),
+  aiStatus: async () => ({ enabled: true, provider: 'mock', ok: true }),
   openSettings: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',

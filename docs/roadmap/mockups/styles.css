@@ -1,0 +1,13 @@
+/* ============================================================
+   CockpitZero Design System — global entry point.
+   Consumers link this one file. Imports only.
+   (Local copy of the Claude Design project tokens so the roadmap
+   mockups in this folder render offline. Source of truth lives in
+   the design project — see ./README.md.)
+   ============================================================ */
+
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/effects.css";
+@import "./tokens/primitives.css";

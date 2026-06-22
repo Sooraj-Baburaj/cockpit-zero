@@ -19,6 +19,9 @@ describe('IPC contract', () => {
       'getFileIcon',
       'getFavicon',
       'completePath',
+      'askAI',
+      'draftWorkflow',
+      'aiStatus',
       'openSettings',
       'hideLauncher',
     ];

@@ -1,4 +1,4 @@
-import { ConfigSchema, SettingsSchema } from './schemas.js';
+import { AiSettingsSchema, ConfigSchema, SettingsSchema } from './schemas.js';
 import type { Config } from './types.js';
 
 /** Parse + validate an unknown value into a Config (throws on invalid). */
@@ -19,5 +19,6 @@ export function defaultConfig(): Config {
     actions: [],
     aliases: [],
     workflows: [],
+    ai: AiSettingsSchema.parse({}),
   };
 }

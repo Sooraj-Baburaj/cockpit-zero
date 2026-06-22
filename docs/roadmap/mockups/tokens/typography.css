@@ -1,0 +1,55 @@
+/* ============================================================
+   CockpitZero — Typography tokens
+   Editorial serif headings (EB Garamond) over a clean geometric
+   sans (Manrope). Mono kept for paths / commands / aliases.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Font families. Sans (Manrope) carries body & UI; serif (EB Garamond)
+     carries headlines for the luxury-editorial read. */
+  --cz-font-sans:
+    "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --cz-font-serif:
+    "EB Garamond", Georgia, "Times New Roman", "Iowan Old Style", serif;
+  --cz-font-heading: var(--cz-font-serif);
+  --cz-font-mono:
+    ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Type scale (px). UI scale 12 / 13 / 15 / 18 / 22, plus two large
+     editorial steps for serif headlines. */
+  --cz-text-xs: 12px; /* badges, section labels, footer */
+  --cz-text-sm: 13px; /* subtitles, secondary UI, form hints */
+  --cz-text-base: 15px; /* body, result titles, form values */
+  --cz-text-lg: 18px; /* search query, argument line */
+  --cz-text-xl: 22px; /* window titles (sans) */
+  --cz-text-2xl: 30px; /* serif section heading */
+  --cz-text-display: 44px; /* serif display heading */
+
+  /* Line heights */
+  --cz-leading-tight: 1.12; /* large serif headlines */
+  --cz-leading-snug: 1.25;
+  --cz-leading-normal: 1.5;
+
+  /* Weights — Manrope 400/500/600/700; Garamond 400/500/600 */
+  --cz-weight-regular: 400;
+  --cz-weight-medium: 500;
+  --cz-weight-semibold: 600;
+  --cz-weight-bold: 700;
+
+  /* Letter-spacing */
+  --cz-tracking-label: 0.08em; /* SECTION LABELS, BADGES */
+  --cz-tracking-tight: -0.015em; /* large serif headings */
+  --cz-tracking-normal: 0;
+
+  /* Semantic roles */
+  --cz-text-display-role: var(--cz-text-display);
+  --cz-text-heading: var(--cz-text-2xl);
+  --cz-text-title: var(--cz-text-xl);
+  --cz-text-query: var(--cz-text-lg);
+  --cz-text-body: var(--cz-text-base);
+  --cz-text-subtitle: var(--cz-text-sm);
+  --cz-text-label: var(--cz-text-xs);
+}

@@ -6,6 +6,10 @@ import type {
   WorkflowSchema,
   SettingsSchema,
   ConfigSchema,
+  AiSettingsSchema,
+  AiProviderIdSchema,
+  AiModelTierSchema,
+  AiToolIdSchema,
 } from './schemas.js';
 
 /** All domain types are inferred from the Zod schemas (the source of truth). */
@@ -16,6 +20,12 @@ export type Alias = z.infer<typeof AliasSchema>;
 export type Workflow = z.infer<typeof WorkflowSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
+
+/** AI config types — inferred from the schemas (never hand-written). */
+export type AiSettings = z.infer<typeof AiSettingsSchema>;
+export type AiProviderId = z.infer<typeof AiProviderIdSchema>;
+export type AiModelTier = z.infer<typeof AiModelTierSchema>;
+export type AiToolId = z.infer<typeof AiToolIdSchema>;
 
 /**
  * A single row in the launcher — generalized beyond config actions so the bar
@@ -81,3 +91,40 @@ export type ResolvedQuery =
       /** Index of the parameter currently being typed (for caret/highlight). */
       activeIndex: number;
     };
+
+/**
+ * One AI-proposed action the launcher can offer to run (Phase 2's "Suggested
+ * actions"). Display-only by default; when `action` is present the surface can
+ * materialize/run it through the normal action runner.
+ */
+export interface AiSuggestedAction {
+  /** A real action id when it maps to config, else a synthetic preview id. */
+  id: string;
+  title: string;
+  subtitle?: string;
+  /** Badge text in the mockup: "Draft" / "App" / "Task". */
+  badge?: string;
+  /** Optional inline action to materialize/run; absent = display-only suggestion. */
+  action?: Action;
+}
+
+/** The wire shape `askAI` resolves to: a prose answer + proposed actions. */
+export interface AiAnswer {
+  /** The prose answer body (markdown-lite; bold supported). */
+  text: string;
+  /** Provenance line, e.g. "cockpit-ai · 0.6s · 31 messages read". */
+  meta?: string;
+  suggestions: AiSuggestedAction[];
+}
+
+/**
+ * A workflow proposed from a natural-language description (the `draftWorkflow`
+ * channel). STUB — Phase 4 owns the real shape; Phase 1 defines just enough for
+ * the channel to typecheck and return a placeholder.
+ */
+export interface WorkflowDraft {
+  /** Proposed workflow name. */
+  name: string;
+  /** Ordered proposed steps (Phase 4 fleshes out the per-step shape). */
+  steps: AiSuggestedAction[];
+}

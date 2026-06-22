@@ -112,6 +112,33 @@ export const SettingsSchema = z.object({
   telemetryEnabled: z.boolean().default(false),
 });
 
+/** Which engine powers AI features. `mock` is offline/deterministic — the test +
+ *  dev default; `anthropic` is the (later-wired) real Claude provider seam. */
+export const AiProviderIdSchema = z.enum(['mock', 'anthropic']);
+
+/** Which engine tier powers AI features (mirrors the cockpit-ai "Mini / Pro /
+ *  Bring your own"). Maps to concrete Claude model ids when the real provider
+ *  is wired — see the `claude-api` skill, never hard-code from memory. */
+export const AiModelTierSchema = z.enum(['mini', 'pro', 'byo']);
+
+/** Tools the assistant may call. Starts as a small catalog; Phase 7 executes them. */
+export const AiToolIdSchema = z.enum(['files', 'calendar', 'slack', 'slides-sheets']);
+
+/** The `ai` config block — every AI feature reads its provider/tier/toggles here. */
+export const AiSettingsSchema = z.object({
+  /** Master switch — when false, no AI surface appears anywhere. */
+  enabled: z.boolean().default(true),
+  /** Provider key. `mock` is offline/deterministic and the test + dev default. */
+  provider: AiProviderIdSchema.default('mock'),
+  modelTier: AiModelTierSchema.default('pro'),
+  /** "Ask AI from the bar": when a query matches nothing, offer to ask (Phase 2). */
+  askFromBar: z.boolean().default(true),
+  /** Memory & history across sessions (Phase 7 consumes this). */
+  memoryEnabled: z.boolean().default(true),
+  /** Per-tool grants for the assistant (Phase 7 enforces). */
+  tools: z.array(AiToolIdSchema).default(['files', 'calendar', 'slack']),
+});
+
 /** The full persisted config (what electron-store holds and /sync exchanges). */
 export const ConfigSchema = z.object({
   version: z.literal(1).default(1),
@@ -119,6 +146,9 @@ export const ConfigSchema = z.object({
   actions: z.array(ActionSchema).default([]),
   aliases: z.array(AliasSchema).default([]),
   workflows: z.array(WorkflowSchema).default([]),
+  /** Additive default: a config written before AI existed parses to this block,
+   *  so `version` stays 1 (no migration needed). */
+  ai: AiSettingsSchema.default(AiSettingsSchema.parse({})),
 });
 
 export const ActionType = ActionSchema.options.map((o) => o.shape.type.value);
