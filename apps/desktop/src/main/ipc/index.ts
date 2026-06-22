@@ -10,6 +10,7 @@ import { completePath } from '../services/path-complete.js';
 import { aiService } from '../services/ai/index.js';
 import { getDigest, listRoutines, runRoutine } from '../services/routines/index.js';
 import { approveTask, getTask, startTask, stopTask } from '../services/agent/index.js';
+import { secretsService } from '../services/secrets/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openConsole } from '../windows/index.js';
@@ -112,6 +113,18 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.taskStop, (_e, taskId: string) => stopTask(taskId));
 
   ipcMain.handle(IpcChannels.taskApprove, (_e, taskId: string) => approveTask(taskId));
+
+  // Secrets vault (production Phase 2). The OS-keychain-backed vault for BYOP keys
+  // (P3), the session token (P7), and OAuth tokens (P10). Deliberately NO
+  // `getSecret` handler — plaintext never crosses the bridge; in-process callers
+  // use `secretsService.get` directly.
+  ipcMain.handle(IpcChannels.setSecret, (_e, name: string, value: string) =>
+    secretsService.set(name, value),
+  );
+
+  ipcMain.handle(IpcChannels.clearSecret, (_e, name: string) => secretsService.delete(name));
+
+  ipcMain.handle(IpcChannels.secretStatus, () => secretsService.status());
 
   ipcMain.handle(IpcChannels.openConsole, () => {
     openConsole();

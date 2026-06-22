@@ -38,6 +38,9 @@ export const IpcChannels = {
   taskGet: 'task:get',
   taskStop: 'task:stop',
   taskApprove: 'task:approve',
+  setSecret: 'secret:set',
+  clearSecret: 'secret:clear',
+  secretStatus: 'secret:status',
   openConsole: 'window:open-console',
   hideLauncher: 'window:hide-launcher',
 } as const;
@@ -108,6 +111,15 @@ export interface IpcApi {
   /** Subscribe to streamed task updates (the one push channel). Returns an
    *  unsubscribe fn. Registered in preload (the only sanctioned `ipcRenderer.on`). */
   onTaskUpdate(callback: (run: TaskRun) => void): () => void;
+  /** Store/replace a secret by name in the OS-keychain-backed vault (P2). Resolves
+   *  `{ ok: false }` if secure storage is unavailable or the value is empty —
+   *  plaintext is **never** written. Names come from `SecretName` (shared). */
+  setSecret(name: string, value: string): Promise<{ ok: boolean }>;
+  /** Remove a secret. Idempotent — `{ ok: true }` even if it wasn't set. */
+  clearSecret(name: string): Promise<{ ok: boolean }>;
+  /** Which secrets are currently set — name → present. There is **no** matching
+   *  `getSecret`: plaintext never leaves the main process. */
+  secretStatus(): Promise<Record<string, boolean>>;
   openConsole(): Promise<void>;
   hideLauncher(): Promise<void>;
   /** The host platform, so the renderer can render OS-correct shortcut glyphs. */

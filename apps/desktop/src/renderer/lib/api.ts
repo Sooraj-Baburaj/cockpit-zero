@@ -119,6 +119,11 @@ const MOCK_TASK: TaskRun = {
   result: { kind: 'slides', previews: ['title', 'kpis', 'growth', 'next'], openLabel: 'Open in Keynote' },
 };
 
+/** In-memory secrets for the dev/browser bridge — there's no main process (and
+ *  no OS keychain) in a plain browser tab, so the vault is just a Set of names.
+ *  Mirrors the real contract: status reports presence, never the value. */
+const mockSecrets = new Set<string>();
+
 /**
  * A no-op bridge used ONLY in a browser/dev context where the preload script
  * isn't present — it keeps the UI rendering without a real main process.
@@ -208,6 +213,16 @@ const mockApi: IpcApi = {
   taskStop: async () => ({ ok: true }),
   taskApprove: async () => ({ ok: true }),
   onTaskUpdate: () => () => {},
+  setSecret: async (name, value) => {
+    if (value.trim() === '') return { ok: false };
+    mockSecrets.add(name);
+    return { ok: true };
+  },
+  clearSecret: async (name) => {
+    mockSecrets.delete(name);
+    return { ok: true };
+  },
+  secretStatus: async () => Object.fromEntries([...mockSecrets].map((name) => [name, true])),
   openConsole: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',

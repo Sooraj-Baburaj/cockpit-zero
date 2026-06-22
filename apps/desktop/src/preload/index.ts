@@ -34,6 +34,11 @@ const api: IpcApi = {
     ipcRenderer.on(TASK_UPDATE_CHANNEL, listener);
     return () => ipcRenderer.removeListener(TASK_UPDATE_CHANNEL, listener);
   },
+  // Secrets vault (P2). Set/clear/status only — there is no `getSecret` bridge,
+  // by design: plaintext never leaves the main process.
+  setSecret: (name, value) => ipcRenderer.invoke(IpcChannels.setSecret, name, value),
+  clearSecret: (name) => ipcRenderer.invoke(IpcChannels.clearSecret, name),
+  secretStatus: () => ipcRenderer.invoke(IpcChannels.secretStatus),
   openConsole: () => ipcRenderer.invoke(IpcChannels.openConsole),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
   platform: process.platform,

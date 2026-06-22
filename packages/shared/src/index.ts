@@ -7,6 +7,7 @@ export * from './search.js';
 export * from './ai-mode.js';
 export * from './ai-settings.js';
 export * from './routines.js';
+export * from './secrets.js';
 export * from './task.js';
 export * from './config-yaml.js';
 export * from './ipc.js';

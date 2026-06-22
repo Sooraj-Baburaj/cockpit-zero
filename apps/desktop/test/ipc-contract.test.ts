@@ -33,6 +33,9 @@ describe('IPC contract', () => {
       'taskGet',
       'taskStop',
       'taskApprove',
+      'setSecret',
+      'clearSecret',
+      'secretStatus',
       'openConsole',
       'hideLauncher',
     ];
@@ -42,5 +45,14 @@ describe('IPC contract', () => {
   it('channel values are unique', () => {
     const values = Object.values(IpcChannels);
     expect(new Set(values).size).toBe(values.length);
+  });
+
+  it('exposes no secret-read channel (plaintext never crosses the bridge)', () => {
+    // The vault is set/clear/status only — a `getSecret` channel would be a
+    // plaintext read path to the renderer, which P2 forbids by design.
+    const keys = Object.keys(IpcChannels);
+    const values: string[] = Object.values(IpcChannels);
+    expect(keys).not.toContain('getSecret');
+    expect(values).not.toContain('secret:get');
   });
 });
