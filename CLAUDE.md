@@ -281,10 +281,25 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
 ## Code intelligence (codegraph)
 
 The repo is indexed by **codegraph** (a local SQLite symbol graph in `.codegraph/`, git-ignored).
-Query it before editing to trace call paths / blast radius (MCP tools, or the `codegraph` CLI:
-`query`, `callers`, `callees`, `impact`). It lags writes by ~1s via a file watcher; after large
-changes run `codegraph sync`. If absent, run `codegraph init .`. It's an authoring aid only —
-nothing at runtime depends on it.
+Use it as the **default first step** for understanding and impact-checking — it's faster and more
+reliable than fanning out `Read`/`grep`. Two concrete triggers (don't skip these):
+
+1. **Before editing an unfamiliar area** — one `codegraph_explore` call (natural-language question
+   or a bag of symbol/file names) returns the verbatim source of the relevant symbols grouped by
+   file. Reach for it instead of a chain of `Read`s to map a flow (e.g. the launcher
+   resolve→render path).
+2. **Before changing any exported/shared function, hook, type, or IPC signature** (anything in
+   `packages/shared`, the IPC contract, or a hook/util used across the renderer) — run
+   `codegraph_callers` / `codegraph_impact` to scope the blast radius first. This is the highest-
+   value case: a signature change to shared code can ripple across apps that a grep misses (e.g.
+   through re-exports).
+
+Caveat: codegraph tracks **function/symbol** call edges, not **JSX component-render** usage — so
+`impact`/`callers` on a React component (e.g. `SearchField`) will under-report its renderers; fall
+back to a grep on the component name there. MCP tools (`codegraph_explore` / `_search` / `_callers`
+/ `_callees` / `_impact` / `_status`), or the `codegraph` CLI (`query`, `callers`, `callees`,
+`impact`). It lags writes by ~1s via a file watcher; after large changes run `codegraph sync`. If
+absent, run `codegraph init .`. It's an authoring aid only — nothing at runtime depends on it.
 
 ## Non-goals / follow-ups
 

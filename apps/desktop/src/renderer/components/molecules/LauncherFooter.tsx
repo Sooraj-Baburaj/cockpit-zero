@@ -2,44 +2,80 @@ import { cn } from '../../lib/cn.js';
 import { Kbd } from '../atoms/Kbd.js';
 import { modKey } from '../../lib/platform.js';
 
+/** One keyboard hint shown in the AI-mode footer: a keycap + its label. */
+export interface FooterHint {
+  /** The keycap glyph(s), e.g. "↵" or `${modKey}↵`. */
+  keys: string;
+  label: string;
+}
+
+/** The branded wordmark — left in the normal footer, right in the AI-mode one. */
+function Wordmark() {
+  return (
+    <span className="flex items-center gap-[7px] text-xs font-semibold tracking-[-0.01em] text-muted">
+      <span className="grid size-4 place-items-center rounded-[5px] [background:var(--cz-accent-grad)] [box-shadow:var(--cz-glow-accent-soft)]">
+        <svg
+          viewBox="0 0 16 16"
+          className="size-[9px]"
+          fill="none"
+          stroke="#fff"
+          strokeWidth={1.7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M8.5 1.5 3.5 9H7l-.5 5.5L12.5 7H9l-.5-5.5Z" />
+        </svg>
+      </span>
+      CockpitZero
+    </span>
+  );
+}
+
 /**
- * Persistent launcher footer — a branded wordmark plus a discoverable Settings
- * entry point (the only way to reach the config/actions/workflows window besides
- * the ⌘, shortcut the launcher also handles).
+ * Persistent launcher footer. In the normal state it shows the wordmark plus a
+ * discoverable Settings entry point. When `hints` are passed (AI mode) it swaps
+ * to a row of keyboard hints + the wordmark, matching the AI mockups' footer.
  */
 export function LauncherFooter({
   onOpenSettings,
   bordered = true,
+  hints,
 }: {
   onOpenSettings: () => void;
   /** Show the hairline separator above the footer (hidden in the resting state
    *  so there's no stray line directly under the search field). */
   bordered?: boolean;
+  /** Contextual keyboard hints — replaces the Settings button when present. */
+  hints?: FooterHint[];
 }) {
+  const wrap = cn(
+    'flex items-center justify-between px-3.5 py-2',
+    bordered && 'border-t [border-color:var(--cz-line-faint)]',
+  );
+
+  if (hints && hints.length > 0) {
+    return (
+      <div className={wrap}>
+        <div className="flex items-center gap-4">
+          {hints.map((hint) => (
+            <span
+              key={hint.label}
+              className="flex items-center gap-[7px] text-xs text-muted"
+            >
+              <Kbd>{hint.keys}</Kbd>
+              {hint.label}
+            </span>
+          ))}
+        </div>
+        <Wordmark />
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        'flex items-center justify-between px-3.5 py-2',
-        bordered && 'border-t [border-color:var(--cz-line-faint)]',
-      )}
-    >
-      <span className="flex items-center gap-[7px] text-xs font-semibold tracking-[-0.01em] text-muted">
-        <span className="grid size-4 place-items-center rounded-[5px] [background:var(--cz-accent-grad)] [box-shadow:var(--cz-glow-accent-soft)]">
-          <svg
-            viewBox="0 0 16 16"
-            className="size-[9px]"
-            fill="none"
-            stroke="#fff"
-            strokeWidth={1.7}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M8.5 1.5 3.5 9H7l-.5 5.5L12.5 7H9l-.5-5.5Z" />
-          </svg>
-        </span>
-        CockpitZero
-      </span>
+    <div className={wrap}>
+      <Wordmark />
       <button
         type="button"
         onClick={onOpenSettings}

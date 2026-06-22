@@ -1,15 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
-import { hasArgument, type Config } from '@cockpitzero/shared';
+import { useEffect, useReducer, useRef, useState } from 'react';
+import {
+  aiPhaseReducer,
+  computeLauncherView,
+  hasArgument,
+  IDLE_AI_PHASE,
+  type AiSuggestedAction,
+  type Config,
+  type LauncherItem,
+} from '@cockpitzero/shared';
 import { api } from '../lib/api.js';
 import { useLauncherSearch } from '../hooks/useLauncherSearch.js';
 import { useKeyboardNav } from '../hooks/useKeyboardNav.js';
 import { useAppearance } from '../hooks/useAppearance.js';
+import { modKey } from '../lib/platform.js';
 import { LauncherLayout } from '../components/templates/LauncherLayout.js';
 import { SearchField } from '../components/molecules/SearchField.js';
-import { LauncherFooter } from '../components/molecules/LauncherFooter.js';
+import { AiModePill } from '../components/molecules/AiModePill.js';
+import { LauncherFooter, type FooterHint } from '../components/molecules/LauncherFooter.js';
 import { Toast } from '../components/molecules/Toast.js';
 import { ResultList } from '../components/organisms/ResultList.js';
 import { ArgumentCapture } from '../components/organisms/ArgumentCapture.js';
+import { AiOfferPanel } from '../components/organisms/AiOfferPanel.js';
+import { AiAnswerPanel } from '../components/organisms/AiAnswerPanel.js';
 import { EmptyState } from '../components/atoms/EmptyState.js';
 
 interface Feedback {
@@ -17,77 +29,144 @@ interface Feedback {
   error: boolean;
 }
 
-/** ARIA wiring: the results listbox id and a stable per-row option id. */
+/** ARIA wiring: the results listbox id and a stable per-row option id. Reused
+ *  across the results / AI-offer / suggestions lists (only one renders at once). */
 const LISTBOX_ID = 'cz-results';
 const optionId = (index: number) => `cz-opt-${index}`;
 
 /**
  * The frameless launcher bar — thin composition only. Search/argument logic
- * lives in `useLauncherSearch`, navigation in `useKeyboardNav`, and all data
- * access goes through `api` (the typed preload bridge). The bar fetches config
- * once for appearance (theme/glass) and alias lookup (Tab-to-drill).
+ * lives in `useLauncherSearch`, AI-mode state in the `aiPhase` reducer +
+ * `computeLauncherView` (both pure, in `shared`), navigation in `useKeyboardNav`,
+ * and all data access goes through `api` (the typed preload bridge).
  */
 export function LauncherBar() {
   const [query, setQuery] = useState('');
   const [config, setConfig] = useState<Config | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const resolved = useLauncherSearch(query);
+  const { resolved, settled } = useLauncherSearch(query);
+  const [phase, dispatch] = useReducer(aiPhaseReducer, IDLE_AI_PHASE);
 
   useEffect(() => {
     inputRef.current?.focus();
     void api.getConfig().then(setConfig);
   }, []);
 
+  // Editing or clearing the query abandons any in-flight/visible AI answer and
+  // returns to live search (covers typing, the two-stage Escape, and the
+  // programmatic clear after a row runs).
+  useEffect(() => {
+    dispatch({ type: 'reset' });
+  }, [query]);
+
   useAppearance(config?.settings.theme, config?.settings.glass);
 
-  const results = resolved.kind === 'results' ? resolved.results : [];
-  const count = resolved.kind === 'argument' ? 1 : results.length;
-  const hasBody = resolved.kind === 'argument' || results.length > 0 || query.trim() !== '';
+  const view = computeLauncherView({ query, resolved, settled, ai: config?.ai, phase });
+  const aiMode =
+    view.kind === 'ai-offer' || view.kind === 'ai-pending' || view.kind === 'ai-answer';
+  const hasListbox =
+    view.kind === 'results' || view.kind === 'ai-offer' || view.kind === 'ai-answer';
 
-  const openSettings = () => {
-    void api.openSettings();
-    void api.hideLauncher();
+  const count =
+    view.kind === 'results'
+      ? view.results.length
+      : view.kind === 'argument' || view.kind === 'ai-offer'
+        ? 1
+        : view.kind === 'ai-answer'
+          ? view.answer.suggestions.length
+          : 0;
+
+  const flash = (message: string, error: boolean) => {
+    setFeedback({ message, error });
+    window.setTimeout(() => setFeedback(null), 2500);
   };
 
-  /** Run a row (or the argument-capture action). A parameterized action drills
-   *  into argument entry instead of running. On success the launcher just hides
-   *  itself (no confirmation toast); only a failure surfaces feedback. */
-  const run = (index: number) => {
-    if (resolved.kind === 'results') {
-      const item = results[index];
-      if (!item) return;
-      if (tryDrill(item)) return;
-    }
-
-    const job =
-      resolved.kind === 'argument'
-        ? { exec: () => api.runAction(resolved.action.id, resolved.values) }
-        : resultJob(index);
-    if (!job) return;
-
-    void job.exec().then((res) => {
+  /** Run a job (action/workflow/open). On success the launcher just hides itself
+   *  and clears; only a failure surfaces feedback. */
+  const execJob = (exec: () => Promise<{ ok: boolean; error?: string }>) => {
+    void exec().then((res) => {
       if (res.ok) {
         void api.hideLauncher();
         setQuery('');
       } else {
-        setFeedback({ message: res.error ?? 'Could not run', error: true });
-        window.setTimeout(() => setFeedback(null), 2500);
+        flash(res.error ?? 'Could not run', true);
       }
     });
   };
 
-  const resultJob = (index: number) => {
-    const item = results[index];
-    if (!item) return null;
+  const resultExec = (item: LauncherItem) => {
     switch (item.kind) {
       case 'action':
-        return { exec: () => api.runAction(item.action.id) };
+        return () => api.runAction(item.action.id);
       case 'workflow':
-        return { exec: () => api.runWorkflow(item.workflow.id) };
+        return () => api.runWorkflow(item.workflow.id);
       case 'app':
       case 'file':
-        return { exec: () => api.openPath(item.path) };
+        return () => api.openPath(item.path);
+    }
+  };
+
+  /** A suggestion runs only when it maps to a real config action; AI-only
+   *  suggestions are display-only this phase (real side-effects land in Phase 7). */
+  const isRunnable = (s: AiSuggestedAction) => !!config?.actions.some((a) => a.id === s.id);
+
+  /** Hand the current query to the assistant and stream the answer back in. */
+  const ask = (prompt: string) => {
+    const q = prompt.trim();
+    if (q === '') return;
+    dispatch({ type: 'ask', query: q });
+    void api.askAI(q).then((answer) => dispatch({ type: 'resolved', query: q, answer }));
+  };
+
+  const runSuggestion = (index: number) => {
+    if (view.kind !== 'ai-answer') return;
+    const s = view.answer.suggestions[index];
+    if (!s) return;
+    if (!isRunnable(s)) {
+      flash('Not runnable yet — coming in a later phase.', false);
+      return;
+    }
+    execJob(() => api.runAction(s.id));
+  };
+
+  /** ⌘↵ — run every runnable suggestion in sequence, then hide. */
+  const runAllSuggestions = () => {
+    if (view.kind !== 'ai-answer') return;
+    const runnable = view.answer.suggestions.filter(isRunnable);
+    if (runnable.length === 0) {
+      flash('No runnable suggestions yet.', false);
+      return;
+    }
+    void runnable
+      .reduce<Promise<unknown>>((p, s) => p.then(() => api.runAction(s.id)), Promise.resolve())
+      .then(() => {
+        void api.hideLauncher();
+        setQuery('');
+      });
+  };
+
+  /** Activate the row at `index` — meaning depends on the current view. */
+  const run = (index: number) => {
+    switch (view.kind) {
+      case 'ai-offer':
+        ask(view.query);
+        return;
+      case 'ai-answer':
+        runSuggestion(index);
+        return;
+      case 'argument':
+        execJob(() => api.runAction(view.action.id, view.values));
+        return;
+      case 'results': {
+        const item = view.results[index];
+        if (!item) return;
+        if (tryDrill(item)) return;
+        execJob(resultExec(item));
+        return;
+      }
+      default:
+        return;
     }
   };
 
@@ -98,10 +177,15 @@ export function LauncherBar() {
     onClose: () => void api.hideLauncher(),
   });
 
+  const openSettings = () => {
+    void api.openSettings();
+    void api.hideLauncher();
+  };
+
   /** Drill a parameterized action into argument capture by pre-filling its
-   *  keyword (so a {query} action with keyword `gh` → `gh `). Returns false when
-   *  the item isn't a parameterized action or has no keyword to trigger it. */
-  const tryDrill = (item: (typeof results)[number] | undefined): boolean => {
+   *  keyword. Returns false when the item isn't a parameterized action or has no
+   *  keyword to trigger it. */
+  const tryDrill = (item: LauncherItem | undefined): boolean => {
     if (item?.kind !== 'action' || !hasArgument(item.action)) return false;
     const keyword = config?.aliases.find((a) => a.actionId === item.action.id)?.keyword;
     if (!keyword) return false;
@@ -116,61 +200,130 @@ export function LauncherBar() {
       openSettings();
       return;
     }
-    // ⌘1–9 / Ctrl+1–9 runs the Nth result.
-    if ((e.metaKey || e.ctrlKey) && /^[1-9]$/.test(e.key)) {
-      const index = Number(e.key) - 1;
-      if (resolved.kind === 'results' && index < results.length) {
+    // ⌘↵ / Ctrl+↵ runs all suggested actions (answer view).
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      if (view.kind === 'ai-answer') {
         e.preventDefault();
-        run(index);
+        runAllSuggestions();
         return;
       }
     }
-    // Tab drills the selected parameterized action into argument entry.
-    if (e.key === 'Tab') {
-      if (resolved.kind === 'results' && tryDrill(results[selected])) e.preventDefault();
+    // ⌘1–9 / Ctrl+1–9 runs the Nth result (results view only).
+    if ((e.metaKey || e.ctrlKey) && /^[1-9]$/.test(e.key)) {
+      if (view.kind === 'results') {
+        const index = Number(e.key) - 1;
+        if (index < view.results.length) {
+          e.preventDefault();
+          run(index);
+        }
+      }
       return;
     }
-    // Two-stage Escape: first clears a non-empty query, then closes.
-    if (e.key === 'Escape' && query !== '') {
-      e.preventDefault();
-      setQuery('');
+    // Tab drills the selected parameterized action into argument entry.
+    if (e.key === 'Tab') {
+      if (view.kind === 'results' && tryDrill(view.results[selected])) e.preventDefault();
       return;
+    }
+    // Escape: AI mode dismisses outright; otherwise two-stage (clear, then close).
+    if (e.key === 'Escape') {
+      if (aiMode) {
+        e.preventDefault();
+        void api.hideLauncher();
+        return;
+      }
+      if (query !== '') {
+        e.preventDefault();
+        setQuery('');
+        return;
+      }
     }
     handleKeyDown(e);
   };
 
+  const footerHints: FooterHint[] | undefined =
+    view.kind === 'ai-offer' || view.kind === 'ai-pending'
+      ? [
+          { keys: '↵', label: 'ask AI' },
+          { keys: '⌫', label: 'back to search' },
+          { keys: 'esc', label: 'dismiss' },
+        ]
+      : view.kind === 'ai-answer'
+        ? [
+            { keys: '↵', label: 'run' },
+            { keys: `${modKey}↵`, label: 'run all' },
+            { keys: '↑↓', label: 'navigate' },
+          ]
+        : undefined;
+
   return (
-    <LauncherLayout>
+    <LauncherLayout aiMode={aiMode}>
       <SearchField
         inputRef={inputRef}
         value={query}
         onChange={setQuery}
         onKeyDown={onKeyDown}
-        listboxId={LISTBOX_ID}
-        expanded={results.length > 0}
-        activeId={results.length > 0 ? optionId(selected) : undefined}
+        glyph={aiMode ? 'spark' : 'search'}
+        trailing={view.kind === 'ai-offer' || view.kind === 'ai-pending' ? <AiModePill /> : undefined}
+        listboxId={hasListbox ? LISTBOX_ID : undefined}
+        expanded={hasListbox && count > 0}
+        activeId={hasListbox && count > 0 ? optionId(selected) : undefined}
       />
 
-      {resolved.kind === 'argument' ? (
+      {view.kind === 'argument' ? (
         <div className="border-t [border-color:var(--cz-line-faint)]" onClick={() => run(0)}>
           <ArgumentCapture
-            action={resolved.action}
-            keyword={resolved.keyword}
-            values={resolved.values}
-            activeIndex={resolved.activeIndex}
+            action={view.action}
+            keyword={view.keyword}
+            values={view.values}
+            activeIndex={view.activeIndex}
           />
         </div>
-      ) : results.length > 0 ? (
+      ) : view.kind === 'results' ? (
         <div className="border-t [border-color:var(--cz-line-faint)]">
           <ResultList
             listboxId={LISTBOX_ID}
-            results={results}
+            results={view.results}
             selected={selected}
             onSelect={run}
             onHover={setSelected}
           />
         </div>
-      ) : query.trim() !== '' ? (
+      ) : view.kind === 'ai-offer' ? (
+        <div className="border-t [border-color:var(--cz-line-faint)]">
+          <AiOfferPanel
+            query={view.query}
+            listboxId={LISTBOX_ID}
+            optionId={optionId(0)}
+            selected={selected === 0}
+            onRun={() => run(0)}
+            onHover={() => setSelected(0)}
+          />
+        </div>
+      ) : view.kind === 'ai-pending' ? (
+        <div className="border-t [border-color:var(--cz-line-faint)]">
+          <AiAnswerPanel
+            pending
+            listboxId={LISTBOX_ID}
+            optionId={optionId}
+            selected={selected}
+            onSelect={run}
+            onHover={setSelected}
+            isRunnable={isRunnable}
+          />
+        </div>
+      ) : view.kind === 'ai-answer' ? (
+        <div className="border-t [border-color:var(--cz-line-faint)]">
+          <AiAnswerPanel
+            answer={view.answer}
+            listboxId={LISTBOX_ID}
+            optionId={optionId}
+            selected={selected}
+            onSelect={run}
+            onHover={setSelected}
+            isRunnable={isRunnable}
+          />
+        </div>
+      ) : view.kind === 'empty' ? (
         <div className="border-t [border-color:var(--cz-line-faint)]">
           <EmptyState
             title="No matching actions"
@@ -181,7 +334,11 @@ export function LauncherBar() {
 
       {feedback && <Toast message={feedback.message} error={feedback.error} />}
 
-      <LauncherFooter onOpenSettings={openSettings} bordered={hasBody} />
+      <LauncherFooter
+        onOpenSettings={openSettings}
+        bordered={view.kind !== 'resting'}
+        hints={footerHints}
+      />
     </LauncherLayout>
   );
 }

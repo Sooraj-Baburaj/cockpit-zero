@@ -1,5 +1,6 @@
 import { useState, type Ref } from 'react';
 import { cn } from '../../lib/cn.js';
+import { Sparkle } from '../atoms/Sparkle.js';
 
 /** Magnifier glyph drawn inline so the renderer needs no icon dependency.
  *  Lights sienna when the field is focused. */
@@ -22,8 +23,10 @@ function SearchGlyph({ focused }: { focused: boolean }) {
   );
 }
 
-/** The launcher's top input row: a search glyph + the query field. Implements
- *  the ARIA combobox pattern over the results listbox below it. */
+/** The launcher's top input row: a leading glyph + the query field, with an
+ *  optional trailing slot (the "AI mode" pill). In AI mode the magnifier is
+ *  swapped for the spark. Implements the ARIA combobox pattern over the list
+ *  below it. */
 export function SearchField({
   inputRef,
   value,
@@ -33,6 +36,8 @@ export function SearchField({
   listboxId,
   activeId,
   expanded = false,
+  glyph = 'search',
+  trailing,
 }: {
   inputRef: Ref<HTMLInputElement>;
   value: string;
@@ -44,11 +49,19 @@ export function SearchField({
   /** id of the active (selected) option, for aria-activedescendant. */
   activeId?: string;
   expanded?: boolean;
+  /** Leading icon: the magnifier (default) or the AI spark (AI mode). */
+  glyph?: 'search' | 'spark';
+  /** Optional element at the right of the row (e.g. the "AI mode" pill). */
+  trailing?: React.ReactNode;
 }) {
   const [focused, setFocused] = useState(false);
   return (
     <div className="flex items-center gap-3 px-5">
-      <SearchGlyph focused={focused} />
+      {glyph === 'spark' ? (
+        <Sparkle className="size-6 shrink-0 text-[var(--cz-accent)]" pair />
+      ) : (
+        <SearchGlyph focused={focused} />
+      )}
       <input
         ref={inputRef}
         value={value}
@@ -67,6 +80,7 @@ export function SearchField({
         aria-autocomplete="list"
         className="cz-search-input flex-1 bg-transparent py-4 text-lg text-fg caret-[var(--cz-accent-bright)] outline-none placeholder:text-subtle"
       />
+      {trailing}
     </div>
   );
 }

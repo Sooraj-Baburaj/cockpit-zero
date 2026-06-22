@@ -314,6 +314,13 @@ input:not(.cz-search-input):focus-visible {
   box-shadow: var(--cz-shadow-panel), var(--cz-rim-inset);
 }
 
+/* AI mode: the launcher panel grows a soft sienna edge + accent glow (the 2px
+   top rail is rendered as an element so it clips to the panel's rounded top). */
+.cz-panel-ai {
+  border-color: var(--cz-accent-line);
+  box-shadow: var(--cz-shadow-panel), var(--cz-rim-inset), var(--cz-glow-accent-soft);
+}
+
 /* The settings window surface. Translucent so the OS frosted-glass effect
    (macOS vibrancy / Windows acrylic, applied to the window itself) shows
    through; opaque when frosted glass is turned off in Appearance. */

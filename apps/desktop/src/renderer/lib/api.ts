@@ -39,9 +39,25 @@ const mockApi: IpcApi = {
   getFavicon: async () => null,
   completePath: async () => [],
   askAI: async (prompt) => ({
-    text: `**Mock answer** for “${prompt.trim()}” (dev bridge — no main process).`,
-    meta: 'cockpit-ai · mock',
-    suggestions: [{ id: 'mock-suggestion', title: 'Example suggestion', badge: 'Draft' }],
+    text:
+      `**Mock answer** for “${prompt.trim()}” (dev bridge — no main process). Launch slipped ` +
+      'to **Thursday** — staging is green, but the CDN cutover still needs sign-off from infra.',
+    meta: 'cockpit-ai · mock · 31 messages read',
+    suggestions: [
+      {
+        id: 'mock-draft-reply',
+        title: 'Draft reply to Priya',
+        subtitle: 'Rollback plan attached — flipping the flag now, QA can start at 2pm.',
+        badge: 'Draft',
+      },
+      { id: 'mock-open-helix', title: 'Open #helix-launch', subtitle: 'Slack · 3 unread', badge: 'App' },
+      {
+        id: 'mock-add-task',
+        title: 'Add “CDN sign-off” to Today',
+        subtitle: 'Linear · due before EOD',
+        badge: 'Task',
+      },
+    ],
   }),
   draftWorkflow: async (description) => ({ name: `Draft: ${description.trim()}`, steps: [] }),
   aiStatus: async () => ({ enabled: true, provider: 'mock', ok: true }),
