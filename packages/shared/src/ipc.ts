@@ -1,4 +1,12 @@
-import type { AiAnswer, Config, LauncherItem, ResolvedQuery, WorkflowDraft } from './types.js';
+import type {
+  AiAnswer,
+  Config,
+  Digest,
+  LauncherItem,
+  ResolvedQuery,
+  Routine,
+  WorkflowDraft,
+} from './types.js';
 
 /**
  * IPC channel names — the contract between the desktop main process and the
@@ -22,6 +30,9 @@ export const IpcChannels = {
   askAI: 'ai:ask',
   draftWorkflow: 'ai:draft-workflow',
   aiStatus: 'ai:status',
+  runRoutine: 'routine:run',
+  getDigest: 'routine:get-digest',
+  listRoutines: 'routine:list',
   openSettings: 'window:open-settings',
   hideLauncher: 'window:hide-launcher',
 } as const;
@@ -62,6 +73,13 @@ export interface IpcApi {
   draftWorkflow(description: string): Promise<WorkflowDraft>;
   /** Whether AI is enabled + reachable, for surfaces that show connected state. */
   aiStatus(): Promise<{ enabled: boolean; provider: string; ok: boolean }>;
+  /** Run a routine now (Phase 5): fan out to its sources, summarize + rank, and
+   *  deliver. Resolves to the freshly computed digest (also stored for `getDigest`). */
+  runRoutine(routineId: string): Promise<Digest>;
+  /** The last-computed digest for a routine, or null if it hasn't run this session. */
+  getDigest(routineId: string): Promise<Digest | null>;
+  /** The configured routines (for the Settings → Routines list). */
+  listRoutines(): Promise<Routine[]>;
   openSettings(): Promise<void>;
   hideLauncher(): Promise<void>;
   /** The host platform, so the renderer can render OS-correct shortcut glyphs. */

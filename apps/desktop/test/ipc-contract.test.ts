@@ -22,6 +22,9 @@ describe('IPC contract', () => {
       'askAI',
       'draftWorkflow',
       'aiStatus',
+      'runRoutine',
+      'getDigest',
+      'listRoutines',
       'openSettings',
       'hideLauncher',
     ];

@@ -1,4 +1,4 @@
-import type { IpcApi, Config } from '@cockpitzero/shared';
+import type { IpcApi, Config, Digest } from '@cockpitzero/shared';
 
 /** Dummy config returned when the app runs in a normal browser tab (no preload). */
 const MOCK_CONFIG: Config = {
@@ -20,6 +20,65 @@ const MOCK_CONFIG: Config = {
     askFromBar: true,
     memoryEnabled: true,
     tools: ['files', 'calendar', 'slack'],
+  },
+  routines: [
+    {
+      id: 'morning_digest',
+      label: 'Morning briefing',
+      kind: 'digest',
+      enabled: true,
+      sources: ['slack', 'gmail', 'teams', 'linear', 'github', 'notion'],
+      rankBy: 'importance',
+      schedule: '0 8 * * *',
+      trigger: 'scheduled',
+      deliver: 'window',
+      summarize: { modelTier: 'mini', maxItems: 8 },
+    },
+  ],
+};
+
+/** A canned digest for the dev/browser bridge (mirrors the seeded morning_digest). */
+const MOCK_DIGEST: Digest = {
+  routineId: 'morning_digest',
+  title: 'Morning briefing',
+  updatedAt: '8:42 AM',
+  sourceCount: 6,
+  surfaced: 5,
+  total: 17,
+  groups: {
+    now: [
+      {
+        id: 'm-priya',
+        who: 'Priya Shah',
+        source: 'slack',
+        summary: 'Needs the rollback plan before the Helix CDN cutover — blocking QA.',
+        when: '12m',
+        bucket: 'now',
+        score: 0.98,
+        openPath: 'https://app.slack.com/client',
+      },
+      {
+        id: 'm-aws',
+        who: 'AWS Billing',
+        source: 'gmail',
+        summary: 'Budget alert: production spend hit 92% of the monthly cap.',
+        when: '1h',
+        bucket: 'now',
+        score: 0.92,
+      },
+    ],
+    wait: [
+      {
+        id: 'm-github',
+        who: 'GitHub',
+        source: 'github',
+        summary: 'Two pull requests need review in cockpit-zero.',
+        when: '4h',
+        bucket: 'wait',
+        score: 0.6,
+      },
+    ],
+    noiseCount: 12,
   },
 };
 
@@ -104,6 +163,9 @@ const mockApi: IpcApi = {
     ],
   }),
   aiStatus: async () => ({ enabled: true, provider: 'mock', ok: true }),
+  runRoutine: async () => MOCK_DIGEST,
+  getDigest: async () => MOCK_DIGEST,
+  listRoutines: async () => MOCK_CONFIG.routines,
   openSettings: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',

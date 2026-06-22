@@ -6,6 +6,7 @@ export * from './workflow-draft.js';
 export * from './search.js';
 export * from './ai-mode.js';
 export * from './ai-settings.js';
+export * from './routines.js';
 export * from './ipc.js';
 export * from './utils.js';
 

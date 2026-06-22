@@ -1,3 +1,4 @@
+import { rankDigestItems } from '@cockpitzero/shared';
 import type { AiAnswer, AiSuggestedAction, WorkflowDraft } from '@cockpitzero/shared';
 import type { AiProvider } from '../../services/ai/provider.js';
 
@@ -133,6 +134,11 @@ export function createMockProvider(): AiProvider {
           action: step.action ? { ...step.action } : undefined,
         })),
       } satisfies WorkflowDraft;
+    },
+    async summarizeDigest(items, opts) {
+      // Deterministic, offline summarize + rank — the shared ranker the AI-disabled
+      // fallback also uses, so the digest is identical with or without the mock.
+      return rankDigestItems(items, opts);
     },
   };
 }

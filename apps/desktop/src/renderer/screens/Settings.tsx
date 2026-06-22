@@ -4,14 +4,17 @@ import {
   type Action,
   type Alias,
   type DraftMaterialization,
+  type Routine,
   type Settings as SettingsType,
 } from '@cockpitzero/shared';
+import { api } from '../lib/api.js';
 import { useConfig } from '../hooks/useConfig.js';
 import { useAppearance } from '../hooks/useAppearance.js';
 import { SettingsLayout } from '../components/templates/SettingsLayout.js';
 import { SettingsPanel } from '../components/organisms/SettingsPanel.js';
 import { AppearancePanel } from '../components/organisms/AppearancePanel.js';
 import { AiPanel } from '../components/organisms/AiPanel.js';
+import { RoutinesPanel } from '../components/organisms/RoutinesPanel.js';
 import { ActionList } from '../components/organisms/ActionList.js';
 import { ActionForm } from '../components/organisms/ActionForm.js';
 import { AliasEditor } from '../components/organisms/AliasEditor.js';
@@ -93,6 +96,14 @@ export function Settings() {
       {tab === 'general' && <SettingsPanel settings={config.settings} onChange={updateSettings} />}
 
       {tab === 'ai' && <AiPanel ai={config.ai} onSave={(ai) => persist({ ...config, ai })} />}
+
+      {tab === 'routines' && (
+        <RoutinesPanel
+          routines={config.routines}
+          onChange={(routines: Routine[]) => persist({ ...config, routines })}
+          onRun={(routineId) => api.runRoutine(routineId)}
+        />
+      )}
 
       {tab === 'appearance' && (
         <AppearancePanel settings={config.settings} onChange={updateSettings} />

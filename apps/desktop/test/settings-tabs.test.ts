@@ -17,8 +17,11 @@ describe('settings tabs', () => {
     expect(SETTINGS_TABS).toContain(INITIAL_SETTINGS_TAB);
   });
 
-  it('omits not-yet-built tabs (routines / scripts)', () => {
-    expect(SETTINGS_TABS).not.toContain('routines');
+  it('registers the Routines tab (Phase 5)', () => {
+    expect(SETTINGS_TABS).toContain('routines');
+  });
+
+  it('omits the still-out-of-scope scripts tab', () => {
     expect(SETTINGS_TABS).not.toContain('scripts');
   });
 });

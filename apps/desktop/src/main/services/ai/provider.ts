@@ -1,4 +1,11 @@
-import type { AiAnswer, AiSettings, WorkflowDraft } from '@cockpitzero/shared';
+import type {
+  AiAnswer,
+  AiSettings,
+  DigestRanking,
+  DigestSourceItem,
+  DigestSummarizeOptions,
+  WorkflowDraft,
+} from '@cockpitzero/shared';
 
 /**
  * The AI provider port. Following the same dependency-inversion as the
@@ -25,4 +32,11 @@ export interface AiProvider {
   ask(prompt: string, ctx: AiContext): Promise<AiAnswer>;
   /** Draft a workflow from a natural-language description (Phase 4). */
   draftWorkflow(description: string, ctx: AiContext): Promise<WorkflowDraft>;
+  /** Summarize + bucket/rank a routine's notifications (Phase 5). Returns one
+   *  ranking per input item; the digest runner assembles the surface from these. */
+  summarizeDigest(
+    items: DigestSourceItem[],
+    opts: DigestSummarizeOptions,
+    ctx: AiContext,
+  ): Promise<DigestRanking[]>;
 }

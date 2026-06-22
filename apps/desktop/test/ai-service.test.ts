@@ -4,6 +4,7 @@ import {
   defaultConfig,
   type AiProviderId,
   type Config,
+  type DigestSourceItem,
 } from '@cockpitzero/shared';
 import { createAiService } from '../src/main/services/ai/ai-service.js';
 import type { AiProvider } from '../src/main/services/ai/provider.js';
@@ -19,6 +20,9 @@ function fakeProvider(id: string, ready = true): AiProvider {
     ready: vi.fn(() => ready),
     ask: vi.fn(async (prompt) => ({ text: `${id}:${prompt}`, suggestions: [] })),
     draftWorkflow: vi.fn(async (desc) => ({ name: `${id}:${desc}`, keyword: '', steps: [] })),
+    summarizeDigest: vi.fn(async (items: DigestSourceItem[]) =>
+      items.map((it) => ({ id: it.id, summary: `${id}:${it.text}`, bucket: 'wait' as const, score: 1 })),
+    ),
   };
 }
 
@@ -112,6 +116,34 @@ describe('createAiService', () => {
     const draft = await svc.draftWorkflow('x');
     expect(draft).toEqual({ name: '', keyword: '', steps: [] });
     expect(p.mock.draftWorkflow).not.toHaveBeenCalled();
+  });
+
+  it('routes summarizeDigest to the selected provider', async () => {
+    const p = providers();
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'mock' }),
+    });
+    const rankings = await svc.summarizeDigest(
+      [{ id: 'x', who: 'A', source: 'slack', text: 'hello', ageMinutes: 1 }],
+      { rankBy: 'importance', modelTier: 'mini', maxItems: 8 },
+    );
+    expect(rankings[0]).toMatchObject({ id: 'x', summary: 'mock:hello' });
+    expect(p.mock.summarizeDigest).toHaveBeenCalledOnce();
+  });
+
+  it('falls back to the local ranker (no provider call) when AI is disabled', async () => {
+    const p = providers();
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ enabled: false }),
+    });
+    const rankings = await svc.summarizeDigest(
+      [{ id: 'x', who: 'A', source: 'slack', text: 'newsletter digest', ageMinutes: 1 }],
+      { rankBy: 'importance', modelTier: 'mini', maxItems: 8 },
+    );
+    expect(rankings[0]).toMatchObject({ id: 'x', bucket: 'noise' });
+    expect(p.mock.summarizeDigest).not.toHaveBeenCalled();
   });
 });
 

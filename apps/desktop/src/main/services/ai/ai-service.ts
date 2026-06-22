@@ -1,5 +1,13 @@
-import { WorkflowDraftSchema } from '@cockpitzero/shared';
-import type { AiAnswer, AiProviderId, Config, WorkflowDraft } from '@cockpitzero/shared';
+import { WorkflowDraftSchema, rankDigestItems } from '@cockpitzero/shared';
+import type {
+  AiAnswer,
+  AiProviderId,
+  Config,
+  DigestRanking,
+  DigestSourceItem,
+  DigestSummarizeOptions,
+  WorkflowDraft,
+} from '@cockpitzero/shared';
 import type { AiProvider } from './provider.js';
 
 /**
@@ -28,6 +36,12 @@ export interface AiStatus {
 export interface AiService {
   ask(prompt: string): Promise<AiAnswer>;
   draftWorkflow(description: string): Promise<WorkflowDraft>;
+  /** Summarize + rank a routine's notifications (Phase 5). When AI is disabled it
+   *  falls back to the deterministic local ranker so the digest still works. */
+  summarizeDigest(
+    items: DigestSourceItem[],
+    opts: DigestSummarizeOptions,
+  ): Promise<DigestRanking[]>;
   status(): AiStatus;
 }
 
@@ -57,6 +71,15 @@ export function createAiService({ providers, getConfig }: AiServiceDeps): AiServ
       // step's action) before it reaches the renderer (CLAUDE.md: schemas are the
       // source of truth; the real provider emits model JSON we must not trust).
       return WorkflowDraftSchema.parse(draft);
+    },
+
+    async summarizeDigest(items, opts) {
+      const ai = getConfig().ai;
+      // Local-first: with AI off (or no items) rank deterministically on-device —
+      // no model call, the digest still surfaces. Otherwise the selected provider
+      // does the summarize + rank.
+      if (!ai.enabled || items.length === 0) return rankDigestItems(items, opts);
+      return providers[ai.provider].summarizeDigest(items, opts, { settings: ai });
     },
 
     status() {

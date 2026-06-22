@@ -8,6 +8,7 @@ import { getFileIcon } from '../services/icon-service.js';
 import { getFavicon } from '../services/favicon-service.js';
 import { completePath } from '../services/path-complete.js';
 import { aiService } from '../services/ai/index.js';
+import { getDigest, listRoutines, runRoutine } from '../services/routines/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openSettings } from '../windows/index.js';
@@ -90,6 +91,15 @@ export function registerIpcHandlers(): void {
   );
 
   ipcMain.handle(IpcChannels.aiStatus, () => aiService.status());
+
+  // Routines (Phase 5). `runRoutine` fans out to (mock) sources, summarizes +
+  // ranks via the AI service, stores the digest, and opens the briefing window;
+  // `getDigest` returns the last-computed digest for the briefing surface.
+  ipcMain.handle(IpcChannels.runRoutine, (_e, routineId: string) => runRoutine(routineId));
+
+  ipcMain.handle(IpcChannels.getDigest, (_e, routineId: string) => getDigest(routineId));
+
+  ipcMain.handle(IpcChannels.listRoutines, () => listRoutines());
 
   ipcMain.handle(IpcChannels.openSettings, () => {
     openSettings();

@@ -2,13 +2,14 @@
  * The Settings window nav tabs, in display order. Kept in its own module (free of
  * React / `electron`) so the ordering is a unit-testable invariant and so the
  * `INITIAL_SETTINGS_TAB` is provably a member. Only list tabs that exist in the
- * product: "Routines" arrives with Phase 5 and "Scripts" is out of scope, so the
- * mockup's full nav is intentionally not mirrored yet.
+ * product: "Routines" arrives with Phase 5; "Scripts" is still out of scope, so
+ * the mockup's full nav is intentionally not mirrored yet.
  */
 export const SETTINGS_TABS = [
   'actions',
   'ai',
   'workflows',
+  'routines',
   'aliases',
   'general',
   'appearance',

@@ -179,6 +179,62 @@ export const AiSettingsSchema = z.object({
   tools: z.array(AiToolIdSchema).default(['files', 'calendar', 'slack']),
 });
 
+/**
+ * Sources a routine can pull notifications from (Phase 5). Each maps to a
+ * `NotificationSource` adapter in the desktop main process — mock adapters now,
+ * real Slack/Gmail/etc. integrations behind the same port later. The id doubles
+ * as the digest row's source badge.
+ */
+export const RoutineSourceIdSchema = z.enum([
+  'slack',
+  'gmail',
+  'teams',
+  'linear',
+  'github',
+  'notion',
+]);
+
+/** How a routine's digest decides what to surface first. */
+export const RoutineRankBySchema = z.enum(['importance', 'recency']);
+
+/** Where a routine delivers its result. Only `window` (a dedicated briefing
+ *  window) is implemented now; `launcher`/`doc` are reserved seams. */
+export const RoutineDeliverSchema = z.enum(['launcher', 'window', 'doc']);
+
+/** How a routine fires: on a cron `schedule`, or only when run manually. */
+export const RoutineTriggerSchema = z.enum(['scheduled', 'on_demand']);
+
+/** The AI summarize/rank step's knobs (mirrors `summarize.model` /
+ *  `summarize.max_items` in the `yaml-config` mockup so Phase 6 can serialize it). */
+export const RoutineSummarizeSchema = z.object({
+  modelTier: AiModelTierSchema.default('mini'),
+  maxItems: z.number().int().positive().default(8),
+});
+
+/**
+ * A routine — a proactive job that runs on its own (Phase 5). Only the `digest`
+ * kind is implemented; the schema is deliberately general so user-authored
+ * routine types can slot in later. `enabled` gates the scheduler (a disabled
+ * routine never fires on cron, but can still be run manually). Field names are
+ * kept aligned with the `routines.yaml` mockup for Phase 6 serialization.
+ */
+export const RoutineSchema = z.object({
+  id: z.string().min(1),
+  /** Human label + the digest's heading, e.g. "Morning briefing". */
+  label: z.string().min(1),
+  /** Only `digest` implemented now; leave room for more kinds. */
+  kind: z.literal('digest').default('digest'),
+  /** Whether the scheduler fires it (manual "Run now" ignores this). */
+  enabled: z.boolean().default(true),
+  sources: z.array(RoutineSourceIdSchema).default([]),
+  rankBy: RoutineRankBySchema.default('importance'),
+  /** Cron expression (5-field); absent = on-demand only (the mockup's standup_prep). */
+  schedule: z.string().optional(),
+  trigger: RoutineTriggerSchema.default('on_demand'),
+  deliver: RoutineDeliverSchema.default('launcher'),
+  summarize: RoutineSummarizeSchema.default(RoutineSummarizeSchema.parse({})),
+});
+
 /** The full persisted config (what electron-store holds and /sync exchanges). */
 export const ConfigSchema = z.object({
   version: z.literal(1).default(1),
@@ -189,6 +245,8 @@ export const ConfigSchema = z.object({
   /** Additive default: a config written before AI existed parses to this block,
    *  so `version` stays 1 (no migration needed). */
   ai: AiSettingsSchema.default(AiSettingsSchema.parse({})),
+  /** Proactive routines (Phase 5). Additive default — old configs parse to `[]`. */
+  routines: z.array(RoutineSchema).default([]),
 });
 
 export const ActionType = ActionSchema.options.map((o) => o.shape.type.value);

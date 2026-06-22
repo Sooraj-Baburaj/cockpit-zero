@@ -7,11 +7,12 @@ import type { AiProvider } from '../../services/ai/provider.js';
  * registry typechecks and `aiStatus()` can report "not configured" until the
  * real implementation lands. `ask`/`draftWorkflow` throw until then.
  *
- * TODO(phase-real-ai): implement `ask`/`draftWorkflow` against the Claude
- * Messages API. Consult the `claude-api` skill for current model ids and request
- * shape — do not hard-code model ids from memory. Map `ctx.settings.modelTier`
- * (`mini` / `pro`) to concrete ids there. Read the API key from the OS keychain /
- * Electron `safeStorage`, NEVER from `config.json` (CLAUDE.md gotcha).
+ * TODO(phase-real-ai): implement `ask`/`draftWorkflow`/`summarizeDigest` against
+ * the Claude Messages API. Consult the `claude-api` skill for current model ids
+ * and request shape — do not hard-code model ids from memory. Map
+ * `ctx.settings.modelTier` (`mini` / `pro`) to concrete ids there. Read the API
+ * key from the OS keychain / Electron `safeStorage`, NEVER from `config.json`
+ * (CLAUDE.md gotcha).
  */
 
 /**
@@ -36,6 +37,9 @@ export function createAnthropicProvider(): AiProvider {
       throw new Error(NOT_CONFIGURED);
     },
     async draftWorkflow() {
+      throw new Error(NOT_CONFIGURED);
+    },
+    async summarizeDigest() {
       throw new Error(NOT_CONFIGURED);
     },
   };

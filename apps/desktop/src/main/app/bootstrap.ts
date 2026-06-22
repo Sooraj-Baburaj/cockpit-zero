@@ -2,6 +2,7 @@ import { app } from 'electron';
 import { registerIpcHandlers } from '../ipc/index.js';
 import { getLauncherWindow, toggleLauncher } from '../windows/index.js';
 import { getConfig } from '../services/config-service.js';
+import { startRoutineScheduler, stopRoutineScheduler } from '../services/routines/index.js';
 import { registerHotkey, unregisterHotkeys } from './hotkey.js';
 
 /**
@@ -27,9 +28,15 @@ export function bootstrap(): void {
 
     const hotkey = getConfig().settings.hotkey;
     if (!registerHotkey(hotkey)) console.error(`Failed to register global hotkey: ${hotkey}`);
+
+    // Fire scheduled routines (e.g. the morning digest) in the background.
+    startRoutineScheduler();
   });
 
-  app.on('will-quit', () => unregisterHotkeys());
+  app.on('will-quit', () => {
+    unregisterHotkeys();
+    stopRoutineScheduler();
+  });
 
   // Background launcher: do not quit when all windows close.
   app.on('window-all-closed', () => {

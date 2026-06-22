@@ -1,4 +1,5 @@
-import type { Action, ActionKind, LauncherItem } from '@cockpitzero/shared';
+import { formatClockTime } from '@cockpitzero/shared';
+import type { Action, ActionKind, LauncherItem, Routine, RoutineSourceId } from '@cockpitzero/shared';
 
 /** Short, human label for each action kind (shown in badges). */
 export const actionTypeLabel: Record<ActionKind, string> = {
@@ -44,6 +45,44 @@ export function itemSubtitle(item: LauncherItem): string {
       return _never;
     }
   }
+}
+
+/** Display name for a routine source (the digest row's badge + tool labels). */
+export const routineSourceLabel: Record<RoutineSourceId, string> = {
+  slack: 'Slack',
+  gmail: 'Gmail',
+  teams: 'Teams',
+  linear: 'Linear',
+  github: 'GitHub',
+  notion: 'Notion',
+};
+
+/**
+ * A human description of when a routine runs. Cron is only humanized for the
+ * common "daily at HH:MM" case (the seeded schedules); anything more exotic shows
+ * the raw expression rather than guessing wrong.
+ */
+export function describeSchedule(routine: Routine): string {
+  if (routine.trigger === 'on_demand' || !routine.schedule) return 'On demand';
+  const fields = routine.schedule.trim().split(/\s+/);
+  if (fields.length === 5) {
+    const [mi, ho, dom, mo, dow] = fields;
+    const minute = Number(mi);
+    const hour = Number(ho);
+    if (
+      Number.isInteger(minute) &&
+      Number.isInteger(hour) &&
+      dom === '*' &&
+      mo === '*' &&
+      dow === '*'
+    ) {
+      // Build an instant today at HH:MM purely to reuse the 12-hour formatter.
+      const at = new Date();
+      at.setHours(hour, minute, 0, 0);
+      return `Daily at ${formatClockTime(at.getTime())}`;
+    }
+  }
+  return `Cron · ${routine.schedule}`;
 }
 
 /** Short uppercase badge label for any launcher result row. */

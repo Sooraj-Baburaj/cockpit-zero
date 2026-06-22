@@ -33,6 +33,12 @@ const NAV_GLYPH: Record<string, ReactNode> = {
       <path d="m2 11 6 3 6-3" />
     </>
   ),
+  routines: (
+    <>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M8 4.5V8l2.4 1.4" />
+    </>
+  ),
 };
 
 /** Display labels where the tab id doesn't capitalize cleanly (e.g. "ai" → "AI"). */

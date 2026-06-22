@@ -12,6 +12,10 @@ import type {
   AiProviderIdSchema,
   AiModelTierSchema,
   AiToolIdSchema,
+  RoutineSchema,
+  RoutineSourceIdSchema,
+  RoutineRankBySchema,
+  RoutineSummarizeSchema,
 } from './schemas.js';
 
 /** All domain types are inferred from the Zod schemas (the source of truth). */
@@ -30,6 +34,85 @@ export type AiSettings = z.infer<typeof AiSettingsSchema>;
 export type AiProviderId = z.infer<typeof AiProviderIdSchema>;
 export type AiModelTier = z.infer<typeof AiModelTierSchema>;
 export type AiToolId = z.infer<typeof AiToolIdSchema>;
+
+/** Routine config types — inferred from the schemas (Phase 5). */
+export type Routine = z.infer<typeof RoutineSchema>;
+export type RoutineSourceId = z.infer<typeof RoutineSourceIdSchema>;
+export type RoutineRankBy = z.infer<typeof RoutineRankBySchema>;
+export type RoutineSummarize = z.infer<typeof RoutineSummarizeSchema>;
+
+/**
+ * The runtime types a routine's digest produces (Phase 5). These are NOT
+ * persisted config — they're computed each run by the digest runner and rendered
+ * by the briefing surface (mirrors `routine-digest.html`).
+ */
+
+/** Which bucket a digest item lands in after AI summarize + rank. */
+export type DigestBucket = 'now' | 'wait' | 'noise';
+
+/** One ranked, summarized notification in a digest. */
+export interface DigestItem {
+  id: string;
+  /** Who/what it's from, e.g. "Priya Shah". */
+  who: string;
+  /** Source badge, e.g. "Slack". */
+  source: RoutineSourceId;
+  /** One-line AI summary. */
+  summary: string;
+  /** Relative time, e.g. "12m". */
+  when: string;
+  bucket: DigestBucket;
+  /** Rank score; higher surfaces first within a group. */
+  score: number;
+  /** Deep link / app path when the item is openable (`↵ open`). */
+  openPath?: string;
+}
+
+/** A computed digest — what the briefing surface renders. */
+export interface Digest {
+  routineId: string;
+  /** Serif heading, e.g. "Morning briefing". */
+  title: string;
+  /** Formatted clock time of the run, e.g. "8:42 AM". */
+  updatedAt: string;
+  /** How many sources were pulled. */
+  sourceCount: number;
+  /** Surfaced (now + wait) vs total items collected ("20 of 41 surfaced"). */
+  surfaced: number;
+  total: number;
+  groups: { now: DigestItem[]; wait: DigestItem[]; noiseCount: number };
+}
+
+/**
+ * The minimal, privacy-conscious payload handed to the AI summarize/rank step —
+ * just enough text to summarize and bucket, no raw provider objects. The model
+ * (or the deterministic local ranker) returns one `DigestRanking` per item.
+ */
+export interface DigestSourceItem {
+  id: string;
+  who: string;
+  source: RoutineSourceId;
+  /** Raw notification text to summarize. */
+  text: string;
+  /** Age in minutes (for recency ranking). */
+  ageMinutes: number;
+}
+
+/** The AI summarize/rank step's per-item output. */
+export interface DigestRanking {
+  id: string;
+  /** One-line summary the row renders. */
+  summary: string;
+  bucket: DigestBucket;
+  score: number;
+}
+
+/** Knobs handed to the summarize/rank step. */
+export interface DigestSummarizeOptions {
+  rankBy: RoutineRankBy;
+  modelTier: AiModelTier;
+  maxItems: number;
+}
 
 /**
  * A single row in the launcher — generalized beyond config actions so the bar

@@ -14,11 +14,18 @@ export const secureWebPreferences = {
   sandbox: true,
 } as const;
 
-/** Load a named renderer entry (launcher | settings) in dev or prod. */
-export function loadEntry(win: BrowserWindow, entry: 'launcher' | 'settings') {
+/** Load a named renderer entry (launcher | settings | digest) in dev or prod. An
+ *  optional `hash` is appended to the URL — the digest surface reads the routine
+ *  id from it (e.g. `digest.html#morning_digest`). */
+export function loadEntry(
+  win: BrowserWindow,
+  entry: 'launcher' | 'settings' | 'digest',
+  hash?: string,
+) {
+  const frag = hash ? `#${encodeURIComponent(hash)}` : '';
   if (isDev) {
-    void win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/${entry}.html`);
+    void win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/${entry}.html${frag}`);
   } else {
-    void win.loadFile(join(__dirname, `../renderer/${entry}.html`));
+    void win.loadFile(join(__dirname, `../renderer/${entry}.html`), hash ? { hash } : undefined);
   }
 }
