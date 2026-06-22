@@ -5,6 +5,7 @@ import type {
   LauncherItem,
   ResolvedQuery,
   Routine,
+  TaskRun,
   WorkflowDraft,
 } from './types.js';
 
@@ -33,11 +34,24 @@ export const IpcChannels = {
   runRoutine: 'routine:run',
   getDigest: 'routine:get-digest',
   listRoutines: 'routine:list',
+  taskRun: 'task:run',
+  taskGet: 'task:get',
+  taskStop: 'task:stop',
+  taskApprove: 'task:approve',
   openSettings: 'window:open-settings',
   hideLauncher: 'window:hide-launcher',
 } as const;
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
+
+/**
+ * The one **push** channel (main → renderer), separate from the request/response
+ * `IpcChannels` above because it's a `webContents.send` / `ipcRenderer.on` pair,
+ * not an `invoke`/`handle`. The task surface subscribes to it for live per-step
+ * updates; preload is the only place `ipcRenderer.on` is allowed (CLAUDE.md), so
+ * `onTaskUpdate` registers the listener there.
+ */
+export const TASK_UPDATE_CHANNEL = 'task:update';
 
 /**
  * The typed surface exposed to the renderer as `window.api`. Each method maps
@@ -80,6 +94,20 @@ export interface IpcApi {
   getDigest(routineId: string): Promise<Digest | null>;
   /** The configured routines (for the Settings → Routines list). */
   listRoutines(): Promise<Routine[]>;
+  /** Start an agent task from an intent (Phase 7). Returns the run id; progress
+   *  streams via `onTaskUpdate` and the task window opens to show it. */
+  taskRun(intent: string): Promise<{ taskId: string }>;
+  /** The latest snapshot of a run (the surface fetches this on mount, then
+   *  streams the rest via `onTaskUpdate`). Null if the id is unknown. */
+  taskGet(taskId: string): Promise<TaskRun | null>;
+  /** Halt a run — sets it to `stopped` (also resolves a `review` pause). */
+  taskStop(taskId: string): Promise<{ ok: boolean }>;
+  /** Approve a run paused at `review`, committing its side-effecting result and
+   *  letting the remaining steps run. Nothing commits to the library without it. */
+  taskApprove(taskId: string): Promise<{ ok: boolean }>;
+  /** Subscribe to streamed task updates (the one push channel). Returns an
+   *  unsubscribe fn. Registered in preload (the only sanctioned `ipcRenderer.on`). */
+  onTaskUpdate(callback: (run: TaskRun) => void): () => void;
   openSettings(): Promise<void>;
   hideLauncher(): Promise<void>;
   /** The host platform, so the renderer can render OS-correct shortcut glyphs. */

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IpcChannels, type IpcApi } from '@cockpitzero/shared';
+import { IpcChannels, TASK_UPDATE_CHANNEL, type IpcApi, type TaskRun } from '@cockpitzero/shared';
 
 /**
  * The typed bridge. This is the ONLY place in the app that touches ipcRenderer.
@@ -23,6 +23,17 @@ const api: IpcApi = {
   runRoutine: (routineId) => ipcRenderer.invoke(IpcChannels.runRoutine, routineId),
   getDigest: (routineId) => ipcRenderer.invoke(IpcChannels.getDigest, routineId),
   listRoutines: () => ipcRenderer.invoke(IpcChannels.listRoutines),
+  taskRun: (intent) => ipcRenderer.invoke(IpcChannels.taskRun, intent),
+  taskGet: (taskId) => ipcRenderer.invoke(IpcChannels.taskGet, taskId),
+  taskStop: (taskId) => ipcRenderer.invoke(IpcChannels.taskStop, taskId),
+  taskApprove: (taskId) => ipcRenderer.invoke(IpcChannels.taskApprove, taskId),
+  // The one push channel: subscribe to streamed task snapshots. This is the ONLY
+  // sanctioned `ipcRenderer.on` use (CLAUDE.md); it returns an unsubscribe fn.
+  onTaskUpdate: (callback) => {
+    const listener = (_e: Electron.IpcRendererEvent, run: TaskRun) => callback(run);
+    ipcRenderer.on(TASK_UPDATE_CHANNEL, listener);
+    return () => ipcRenderer.removeListener(TASK_UPDATE_CHANNEL, listener);
+  },
   openSettings: () => ipcRenderer.invoke(IpcChannels.openSettings),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
   platform: process.platform,

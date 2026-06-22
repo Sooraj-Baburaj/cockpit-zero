@@ -71,11 +71,13 @@ export function LauncherBar() {
   const count =
     view.kind === 'results'
       ? view.results.length
-      : view.kind === 'argument' || view.kind === 'ai-offer'
-        ? 1
-        : view.kind === 'ai-answer'
-          ? view.answer.suggestions.length
-          : 0;
+      : view.kind === 'ai-offer'
+        ? 2 // ask · do this for me
+        : view.kind === 'argument'
+          ? 1
+          : view.kind === 'ai-answer'
+            ? view.answer.suggestions.length
+            : 0;
 
   const flash = (message: string, error: boolean) => {
     setFeedback({ message, error });
@@ -119,6 +121,17 @@ export function LauncherBar() {
     void api.askAI(q).then((answer) => dispatch({ type: 'resolved', query: q, answer }));
   };
 
+  /** Hand the current query off as an agent task (Phase 7) — the task window
+   *  takes over from here, so the launcher just hides. */
+  const startTask = (intent: string) => {
+    const q = intent.trim();
+    if (q === '') return;
+    void api.taskRun(q).then(() => {
+      void api.hideLauncher();
+      setQuery('');
+    });
+  };
+
   const runSuggestion = (index: number) => {
     if (view.kind !== 'ai-answer') return;
     const s = view.answer.suggestions[index];
@@ -150,7 +163,9 @@ export function LauncherBar() {
   const run = (index: number) => {
     switch (view.kind) {
       case 'ai-offer':
-        ask(view.query);
+        // Row 0 asks the assistant; row 1 hands it off as an agent task.
+        if (index === 1) startTask(view.query);
+        else ask(view.query);
         return;
       case 'ai-answer':
         runSuggestion(index);
@@ -241,13 +256,19 @@ export function LauncherBar() {
   };
 
   const footerHints: FooterHint[] | undefined =
-    view.kind === 'ai-offer' || view.kind === 'ai-pending'
+    view.kind === 'ai-offer'
       ? [
-          { keys: '↵', label: 'ask AI' },
-          { keys: '⌫', label: 'back to search' },
+          { keys: '↑↓', label: 'choose' },
+          { keys: '↵', label: 'run' },
           { keys: 'esc', label: 'dismiss' },
         ]
-      : view.kind === 'ai-answer'
+      : view.kind === 'ai-pending'
+        ? [
+            { keys: '↵', label: 'ask AI' },
+            { keys: '⌫', label: 'back to search' },
+            { keys: 'esc', label: 'dismiss' },
+          ]
+        : view.kind === 'ai-answer'
         ? [
             { keys: '↵', label: 'run' },
             { keys: `${modKey}↵`, label: 'run all' },
@@ -293,10 +314,10 @@ export function LauncherBar() {
           <AiOfferPanel
             query={view.query}
             listboxId={LISTBOX_ID}
-            optionId={optionId(0)}
-            selected={selected === 0}
-            onRun={() => run(0)}
-            onHover={() => setSelected(0)}
+            optionId={optionId}
+            selected={selected}
+            onRun={run}
+            onHover={setSelected}
           />
         </div>
       ) : view.kind === 'ai-pending' ? (

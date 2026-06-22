@@ -9,6 +9,7 @@ import { getFavicon } from '../services/favicon-service.js';
 import { completePath } from '../services/path-complete.js';
 import { aiService } from '../services/ai/index.js';
 import { getDigest, listRoutines, runRoutine } from '../services/routines/index.js';
+import { approveTask, getTask, startTask, stopTask } from '../services/agent/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openSettings } from '../windows/index.js';
@@ -100,6 +101,17 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.getDigest, (_e, routineId: string) => getDigest(routineId));
 
   ipcMain.handle(IpcChannels.listRoutines, () => listRoutines());
+
+  // AI task / agent layer (Phase 7). `taskRun` starts the agent loop and opens
+  // the task window; progress streams to it over the `task:update` push channel.
+  // `taskStop`/`taskApprove` drive the human-in-the-loop (halt / approve a review).
+  ipcMain.handle(IpcChannels.taskRun, (_e, intent: string) => startTask(intent));
+
+  ipcMain.handle(IpcChannels.taskGet, (_e, taskId: string) => getTask(taskId));
+
+  ipcMain.handle(IpcChannels.taskStop, (_e, taskId: string) => stopTask(taskId));
+
+  ipcMain.handle(IpcChannels.taskApprove, (_e, taskId: string) => approveTask(taskId));
 
   ipcMain.handle(IpcChannels.openSettings, () => {
     openSettings();

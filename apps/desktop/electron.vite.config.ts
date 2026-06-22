@@ -34,6 +34,7 @@ export default defineConfig({
           launcher: resolve(__dirname, 'src/renderer/launcher.html'),
           settings: resolve(__dirname, 'src/renderer/settings.html'),
           digest: resolve(__dirname, 'src/renderer/digest.html'),
+          task: resolve(__dirname, 'src/renderer/task.html'),
         },
       },
     },

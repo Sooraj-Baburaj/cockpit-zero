@@ -203,3 +203,63 @@ export interface AiAnswer {
   meta?: string;
   suggestions: AiSuggestedAction[];
 }
+
+/**
+ * Runtime task/agent shapes (Phase 7). These are NOT persisted config — a
+ * `taskRun` is computed by the main-process agent loop (`services/agent/task-runner`)
+ * and streamed to the task surface (`ai-task.html`). The renderer renders one
+ * `TaskRun` at a time; main pushes a fresh snapshot on every step transition.
+ */
+
+/**
+ * A step's marker state. `done`/`running`/`waiting` mirror the three mockup
+ * markers; `blocked` is the honest fourth — a tool the run wanted to call but
+ * couldn't, because its `ai.tools` grant (or `ai.memoryEnabled`) is off. A
+ * blocked step is never silently run (acceptance criterion).
+ */
+export type TaskStepState = 'done' | 'running' | 'waiting' | 'blocked';
+
+/** One row in the task checklist. */
+export interface TaskStep {
+  id: string;
+  /** Step title, e.g. "Generating 8 slides". */
+  title: string;
+  state: TaskStepState;
+  /** Tool tag rendered as a mono chip, e.g. "files.read" / "slides.create". */
+  tool?: string;
+  /** Sub-line under the title, e.g. "drafting 'Growth & retention'…". */
+  detail?: string;
+  /** 0..1 fill for the running step's progress bar. */
+  progress?: number;
+}
+
+/** Where a `TaskRun` is in its lifecycle. `review` is the human-in-the-loop
+ *  pause: a side-effecting result is ready but nothing has been committed yet. */
+export type TaskStatus = 'planning' | 'working' | 'review' | 'done' | 'stopped' | 'error';
+
+/** The reviewable artifact a task produces — preview tiles now, real thumbnails
+ *  later. Shown before anything is committed to the user's library. */
+export interface TaskResult {
+  /** What was produced, e.g. "slides". */
+  kind: string;
+  /** Tile captions (the cross-hatch placeholders): title / kpis / growth / next. */
+  previews: string[];
+  /** The primary CTA label once ready, e.g. "Open in Keynote". */
+  openLabel?: string;
+}
+
+/** A single agent run: an intent → planned steps → a reviewable result. */
+export interface TaskRun {
+  id: string;
+  /** The stated intent, e.g. "Build a deck from the Q3 brief". */
+  intent: string;
+  steps: TaskStep[];
+  /** Whether this run reads/writes memory (drives the "Using memory" chip). */
+  usingMemory: boolean;
+  /** Distinct non-memory tools the run uses (the "· N tools" count). */
+  toolCount: number;
+  result?: TaskResult;
+  status: TaskStatus;
+  /** A human hint when `status` is `error` (e.g. "Enable Slides & Sheets…"). */
+  note?: string;
+}

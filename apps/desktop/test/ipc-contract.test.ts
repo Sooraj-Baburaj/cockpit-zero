@@ -7,7 +7,11 @@ import { IpcChannels, type IpcApi } from '@cockpitzero/shared';
  * but forgotten on the other.
  */
 describe('IPC contract', () => {
-  it('every IpcApi method has a matching channel', () => {
+  it('every invoke channel has a matching IpcApi method', () => {
+    // The request/response (invoke) surface. `platform` (a value) and
+    // `onTaskUpdate` (the push-channel subscriber, registered against
+    // TASK_UPDATE_CHANNEL, not an invoke) are IpcApi members WITHOUT an
+    // `IpcChannels` entry by design, so they're excluded here.
     const channelMethods: Array<keyof IpcApi> = [
       'getConfig',
       'setConfig',
@@ -25,6 +29,10 @@ describe('IPC contract', () => {
       'runRoutine',
       'getDigest',
       'listRoutines',
+      'taskRun',
+      'taskGet',
+      'taskStop',
+      'taskApprove',
       'openSettings',
       'hideLauncher',
     ];

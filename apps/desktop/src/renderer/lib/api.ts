@@ -1,4 +1,4 @@
-import type { IpcApi, Config, Digest } from '@cockpitzero/shared';
+import type { IpcApi, Config, Digest, TaskRun } from '@cockpitzero/shared';
 
 /** Dummy config returned when the app runs in a normal browser tab (no preload). */
 const MOCK_CONFIG: Config = {
@@ -80,6 +80,43 @@ const MOCK_DIGEST: Digest = {
     ],
     noiseCount: 12,
   },
+};
+
+/** A canned task run for the dev/browser bridge — mirrors `ai-task.html` (two
+ *  steps done, one running, two waiting, with the result tiles ready). */
+const MOCK_TASK: TaskRun = {
+  id: 'task_dev',
+  intent: 'Build a deck from the Q3 brief',
+  usingMemory: true,
+  toolCount: 2,
+  status: 'working',
+  steps: [
+    {
+      id: 'step_0',
+      title: 'Read q3-brief.pdf',
+      state: 'done',
+      tool: 'files.read',
+      detail: '14 pages · 6 KPIs extracted',
+    },
+    {
+      id: 'step_1',
+      title: "Pull revenue numbers from last week's standup",
+      state: 'done',
+      tool: 'memory.recall',
+      detail: 'matched 3 prior sessions',
+    },
+    {
+      id: 'step_2',
+      title: 'Generate 8 slides',
+      state: 'running',
+      tool: 'slides.create',
+      detail: 'drafting “Growth & retention”…',
+      progress: 0.62,
+    },
+    { id: 'step_3', title: 'Apply Sahara theme', state: 'waiting' },
+    { id: 'step_4', title: 'Export to Keynote', state: 'waiting' },
+  ],
+  result: { kind: 'slides', previews: ['title', 'kpis', 'growth', 'next'], openLabel: 'Open in Keynote' },
 };
 
 /**
@@ -166,6 +203,11 @@ const mockApi: IpcApi = {
   runRoutine: async () => MOCK_DIGEST,
   getDigest: async () => MOCK_DIGEST,
   listRoutines: async () => MOCK_CONFIG.routines,
+  taskRun: async () => ({ taskId: MOCK_TASK.id }),
+  taskGet: async () => MOCK_TASK,
+  taskStop: async () => ({ ok: true }),
+  taskApprove: async () => ({ ok: true }),
+  onTaskUpdate: () => () => {},
   openSettings: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',
