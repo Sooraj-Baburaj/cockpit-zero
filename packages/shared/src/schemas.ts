@@ -204,8 +204,14 @@ export const AiSettingsSchema = z.object({
   modelTier: AiModelTierSchema.default('pro'),
   /** "Ask AI from the bar": when a query matches nothing, offer to ask (Phase 2). */
   askFromBar: z.boolean().default(true),
-  /** Memory & history across sessions (Phase 7 consumes this). */
+  /** Memory & history across sessions (the local memory engine, production phase 5,
+   *  reads this; off ⇒ no writes and empty recall). */
   memoryEnabled: z.boolean().default(true),
+  /** Where memory embeddings come from (production phase 5). `local` = on-device
+   *  ONNX (no key, offline); `provider` = the configured AI provider's embedding
+   *  model (higher quality, needs a key). Switching source changes the vector
+   *  dimension, so it requires a one-time "rebuild memory" (clear + re-embed). */
+  embeddingSource: z.enum(['local', 'provider']).default('local'),
   /** Per-tool grants for the assistant (Phase 7 enforces). */
   tools: z.array(AiToolIdSchema).default(['files', 'calendar', 'slack']),
 });

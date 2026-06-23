@@ -9,6 +9,7 @@ import {
 } from '@cockpitzero/shared';
 import { createAiService } from '../src/main/services/ai/ai-service.js';
 import type { AiProvider } from '../src/main/services/ai/provider.js';
+import type { MemoryService } from '../src/main/services/agent/memory-service.js';
 import { createMockProvider } from '../src/main/infra/ai/mock-provider.js';
 
 /**
@@ -250,6 +251,99 @@ describe('createAiService', () => {
     );
     expect(rankings[0]).toMatchObject({ id: 'x', bucket: 'noise' });
     expect(p.openai.summarizeDigest).not.toHaveBeenCalled();
+  });
+});
+
+/** A fake memory engine: `recall` returns the given facts, `remember` records its
+ *  input so we can assert the exchange was saved. */
+function fakeMemory(opts: { enabled?: boolean; hits?: string[] } = {}): MemoryService {
+  return {
+    enabled: () => opts.enabled ?? true,
+    recall: vi.fn(async () =>
+      (opts.hits ?? []).map((text, i) => ({
+        id: `m${i}`,
+        ts: 0,
+        updatedAt: 0,
+        kind: 'note',
+        text,
+        importance: 0.5,
+        embedding: [],
+      })),
+    ),
+    remember: vi.fn(async () => []),
+    write: vi.fn(async () => null),
+    search: vi.fn(async () => []),
+    stats: vi.fn(async () => ({ count: 0, updatedAt: null, embeddingSource: 'local' })),
+    forget: vi.fn(async () => ({ ok: true })),
+    clear: vi.fn(async () => ({ ok: true })),
+  };
+}
+
+describe('createAiService — memory', () => {
+  it('injects recalled memory into the prompt and remembers the exchange', async () => {
+    const p = providers();
+    const memory = fakeMemory({ hits: ['Prefers dark mode'] });
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'openai' }),
+      memory,
+    });
+
+    await svc.ask('what theme should I use');
+
+    // The provider saw the prompt with a recalled-memory block prepended.
+    const sentPrompt = (p.openai.ask as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string;
+    expect(sentPrompt).toContain('Prefers dark mode');
+    expect(sentPrompt).toContain('what theme should I use');
+    // The exchange was remembered afterward (fire-and-forget, invoked synchronously).
+    expect(memory.remember).toHaveBeenCalledOnce();
+  });
+
+  it('skips recall and remember when memory is disabled (provider gets the raw prompt)', async () => {
+    const p = providers();
+    const memory = fakeMemory({ enabled: false, hits: ['ignored'] });
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'openai' }),
+      memory,
+    });
+
+    await svc.ask('hello');
+
+    expect(memory.recall).not.toHaveBeenCalled();
+    expect(memory.remember).not.toHaveBeenCalled();
+    expect((p.openai.ask as ReturnType<typeof vi.fn>).mock.calls[0]![0]).toBe('hello');
+  });
+
+  it('injects memory into the streamed path too', async () => {
+    const p = providers();
+    const memory = fakeMemory({ hits: ['Lives in Berlin'] });
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'openai' }),
+      memory,
+    });
+
+    await svc.askStream('where am I', () => {});
+
+    const sentPrompt = (p.openai.askStream as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string;
+    expect(sentPrompt).toContain('Lives in Berlin');
+    expect(memory.remember).toHaveBeenCalledOnce();
+  });
+
+  it('does not recall/remember when the provider is unconfigured', async () => {
+    const p = providers({ openai: fakeProvider('openai', false) });
+    const memory = fakeMemory({ hits: ['x'] });
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'openai' }),
+      memory,
+    });
+
+    await svc.ask('hello');
+
+    expect(memory.recall).not.toHaveBeenCalled();
+    expect(memory.remember).not.toHaveBeenCalled();
   });
 });
 

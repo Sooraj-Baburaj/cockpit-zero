@@ -36,6 +36,10 @@ const api: IpcApi = {
   taskGet: (taskId) => ipcRenderer.invoke(IpcChannels.taskGet, taskId),
   taskStop: (taskId) => ipcRenderer.invoke(IpcChannels.taskStop, taskId),
   taskApprove: (taskId) => ipcRenderer.invoke(IpcChannels.taskApprove, taskId),
+  memoryStats: () => ipcRenderer.invoke(IpcChannels.memoryStats),
+  memorySearch: (query) => ipcRenderer.invoke(IpcChannels.memorySearch, query),
+  memoryForget: (id) => ipcRenderer.invoke(IpcChannels.memoryForget, id),
+  memoryClear: () => ipcRenderer.invoke(IpcChannels.memoryClear),
   // The two push channels: subscribe to streamed task snapshots and streamed AI
   // answer events. These `ipcRenderer.on`s are the ONLY sanctioned ones (CLAUDE.md);
   // each returns an unsubscribe fn.

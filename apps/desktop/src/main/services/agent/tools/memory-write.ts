@@ -18,7 +18,7 @@ export const memoryWrite: Tool = {
   sideEffecting: false,
   async run(input: unknown, ctx: ToolContext): Promise<ToolResult> {
     const { text = '', kind } = (input ?? {}) as Partial<MemoryWriteInput>;
-    const entry = ctx.memory.write(text, kind);
+    const entry = await ctx.memory.write(text, kind);
     if (!entry) return { ok: false, error: 'Memory is off — nothing written.' };
     return { ok: true, detail: 'remembered for next time', data: { id: entry.id } };
   },

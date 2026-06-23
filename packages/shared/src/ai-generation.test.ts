@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   AiWorkflowPlanSchema,
   coerceDigestRankings,
+  coerceMemoryFacts,
   planToWorkflowDraft,
   type AiWorkflowPlan,
 } from './ai-generation.js';
@@ -100,5 +101,43 @@ describe('coerceDigestRankings', () => {
     );
     expect(ranked[0]?.summary).toBe('needs the rollback plan now');
     expect(ranked[0]?.bucket).toBe('wait');
+  });
+});
+
+describe('coerceMemoryFacts (local memory engine)', () => {
+  it('validates, trims, and clamps importance into [0,1]', () => {
+    const facts = coerceMemoryFacts({
+      facts: [
+        { text: '  Ships on Thursday  ', kind: 'event', importance: 5 },
+        { text: 'Prefers dark mode', kind: 'preference', importance: -2 },
+      ],
+    });
+    expect(facts).toEqual([
+      { text: 'Ships on Thursday', kind: 'event', importance: 1 },
+      { text: 'Prefers dark mode', kind: 'preference', importance: 0 },
+    ]);
+  });
+
+  it('coerces an unknown kind to "note" and a missing importance to 0.5', () => {
+    const facts = coerceMemoryFacts({ facts: [{ text: 'A fact', kind: 'bogus' }] });
+    expect(facts).toEqual([{ text: 'A fact', kind: 'note', importance: 0.5 }]);
+  });
+
+  it('drops empty text and de-duplicates by normalized text', () => {
+    const facts = coerceMemoryFacts({
+      facts: [
+        { text: 'Same fact', kind: 'fact', importance: 0.5 },
+        { text: 'same FACT', kind: 'fact', importance: 0.9 },
+        { text: '   ', kind: 'note', importance: 0.5 },
+      ],
+    });
+    expect(facts).toHaveLength(1);
+    expect(facts[0]?.text).toBe('Same fact');
+  });
+
+  it('returns [] for unparseable model output', () => {
+    expect(coerceMemoryFacts({ nope: true })).toEqual([]);
+    expect(coerceMemoryFacts(null)).toEqual([]);
+    expect(coerceMemoryFacts('garbage')).toEqual([]);
   });
 });

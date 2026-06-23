@@ -18,6 +18,7 @@ import { completePath } from '../services/path-complete.js';
 import { aiService } from '../services/ai/index.js';
 import { getDigest, listRoutines, runRoutine } from '../services/routines/index.js';
 import { approveTask, getTask, startTask, stopTask } from '../services/agent/index.js';
+import { memoryService } from '../services/memory/index.js';
 import { secretsService } from '../services/secrets/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
@@ -188,6 +189,17 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.taskStop, (_e, taskId: string) => stopTask(taskId));
 
   ipcMain.handle(IpcChannels.taskApprove, (_e, taskId: string) => approveTask(taskId));
+
+  // Local memory engine (production phase 5). The read/manage controls for the
+  // Console memory view — `recall`/`write` stay internal to the agent/ask path
+  // (called server-side), so only stats/search/forget/clear cross the bridge.
+  ipcMain.handle(IpcChannels.memoryStats, () => memoryService.stats());
+
+  ipcMain.handle(IpcChannels.memorySearch, (_e, query: string) => memoryService.search(query));
+
+  ipcMain.handle(IpcChannels.memoryForget, (_e, id: string) => memoryService.forget(id));
+
+  ipcMain.handle(IpcChannels.memoryClear, () => memoryService.clear());
 
   // Secrets vault (production Phase 2). The OS-keychain-backed vault for BYOP keys
   // (P3), the session token (P7), and OAuth tokens (P10). Deliberately NO

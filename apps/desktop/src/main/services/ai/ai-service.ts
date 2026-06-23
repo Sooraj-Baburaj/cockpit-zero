@@ -9,13 +9,20 @@ import type {
   WorkflowDraft,
 } from '@cockpitzero/shared';
 import type { AiProvider } from './provider.js';
+import type { MemoryService } from '../agent/memory-service.js';
 
 /**
  * The AI use-case layer — the single place `ipc/index.ts` calls. It selects the
  * provider from `config.ai.provider`, short-circuits when AI is disabled, and is
- * fully dependency-injected (providers + a config reader), so it's unit-testable
- * with fakes and free of `electron`/network code. Config is read fresh on every
- * call so a config change (provider, enabled) takes effect without a restart.
+ * fully dependency-injected (providers + a config reader + the memory engine), so
+ * it's unit-testable with fakes and free of `electron`/network code. Config is read
+ * fresh on every call so a config change (provider, enabled) takes effect without a
+ * restart.
+ *
+ * Memory (production phase 5): when a real provider answers, recalled context is
+ * prepended to the prompt and the salient exchange is remembered afterward — both
+ * gated by `ai.memoryEnabled` (the memory service no-ops when off). The dependency
+ * is optional so the service still constructs in tests without it.
  */
 
 export interface AiServiceDeps {
@@ -24,6 +31,9 @@ export interface AiServiceDeps {
   providers: Record<AiProviderId, AiProvider>;
   /** Reads the current config fresh (provider, enabled flag, tool grants, …). */
   getConfig: () => Config;
+  /** The local memory engine — recall feeds context into `ask`/`askStream`, and the
+   *  exchange is remembered after a successful answer. Optional (omitted in tests). */
+  memory?: MemoryService;
 }
 
 export interface AiStatus {
@@ -54,6 +64,10 @@ export interface AiService {
   status(): AiStatus;
 }
 
+/** How many memories to fold into a prompt's context block (token-capped by being
+ *  a handful of one-line facts, not raw history). */
+const MEMORY_RECALL_LIMIT = 5;
+
 /** The answer returned when AI is turned off — never throws, so surfaces that
  *  call `askAI` without checking `enabled` degrade gracefully. */
 function disabledAnswer(): AiAnswer {
@@ -75,7 +89,31 @@ function unconfiguredAnswer(provider: AiProviderId): AiAnswer {
   return { text, meta: 'cockpit-ai · not connected', suggestions: [] };
 }
 
-export function createAiService({ providers, getConfig }: AiServiceDeps): AiService {
+export function createAiService({ providers, getConfig, memory }: AiServiceDeps): AiService {
+  /** Prepend a compact "Relevant memory" block recalled for this prompt (capped),
+   *  or return the prompt unchanged when memory is off / has no hits. */
+  async function withMemory(prompt: string): Promise<string> {
+    if (!memory?.enabled()) return prompt;
+    const hits = await memory.recall(prompt, MEMORY_RECALL_LIMIT);
+    if (hits.length === 0) return prompt;
+    const block = hits.map((h) => `- ${h.text}`).join('\n');
+    return (
+      `Relevant memory from earlier sessions (use only if it helps; ignore otherwise):\n` +
+      `${block}\n\n${prompt}`
+    );
+  }
+
+  /** Remember the salient exchange after a successful answer — fire-and-forget so
+   *  it never delays the response; gated + extracted by the memory engine. */
+  function rememberExchange(prompt: string, answer: AiAnswer): void {
+    if (!memory?.enabled() || answer.text.trim() === '') return;
+    void memory
+      .remember(`Q: ${prompt}\nA: ${answer.text}`, 'ask')
+      .catch(() => {
+        /* memory write is best-effort; a failure must never surface to the asker. */
+      });
+  }
+
   return {
     async ask(prompt) {
       const ai = getConfig().ai;
@@ -84,7 +122,9 @@ export function createAiService({ providers, getConfig }: AiServiceDeps): AiServ
       // Real provider selected but not configured (no key/model) → nudge, don't
       // fabricate. The `mock` default stays ready, so a fresh install still renders.
       if (!provider.ready({ settings: ai })) return unconfiguredAnswer(ai.provider);
-      return provider.ask(prompt, { settings: ai });
+      const answer = await provider.ask(await withMemory(prompt), { settings: ai });
+      rememberExchange(prompt, answer);
+      return answer;
     },
 
     async askStream(prompt, onDelta, signal) {
@@ -94,7 +134,14 @@ export function createAiService({ providers, getConfig }: AiServiceDeps): AiServ
       if (!ai.enabled) return disabledAnswer();
       const provider = providers[ai.provider];
       if (!provider.ready({ settings: ai })) return unconfiguredAnswer(ai.provider);
-      return provider.askStream(prompt, { settings: ai }, onDelta, signal);
+      const answer = await provider.askStream(
+        await withMemory(prompt),
+        { settings: ai },
+        onDelta,
+        signal,
+      );
+      rememberExchange(prompt, answer);
+      return answer;
     },
 
     async draftWorkflow(description) {

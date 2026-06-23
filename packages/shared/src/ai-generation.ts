@@ -157,3 +157,65 @@ export function coerceDigestRankings(
     };
   });
 }
+
+/**
+ * Memory-extraction schemas + coercion (local memory engine, production phase 5).
+ * The model turns a raw exchange into **atomic, durable facts** — small, self-
+ * contained statements worth remembering across sessions — not a transcript. Kept
+ * flat so structured output is reliable across providers; the memory service never
+ * trusts raw model output, so it runs every result through {@link coerceMemoryFacts}.
+ */
+
+/** Coarse category for a remembered fact (biases recall + how it's surfaced). */
+export const AI_MEMORY_FACT_KINDS = [
+  'fact',
+  'preference',
+  'task',
+  'event',
+  'contact',
+  'note',
+] as const;
+
+/** One durable fact the model extracts from an exchange. */
+export const AiMemoryFactSchema = z.object({
+  /** A single, self-contained statement ("Prefers dark mode in the editor"). */
+  text: z.string().min(1),
+  /** Category — defaults to a plain note when the model omits/garbles it. */
+  kind: z.enum(AI_MEMORY_FACT_KINDS).catch('note'),
+  /** Salience in [0,1]; clamped on the way in. Defaults mid when missing. */
+  importance: z.number().catch(0.5),
+});
+
+/** The extraction result the model returns (wrapped — top-level arrays are
+ *  unreliable for structured output across providers). */
+export const AiMemoryFactsSchema = z.object({
+  facts: z.array(AiMemoryFactSchema).max(20),
+});
+
+export type AiMemoryFact = z.infer<typeof AiMemoryFactSchema>;
+export type AiMemoryFacts = z.infer<typeof AiMemoryFactsSchema>;
+
+/**
+ * Validate + normalize raw model extraction output into clean facts: trim text,
+ * clamp importance to [0,1], drop empties, and de-duplicate by normalized text.
+ * Returns `[]` for anything unparseable, so a hallucinated or malformed response
+ * can never inject junk into memory (the service then falls back to its heuristic).
+ */
+export function coerceMemoryFacts(raw: unknown): AiMemoryFact[] {
+  const parsed = AiMemoryFactsSchema.safeParse(raw);
+  if (!parsed.success) return [];
+  const seen = new Set<string>();
+  const out: AiMemoryFact[] = [];
+  for (const f of parsed.data.facts) {
+    const text = f.text.trim();
+    if (text === '') continue;
+    const key = text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const importance = Number.isFinite(f.importance)
+      ? Number(Math.max(0, Math.min(1, f.importance)).toFixed(4))
+      : 0.5;
+    out.push({ text, kind: f.kind, importance });
+  }
+  return out;
+}

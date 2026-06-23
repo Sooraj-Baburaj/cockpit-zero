@@ -12,6 +12,7 @@ describe('AiSettingsSchema', () => {
       modelTier: 'pro',
       askFromBar: true,
       memoryEnabled: true,
+      embeddingSource: 'local',
       tools: ['files', 'calendar', 'slack'],
     });
   });

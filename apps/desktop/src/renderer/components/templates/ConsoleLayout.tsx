@@ -19,6 +19,13 @@ const NAV_GLYPH: Record<string, ReactNode> = {
   ai: (
     <path d="M8 1.5 9.2 6.8 14.5 8 9.2 9.2 8 14.5 6.8 9.2 1.5 8 6.8 6.8Z" />
   ),
+  memory: (
+    <>
+      <ellipse cx="8" cy="4" rx="5" ry="2.2" />
+      <path d="M3 4v8c0 1.2 2.2 2.2 5 2.2s5-1 5-2.2V4" />
+      <path d="M3 8c0 1.2 2.2 2.2 5 2.2s5-1 5-2.2" />
+    </>
+  ),
   actions: <path d="M8.5 1.5 3.5 9H7l-.5 5.5L12.5 7H9l-.5-5.5Z" />,
   aliases: (
     <>

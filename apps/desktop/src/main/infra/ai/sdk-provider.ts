@@ -76,8 +76,10 @@ export interface SdkProviderDeps {
   streamText?: typeof streamText;
 }
 
-/** Maps `config.ai.{provider,model,baseUrl}` + the vault key → an AI-SDK model. */
-function defaultCreateModel(settings: AiSettings, key: string | null): LanguageModel {
+/** Maps `config.ai.{provider,model,baseUrl}` + the vault key → an AI-SDK model.
+ *  Exported so the memory engine (production phase 5) reuses the exact same
+ *  provider→model wiring for its extraction `generateObject` call. */
+export function buildLanguageModel(settings: AiSettings, key: string | null): LanguageModel {
   const apiKey = key ?? undefined;
   const model = settings.model;
   switch (settings.provider) {
@@ -135,7 +137,7 @@ function digestPrompt(items: DigestSourceItem[], opts: DigestSummarizeOptions): 
  */
 export function createSdkProvider(deps: SdkProviderDeps): AiProvider {
   const { getKey } = deps;
-  const createModel = deps.createModel ?? defaultCreateModel;
+  const createModel = deps.createModel ?? buildLanguageModel;
   const doGenerateText = deps.generateText ?? generateText;
   const doGenerateObject = deps.generateObject ?? generateObject;
   const doStreamText = deps.streamText ?? streamText;

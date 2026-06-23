@@ -1,33 +1,27 @@
 import type { TaskRun } from '@cockpitzero/shared';
 import { readConfig } from '../../infra/store.js';
-import { createFileMemoryStore } from '../../infra/agent/memory-store.js';
 import { fileReader } from '../../infra/agent/file-reader.js';
 import { openTaskWindow, sendTaskUpdate } from '../../windows/index.js';
-import { createMemoryService } from './memory-service.js';
+import { memoryService } from '../memory/index.js';
 import { createToolRegistry } from './tools/registry.js';
 import { createMockPlanner } from './planner.js';
 import { createTaskRunner } from './task-runner.js';
 
 /**
  * The wired agent service the IPC layer calls (Phase 7). This is the one place
- * that couples the pure task runner to its concrete dependencies — the on-disk
- * memory store, the file-read port, the tool registry, the (mock) planner, the
- * config reader, and the streaming sink (forwarding every snapshot to the task
- * window). Mirrors how `ai/index` and `routines/index` wire their pieces: the
- * pure runner stays `electron`-free + unit-tested; the `electron` touches
- * (opening the window, `webContents.send`) live only here.
+ * that couples the pure task runner to its concrete dependencies — the shared
+ * memory engine (production phase 5), the file-read port, the tool registry, the
+ * (mock) planner, the config reader, and the streaming sink (forwarding every
+ * snapshot to the task window). Mirrors how `ai/index` and `routines/index` wire
+ * their pieces: the pure runner stays `electron`-free + unit-tested; the `electron`
+ * touches (opening the window, `webContents.send`) live only here.
  */
 
 const ports = { files: fileReader };
 
-const memory = createMemoryService({
-  store: createFileMemoryStore(),
-  getConfig: readConfig,
-});
-
 const runner = createTaskRunner({
   registry: createToolRegistry(ports),
-  memory,
+  memory: memoryService,
   ports,
   getConfig: readConfig,
   plan: createMockPlanner(),

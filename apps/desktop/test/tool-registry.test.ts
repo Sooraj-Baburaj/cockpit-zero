@@ -3,21 +3,24 @@ import { AGENT_TOOL_IDS, TASK_TOOL_GRANT, defaultConfig } from '@cockpitzero/sha
 import { TOOL_REGISTRY, type ToolContext } from '../src/main/services/agent/tools/registry.js';
 import {
   createMemoryService,
-  type MemoryEntry,
+  createInMemoryMemoryStore,
 } from '../src/main/services/agent/memory-service.js';
+import { createHashEmbedder } from '../src/main/services/agent/embedder.js';
 
 /**
  * The registry mirrors the action-runner registry: a mapped type makes it
  * exhaustive (compile-time), and here we assert it at runtime too — every catalog
  * id has an impl whose declared grant matches the shared map — plus exercise each
- * tool with a fake context (no electron, no disk).
+ * tool with a fake context (no electron, no disk). Memory is wired with the real
+ * in-memory store + the dependency-free hash embedder.
  */
 
 function context(over: Partial<ToolContext> = {}): ToolContext {
   const config = defaultConfig();
-  const entries: MemoryEntry[] = [];
   const memory = createMemoryService({
-    store: { all: () => entries, append: (e) => entries.push(e) },
+    store: createInMemoryMemoryStore(),
+    embedder: createHashEmbedder(),
+    extractor: { extract: async () => [] },
     getConfig: () => config,
   });
   return {
@@ -58,7 +61,7 @@ describe('tool registry', () => {
 
   it('memory.recall reports the match count it found', async () => {
     const ctx = context();
-    ctx.memory.write('Q3 revenue numbers from the standup', 'session');
+    await ctx.memory.write('Q3 revenue numbers from the standup', 'session');
     const res = await TOOL_REGISTRY['memory.recall'].run({ query: 'revenue standup' }, ctx);
     expect(res.ok).toBe(true);
     expect(res.detail).toBe('matched 1 prior session');

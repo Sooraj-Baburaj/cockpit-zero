@@ -4,6 +4,8 @@ import type {
   Config,
   Digest,
   LauncherItem,
+  MemoryRecord,
+  MemoryStats,
   ResolvedQuery,
   Routine,
   TaskRun,
@@ -41,6 +43,10 @@ export const IpcChannels = {
   taskGet: 'task:get',
   taskStop: 'task:stop',
   taskApprove: 'task:approve',
+  memoryStats: 'memory:stats',
+  memorySearch: 'memory:search',
+  memoryForget: 'memory:forget',
+  memoryClear: 'memory:clear',
   setSecret: 'secret:set',
   clearSecret: 'secret:clear',
   secretStatus: 'secret:status',
@@ -129,6 +135,17 @@ export interface IpcApi {
   /** Approve a run paused at `review`, committing its side-effecting result and
    *  letting the remaining steps run. Nothing commits to the library without it. */
   taskApprove(taskId: string): Promise<{ ok: boolean }>;
+  /** Local memory engine (production phase 5). Count + last-updated + the active
+   *  embedding source, for the Console memory header. `recall`/`write` stay internal
+   *  to the agent/ask path — only these read/manage controls cross the bridge. */
+  memoryStats(): Promise<MemoryStats>;
+  /** Search remembered facts for the Console memory view (hybrid recall; empty
+   *  query lists the most-recent). Embeddings never cross the bridge. */
+  memorySearch(query: string): Promise<MemoryRecord[]>;
+  /** Forget one entry by id. `{ ok: false }` if memory is off or the id is unknown. */
+  memoryForget(id: string): Promise<{ ok: boolean }>;
+  /** Clear all memory (the Console "clear memory" control). Idempotent. */
+  memoryClear(): Promise<{ ok: boolean }>;
   /** Subscribe to streamed task updates (a push channel). Returns an unsubscribe
    *  fn. Registered in preload (one of the two sanctioned `ipcRenderer.on`s). */
   onTaskUpdate(callback: (run: TaskRun) => void): () => void;

@@ -3,6 +3,7 @@ import { registerIpcHandlers } from '../ipc/index.js';
 import { getLauncherWindow, toggleLauncher } from '../windows/index.js';
 import { getConfig } from '../services/config-service.js';
 import { startRoutineScheduler, stopRoutineScheduler } from '../services/routines/index.js';
+import { initMemory } from '../services/memory/index.js';
 import { registerHotkey, unregisterHotkeys } from './hotkey.js';
 
 /**
@@ -31,6 +32,9 @@ export function bootstrap(): void {
 
     // Fire scheduled routines (e.g. the morning digest) in the background.
     startRoutineScheduler();
+
+    // One-time: migrate a v1 memory.json into LanceDB (best-effort, off the hot path).
+    void initMemory();
   });
 
   app.on('will-quit', () => {

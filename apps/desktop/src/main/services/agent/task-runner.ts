@@ -227,7 +227,7 @@ export function createTaskRunner({
       }
 
       // Completion: remember it for next time (no-op when memory is off).
-      memory.write(`Completed task: ${state.run.intent}`, 'task');
+      await memory.write(`Completed task: ${state.run.intent}`, 'task');
       finish(state, 'done');
     } catch (err) {
       finish(state, 'error', errorMessage(err));

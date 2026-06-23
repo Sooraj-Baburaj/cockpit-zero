@@ -26,6 +26,11 @@ catalog:
   # the desktop main process only (keys never reach the renderer). Dual CJS/ESM, so
   # electron-vite can externalize them from the CJS main build.
   ai: ^6.0.208
+  # Local memory engine (production phase 5). Native modules — desktop main process
+  # only, never the renderer. electron-vite externalizes them; packaging needs the
+  # per-platform prebuilt binary (+ an Electron ABI rebuild for onnxruntime/lancedb).
+  '@lancedb/lancedb': ^0.21.1
+  '@huggingface/transformers': ^3.7.5
   '@ai-sdk/anthropic': ^3.0.85
   '@ai-sdk/openai': ^3.0.74
   '@ai-sdk/google': ^3.0.83

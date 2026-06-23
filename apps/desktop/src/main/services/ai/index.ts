@@ -5,6 +5,7 @@ import { createMockProvider } from '../../infra/ai/mock-provider.js';
 import { createManagedProvider } from '../../infra/ai/managed-provider.js';
 import { createSdkProvider } from '../../infra/ai/sdk-provider.js';
 import { secretsService } from '../secrets/index.js';
+import { memoryService } from '../memory/index.js';
 import { createAiService } from './ai-service.js';
 
 /**
@@ -37,4 +38,8 @@ export const aiService = createAiService({
     mock: createMockProvider(),
   },
   getConfig: readConfig,
+  // Recall feeds context into ask/askStream; the exchange is remembered after
+  // (both gated by `ai.memoryEnabled`). The shared singleton so the agent loop,
+  // the launcher, and the Console all read/write one memory.
+  memory: memoryService,
 });

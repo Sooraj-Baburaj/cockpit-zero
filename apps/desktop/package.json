@@ -24,6 +24,8 @@
     "@ai-sdk/openai-compatible": "catalog:",
     "@ai-sdk/xai": "catalog:",
     "@fontsource/manrope": "^5.1.0",
+    "@huggingface/transformers": "catalog:",
+    "@lancedb/lancedb": "catalog:",
     "ai": "catalog:",
     "electron-store": "^8.2.0"
   },

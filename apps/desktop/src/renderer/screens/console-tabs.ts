@@ -10,6 +10,7 @@
 export const CONSOLE_TABS = [
   'actions',
   'ai',
+  'memory',
   'workflows',
   'routines',
   'aliases',

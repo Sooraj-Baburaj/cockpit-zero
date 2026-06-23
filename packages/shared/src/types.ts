@@ -218,6 +218,39 @@ export type AiStreamEvent =
   | { streamId: string; type: 'error'; message: string };
 
 /**
+ * A remembered fact as it crosses IPC to the Console memory view (the local memory
+ * engine, production phase 5). The vector `embedding` is deliberately **omitted** —
+ * it's large and main-process-only; the renderer only needs the readable record.
+ * The desktop `MemoryEntry` (services/agent/memory-service) extends this with the
+ * embedding used for on-device recall. Memory is local + private and NEVER synced
+ * config, so this lives here only as the wire shape, not in `ConfigSchema`.
+ */
+export interface MemoryRecord {
+  id: string;
+  /** Epoch ms it was first written. */
+  ts: number;
+  /** Epoch ms it was last updated — a dedup/merge bumps this; the recall recency
+   *  boost and decay/prune read it. */
+  updatedAt: number;
+  /** Coarse category, e.g. "fact" / "preference" / "task" / "event" / "note". */
+  kind: string;
+  text: string;
+  /** Salience in [0,1] — biases recall ranking and the optional decay/prune. */
+  importance: number;
+  /** Provenance, e.g. "ask" / "task" / "import". */
+  source?: string;
+}
+
+/** Aggregate stats for the Console memory header (production phase 5). */
+export interface MemoryStats {
+  count: number;
+  /** Epoch ms of the most-recently-updated entry, or null when the store is empty. */
+  updatedAt: number | null;
+  /** The active embedding source label ("local" / "provider"). */
+  embeddingSource: string;
+}
+
+/**
  * Runtime task/agent shapes (Phase 7). These are NOT persisted config — a
  * `taskRun` is computed by the main-process agent loop (`services/agent/task-runner`)
  * and streamed to the task surface (`ai-task.html`). The renderer renders one

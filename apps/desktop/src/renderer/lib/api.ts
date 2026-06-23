@@ -1,4 +1,11 @@
-import type { IpcApi, AiStreamEvent, Config, Digest, TaskRun } from '@cockpitzero/shared';
+import type {
+  IpcApi,
+  AiStreamEvent,
+  Config,
+  Digest,
+  MemoryRecord,
+  TaskRun,
+} from '@cockpitzero/shared';
 
 /** Dummy config returned when the app runs in a normal browser tab (no preload). */
 const MOCK_CONFIG: Config = {
@@ -20,6 +27,7 @@ const MOCK_CONFIG: Config = {
     modelTier: 'pro',
     askFromBar: true,
     memoryEnabled: true,
+    embeddingSource: 'local',
     tools: ['files', 'calendar', 'slack'],
   },
   routines: [
@@ -128,6 +136,39 @@ const MOCK_TASK: TaskRun = {
  *  no OS keychain) in a plain browser tab, so the vault is just a Set of names.
  *  Mirrors the real contract: status reports presence, never the value. */
 const mockSecrets = new Set<string>();
+
+/** Seed memories for the dev/browser bridge (no main process / no LanceDB) — so the
+ *  Console memory view renders without a real engine. Filtered by a naive substring
+ *  match, which is enough to exercise the search box in a browser tab. */
+let mockMemories: MemoryRecord[] = [
+  {
+    id: 'mem-1',
+    ts: Date.now() - 86_400_000 * 3,
+    updatedAt: Date.now() - 86_400_000 * 2,
+    kind: 'preference',
+    text: 'Prefers the Sahara (sienna) theme with frosted glass on.',
+    importance: 0.7,
+    source: 'ask',
+  },
+  {
+    id: 'mem-2',
+    ts: Date.now() - 86_400_000 * 5,
+    updatedAt: Date.now() - 86_400_000 * 5,
+    kind: 'fact',
+    text: 'The Q3 board deck lives in ~/Documents/q3-brief.pdf.',
+    importance: 0.6,
+    source: 'task',
+  },
+  {
+    id: 'mem-3',
+    ts: Date.now() - 3_600_000,
+    updatedAt: Date.now() - 3_600_000,
+    kind: 'task',
+    text: 'Completed task: build a deck from the Q3 brief.',
+    importance: 0.6,
+    source: 'task',
+  },
+];
 
 /** AI stream plumbing for the dev/browser bridge: with no main process to push,
  *  `askAIStream` drives the registered `onAiStream` listeners on a timer so the
@@ -270,6 +311,28 @@ const mockApi: IpcApi = {
     return { ok: true };
   },
   secretStatus: async () => Object.fromEntries([...mockSecrets].map((name) => [name, true])),
+  memoryStats: async () => ({
+    count: mockMemories.length,
+    updatedAt: mockMemories.length === 0 ? null : Math.max(...mockMemories.map((m) => m.updatedAt)),
+    embeddingSource: 'local',
+  }),
+  memorySearch: async (query) => {
+    const q = query.trim().toLowerCase();
+    const matches =
+      q === ''
+        ? [...mockMemories]
+        : mockMemories.filter((m) => m.text.toLowerCase().includes(q));
+    return matches.sort((a, b) => b.updatedAt - a.updatedAt);
+  },
+  memoryForget: async (id) => {
+    const before = mockMemories.length;
+    mockMemories = mockMemories.filter((m) => m.id !== id);
+    return { ok: mockMemories.length < before };
+  },
+  memoryClear: async () => {
+    mockMemories = [];
+    return { ok: true };
+  },
   openConsole: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',
