@@ -28,8 +28,20 @@ export interface AiProvider {
   /** Whether the provider is configured/reachable (drives `aiStatus().ok`).
    *  Synchronous so status reads can't hang on the network. */
   ready(ctx: AiContext): boolean;
-  /** Answer a free-text prompt with prose + suggested actions. */
+  /** Answer a free-text prompt with prose + suggested actions (resolve-once). */
   ask(prompt: string, ctx: AiContext): Promise<AiAnswer>;
+  /**
+   * Streamed counterpart of {@link ask} (production phase 4): emit each prose chunk
+   * through `onDelta` as it arrives, honour `signal` for cancellation, and resolve
+   * with the finalized `AiAnswer` (full text + usage `meta` + suggestions). The
+   * service forwards `onDelta`/`signal`; the IPC layer turns them into push events.
+   */
+  askStream(
+    prompt: string,
+    ctx: AiContext,
+    onDelta: (text: string) => void,
+    signal?: AbortSignal,
+  ): Promise<AiAnswer>;
   /** Draft a workflow from a natural-language description (Phase 4). */
   draftWorkflow(description: string, ctx: AiContext): Promise<WorkflowDraft>;
   /** Summarize + bucket/rank a routine's notifications (Phase 5). Returns one

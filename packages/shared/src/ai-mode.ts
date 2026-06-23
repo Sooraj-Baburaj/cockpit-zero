@@ -10,38 +10,57 @@ import type { AiAnswer, AiSettings, LauncherItem, ResolvedQuery } from './types.
 
 /**
  * The assistant's interaction phase within the bar. Renderer-local (not persisted
- * config): `idle` while the user is searching, `pending` between Ask and the
- * answer arriving, `answer` once `askAI` resolves.
+ * config): `idle` while the user is searching, `pending` between Ask and the answer
+ * completing, `answer` once it's done. While `pending`, `text` holds the prose
+ * streamed so far (empty until the first token) so the surface can render the answer
+ * incrementally with a caret (production phase 4).
  */
 export type AiPhase =
   | { status: 'idle' }
-  | { status: 'pending'; query: string }
+  | { status: 'pending'; query: string; text: string }
   | { status: 'answer'; query: string; answer: AiAnswer };
 
 /** The resting phase — exported so the reducer's initial state has one source. */
 export const IDLE_AI_PHASE: AiPhase = { status: 'idle' };
 
 /**
- * Events that move the AI phase. `ask` is fired from the offer's Enter, `resolved`
- * when `askAI` returns, and `reset` whenever the user edits the query / steps back
- * to live search.
+ * Events that move the AI phase. `ask` starts a request; `delta` appends a streamed
+ * token chunk; `resolved` finalizes (fired on the stream's `done`, or by the
+ * resolve-once `askAI` path); `error` finalizes into an error answer; `reset`
+ * abandons the ask whenever the user edits the query / steps back to live search.
  */
 export type AiPhaseEvent =
   | { type: 'ask'; query: string }
+  | { type: 'delta'; query: string; text: string }
   | { type: 'resolved'; query: string; answer: AiAnswer }
+  | { type: 'error'; query: string; message: string }
   | { type: 'reset' };
 
 /** Reducer for {@link AiPhase}. Pure: same (state, event) → same next state. */
 export function aiPhaseReducer(state: AiPhase, event: AiPhaseEvent): AiPhase {
   switch (event.type) {
     case 'ask':
-      return { status: 'pending', query: event.query };
+      return { status: 'pending', query: event.query, text: '' };
+    case 'delta':
+      // Accumulate streamed prose only while we're still pending the same ask;
+      // a delta for an abandoned/superseded query is dropped.
+      if (state.status !== 'pending' || state.query !== event.query) return state;
+      return { status: 'pending', query: event.query, text: state.text + event.text };
     case 'resolved':
       // Drop a stale answer if the user moved on (edited the query, or asked a
       // new question) before this one resolved — the in-flight query no longer
       // matches what we're waiting on.
       if (state.status !== 'pending' || state.query !== event.query) return state;
       return { status: 'answer', query: event.query, answer: event.answer };
+    case 'error':
+      // Surface the failure in the same answer slot (so the bar shows it rather
+      // than hanging on "thinking…"), guarded by the same staleness check.
+      if (state.status !== 'pending' || state.query !== event.query) return state;
+      return {
+        status: 'answer',
+        query: event.query,
+        answer: { text: event.message, meta: 'cockpit-ai · error', suggestions: [] },
+      };
     case 'reset':
       return IDLE_AI_PHASE;
     default: {
@@ -72,8 +91,9 @@ export type LauncherView =
   | { kind: 'empty' }
   /** Nothing matched + AI enabled: offer to ask. */
   | { kind: 'ai-offer'; query: string }
-  /** `askAI` is in flight. */
-  | { kind: 'ai-pending'; query: string }
+  /** The ask is in flight; `text` is the prose streamed so far (empty until the
+   *  first token). */
+  | { kind: 'ai-pending'; query: string; text: string }
   /** `askAI` resolved: prose answer + suggested actions. */
   | { kind: 'ai-answer'; query: string; answer: AiAnswer };
 
@@ -109,7 +129,7 @@ export function computeLauncherView({
   // bar returns to live search, with no flicker (the reducer resets shortly after).
   const trimmed = query.trim();
   if (phase.status === 'pending' && phase.query === trimmed) {
-    return { kind: 'ai-pending', query: phase.query };
+    return { kind: 'ai-pending', query: phase.query, text: phase.text };
   }
   if (phase.status === 'answer' && phase.query === trimmed) {
     return { kind: 'ai-answer', query: phase.query, answer: phase.answer };

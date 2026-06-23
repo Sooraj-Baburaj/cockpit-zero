@@ -71,6 +71,73 @@ describe('createSdkProvider', () => {
     });
   });
 
+  it('streams text deltas and finalizes an AiAnswer with a real-usage meta line', async () => {
+    let passedModel: unknown;
+    const streamText = vi.fn((opts: { model: unknown }) => {
+      passedModel = opts.model;
+      return {
+        // The SDK exposes deltas as an async-iterable and the aggregate text/usage
+        // as promises that settle when the stream ends.
+        textStream: (async function* () {
+          yield 'Launch ';
+          yield 'slipped to Thursday.  ';
+        })(),
+        text: Promise.resolve('  Launch slipped to Thursday.  '),
+        usage: Promise.resolve({ inputTokens: 8, outputTokens: 4, totalTokens: 12 }),
+      };
+    });
+    const provider = createSdkProvider({
+      getKey: () => 'sk-test',
+      createModel: asCreateModel,
+      generateText: asGenerate(vi.fn()),
+      generateObject: asGenerate(vi.fn()),
+      streamText: streamText as unknown as SdkProviderDeps['streamText'],
+    });
+
+    const deltas: string[] = [];
+    const answer = await provider.askStream(
+      'what changed?',
+      { settings: settings({ provider: 'anthropic', model: 'claude-opus-4-8' }) },
+      (t) => deltas.push(t),
+    );
+
+    // Deltas arrive verbatim in order; the finalized answer is the trimmed aggregate.
+    expect(deltas).toEqual(['Launch ', 'slipped to Thursday.  ']);
+    expect(answer.text).toBe('Launch slipped to Thursday.');
+    expect(answer.suggestions).toEqual([]);
+    expect(answer.meta).toContain('claude-opus-4-8');
+    expect(answer.meta).toContain('12 tok');
+    expect(passedModel).toEqual({ sentinel: 'anthropic', model: 'claude-opus-4-8', key: 'sk-test' });
+  });
+
+  it('passes the abort signal through to streamText', async () => {
+    const controller = new AbortController();
+    let passedSignal: unknown;
+    const streamText = vi.fn((opts: { abortSignal?: unknown }) => {
+      passedSignal = opts.abortSignal;
+      return {
+        textStream: (async function* () {})(),
+        text: Promise.resolve('ok'),
+        usage: Promise.resolve({ inputTokens: 1, outputTokens: 1, totalTokens: 2 }),
+      };
+    });
+    const provider = createSdkProvider({
+      getKey: () => 'k',
+      createModel: asCreateModel,
+      generateText: asGenerate(vi.fn()),
+      generateObject: asGenerate(vi.fn()),
+      streamText: streamText as unknown as SdkProviderDeps['streamText'],
+    });
+
+    await provider.askStream(
+      'q',
+      { settings: settings({ provider: 'openai', model: 'gpt-5' }) },
+      () => {},
+      controller.signal,
+    );
+    expect(passedSignal).toBe(controller.signal);
+  });
+
   it('drafts a workflow via generateObject against the plan schema, mapped + validated', async () => {
     const plan = {
       name: 'Morning',

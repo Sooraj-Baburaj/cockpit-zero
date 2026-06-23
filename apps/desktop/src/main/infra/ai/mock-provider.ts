@@ -76,6 +76,10 @@ const MORNING_ROUTINE: WorkflowDraft = {
  * provider lives behind the `anthropic-provider` seam.
  */
 
+/** Per-chunk pause between canned deltas — small so dev/CI animate without
+ *  dragging out (the only cost is a handful of timers per offline ask). */
+const MOCK_DELTA_MS = 14;
+
 /** Sample suggestions mirroring the `ai-ask` mockup (stable across calls). */
 const SUGGESTIONS: readonly AiSuggestedAction[] = [
   {
@@ -106,22 +110,70 @@ const SUGGESTIONS: readonly AiSuggestedAction[] = [
   },
 ];
 
+/** The canned offline answer — a pure function of the prompt, reused by both the
+ *  resolve-once `ask` and the streamed `askStream`. Each call returns fresh copies
+ *  of the suggestions so callers (and IPC serialization) never share the sample. */
+function mockAnswer(prompt: string): AiAnswer {
+  const trimmed = prompt.trim();
+  return {
+    text:
+      `**Mock answer** for “${trimmed}”. Launch slipped to **Thursday** — staging is ` +
+      'green, but the CDN cutover still needs sign-off from infra. Priya asked for the ' +
+      '**rollback plan** before end of day.',
+    meta: `cockpit-ai · mock · ${SUGGESTIONS.length} suggested actions`,
+    suggestions: SUGGESTIONS.map((s) => ({ ...s })),
+  };
+}
+
+/** Split prose into a few word-group chunks whose concatenation is the original
+ *  text (the spaces ride along), so streamed deltas reconstruct it exactly. */
+function chunkWords(text: string, perChunk: number): string[] {
+  const words = text.split(' ');
+  const chunks: string[] = [];
+  for (let i = 0; i < words.length; i += perChunk) {
+    const group = words.slice(i, i + perChunk).join(' ');
+    chunks.push(i === 0 ? group : ` ${group}`);
+  }
+  return chunks;
+}
+
+/** A `setTimeout` that also resolves promptly on abort, so a cancelled mock stream
+ *  stops within a frame rather than running its remaining timers. */
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) return resolve();
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
+
 /** Builds the offline provider. No state — safe to construct once and reuse. */
 export function createMockProvider(): AiProvider {
   return {
     id: 'mock',
     ready: () => true,
     async ask(prompt) {
-      const trimmed = prompt.trim();
-      return {
-        text:
-          `**Mock answer** for “${trimmed}”. Launch slipped to **Thursday** — staging is ` +
-          'green, but the CDN cutover still needs sign-off from infra. Priya asked for the ' +
-          '**rollback plan** before end of day.',
-        meta: `cockpit-ai · mock · ${SUGGESTIONS.length} suggested actions`,
-        // Copy so callers (and IPC serialization) never share the frozen sample.
-        suggestions: SUGGESTIONS.map((s) => ({ ...s })),
-      } satisfies AiAnswer;
+      return mockAnswer(prompt);
+    },
+
+    async askStream(prompt, _ctx, onDelta, signal) {
+      const answer = mockAnswer(prompt);
+      // Stream the canned prose in chunks so dev/CI animate with no key (acceptance
+      // criterion); honour the abort signal so Escape stops emission immediately.
+      for (const chunk of chunkWords(answer.text, 4)) {
+        if (signal?.aborted) break;
+        await sleep(MOCK_DELTA_MS, signal);
+        if (signal?.aborted) break;
+        onDelta(chunk);
+      }
+      return answer;
     },
     async draftWorkflow() {
       // Deterministic + offline: the description is ignored and we return the

@@ -20,6 +20,21 @@ function fakeProvider(id: string, ready = true): AiProvider {
     id,
     ready: vi.fn(() => ready),
     ask: vi.fn(async (prompt) => ({ text: `${id}:${prompt}`, suggestions: [] })),
+    askStream: vi.fn(
+      async (
+        prompt: string,
+        _ctx,
+        onDelta: (text: string) => void,
+        signal?: AbortSignal,
+      ) => {
+        // Emit two ordered deltas (the id prefix, then the prompt), honouring abort.
+        for (const chunk of [`${id}:`, prompt]) {
+          if (signal?.aborted) break;
+          onDelta(chunk);
+        }
+        return { text: `${id}:${prompt}`, suggestions: [] };
+      },
+    ),
     draftWorkflow: vi.fn(async (desc) => ({ name: `${id}:${desc}`, keyword: '', steps: [] })),
     summarizeDigest: vi.fn(async (items: DigestSourceItem[]) =>
       items.map((it) => ({
@@ -90,6 +105,56 @@ describe('createAiService', () => {
     expect(answer.text).toMatch(/connect/i);
     expect(answer.suggestions).toEqual([]);
     expect(p.openai.ask).not.toHaveBeenCalled();
+  });
+
+  it('streams deltas then resolves the answer from the selected provider', async () => {
+    const p = providers();
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'openai' }),
+    });
+    const deltas: string[] = [];
+    const answer = await svc.askStream('hello', (t) => deltas.push(t));
+    expect(deltas).toEqual(['openai:', 'hello']);
+    expect(answer.text).toBe('openai:hello');
+    expect(p.openai.askStream).toHaveBeenCalledOnce();
+    expect(p.anthropic.askStream).not.toHaveBeenCalled();
+  });
+
+  it('stops emitting when the signal is already aborted', async () => {
+    const p = providers();
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'openai' }),
+    });
+    const controller = new AbortController();
+    controller.abort();
+    const deltas: string[] = [];
+    await svc.askStream('hello', (t) => deltas.push(t), controller.signal);
+    expect(deltas).toEqual([]);
+  });
+
+  it('streams the disabled answer with no deltas when AI is off', async () => {
+    const p = providers();
+    const svc = createAiService({ providers: p, getConfig: () => configWith({ enabled: false }) });
+    const deltas: string[] = [];
+    const answer = await svc.askStream('hello', (t) => deltas.push(t));
+    expect(deltas).toEqual([]);
+    expect(answer.text).toMatch(/turned off/i);
+    expect(p.mock.askStream).not.toHaveBeenCalled();
+  });
+
+  it('streams the connect nudge with no deltas when the provider is unconfigured', async () => {
+    const p = providers({ openai: fakeProvider('openai', false) });
+    const svc = createAiService({
+      providers: p,
+      getConfig: () => configWith({ provider: 'openai' }),
+    });
+    const deltas: string[] = [];
+    const answer = await svc.askStream('hello', (t) => deltas.push(t));
+    expect(deltas).toEqual([]);
+    expect(answer.text).toMatch(/connect/i);
+    expect(p.openai.askStream).not.toHaveBeenCalled();
   });
 
   it('reports status from enabled + provider readiness', () => {
@@ -195,6 +260,29 @@ describe('mock provider', () => {
     expect(answer.text).toContain('summarize the thread');
     expect(answer.suggestions.length).toBeGreaterThanOrEqual(1);
     expect(provider.ready({ settings: defaultConfig().ai })).toBe(true);
+  });
+
+  it('streams the canned answer as ordered deltas that reconstruct its text', async () => {
+    const provider = createMockProvider();
+    const deltas: string[] = [];
+    const answer = await provider.askStream(
+      'summarize the thread',
+      { settings: defaultConfig().ai },
+      (t) => deltas.push(t),
+    );
+    // Several chunks (so the UI animates), and concatenating them is the full text.
+    expect(deltas.length).toBeGreaterThan(1);
+    expect(deltas.join('')).toBe(answer.text);
+    expect(answer.suggestions.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('stops streaming promptly once the signal aborts', async () => {
+    const provider = createMockProvider();
+    const controller = new AbortController();
+    controller.abort();
+    const deltas: string[] = [];
+    await provider.askStream('anything', { settings: defaultConfig().ai }, (t) => deltas.push(t), controller.signal);
+    expect(deltas).toEqual([]);
   });
 
   it('drafts a schema-valid, plausible multi-step workflow (the canned sample)', async () => {

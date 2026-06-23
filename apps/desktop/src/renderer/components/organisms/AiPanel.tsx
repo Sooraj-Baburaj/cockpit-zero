@@ -1,21 +1,20 @@
-import { useEffect, useReducer, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   MODEL_CATALOG,
   OPENAI_COMPATIBLE_PRESETS,
   PROVIDER_CATALOG,
   SecretName,
-  aiPhaseReducer,
   defaultModelFor,
   providerInfo,
   providerLabel,
   setAiToolGrant,
-  IDLE_AI_PHASE,
   type AiProviderId,
   type AiSettings,
   type AiToolId,
   type OpenAiCompatiblePreset,
 } from '@cockpitzero/shared';
 import { api } from '../../lib/api.js';
+import { useAiAsk } from '../../hooks/useAiAsk.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../atoms/Button.js';
 import { Input } from '../atoms/Input.js';
@@ -104,7 +103,7 @@ type AiStatus = Awaited<ReturnType<typeof api.aiStatus>>;
 export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSettings) => void }) {
   const [draft, setDraft] = useState<AiSettings>(ai);
   const [prompt, setPrompt] = useState('');
-  const [phase, dispatch] = useReducer(aiPhaseReducer, IDLE_AI_PHASE);
+  const { phase, ask } = useAiAsk();
   const [status, setStatus] = useState<AiStatus | null>(null);
 
   const refreshStatus = () => void api.aiStatus().then(setStatus);
@@ -143,13 +142,13 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
     draft.tools.length !== ai.tools.length ||
     !draft.tools.every((t) => ai.tools.includes(t));
 
-  /** Hand a prompt to the assistant — the same `askAI` flow the launcher uses. */
-  const ask = (text: string) => {
+  /** Hand a prompt to the assistant — the same streamed `askAIStream` flow the
+   *  launcher uses (via `useAiAsk`). Blocked while a request is already streaming. */
+  const submit = (text: string) => {
     const q = text.trim();
     if (q === '' || phase.status === 'pending') return;
     setPrompt(q);
-    dispatch({ type: 'ask', query: q });
-    void api.askAI(q).then((answer) => dispatch({ type: 'resolved', query: q, answer }));
+    ask(q);
   };
 
   return (
@@ -165,7 +164,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          ask(prompt);
+          submit(prompt);
         }}
         className="rounded-[var(--cz-radius-lg)] border [border-color:var(--cz-accent-line)] [background:var(--cz-glass-1)] px-[18px] py-4 [box-shadow:var(--cz-shadow-md),var(--cz-glow-accent-soft)]"
       >
@@ -203,7 +202,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
             <button
               key={chip}
               type="button"
-              onClick={() => ask(chip)}
+              onClick={() => submit(chip)}
               className="rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-2)] px-[13px] py-[7px] text-[12.5px] font-medium text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)]"
             >
               {chip}
@@ -217,6 +216,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
         <div className="mt-3 overflow-hidden rounded-[var(--cz-radius-lg)] border border-border [background:var(--cz-glass-1)] [box-shadow:var(--cz-shadow-sm)]">
           <AiAnswerPanel
             pending={phase.status === 'pending'}
+            pendingText={phase.status === 'pending' ? phase.text : undefined}
             answer={phase.status === 'answer' ? phase.answer : undefined}
             listboxId="cz-ai-settings-answer"
             optionId={(i) => `cz-ai-settings-suggestion-${i}`}

@@ -1,4 +1,4 @@
-import type { IpcApi, Config, Digest, TaskRun } from '@cockpitzero/shared';
+import type { IpcApi, AiStreamEvent, Config, Digest, TaskRun } from '@cockpitzero/shared';
 
 /** Dummy config returned when the app runs in a normal browser tab (no preload). */
 const MOCK_CONFIG: Config = {
@@ -129,6 +129,12 @@ const MOCK_TASK: TaskRun = {
  *  Mirrors the real contract: status reports presence, never the value. */
 const mockSecrets = new Set<string>();
 
+/** AI stream plumbing for the dev/browser bridge: with no main process to push,
+ *  `askAIStream` drives the registered `onAiStream` listeners on a timer so the
+ *  streaming UI still animates in a plain browser tab. */
+const aiStreamListeners = new Set<(e: AiStreamEvent) => void>();
+const aiStreamCancels = new Map<string, () => void>();
+
 /**
  * A no-op bridge used ONLY in a browser/dev context where the preload script
  * isn't present — it keeps the UI rendering without a real main process.
@@ -170,6 +176,42 @@ const mockApi: IpcApi = {
       },
     ],
   }),
+  askAIStream: async (prompt) => {
+    const streamId = `stream_${Math.random().toString(36).slice(2)}`;
+    const answer = await mockApi.askAI(prompt);
+    const words = answer.text.split(' ');
+    const emit = (e: AiStreamEvent) => aiStreamListeners.forEach((cb) => cb(e));
+    let i = 0;
+    let cancelled = false;
+    let timer = 0;
+    const step = () => {
+      if (cancelled) return;
+      if (i < words.length) {
+        emit({ streamId, type: 'delta', text: (i === 0 ? '' : ' ') + words[i] });
+        i += 1;
+        timer = window.setTimeout(step, 28);
+      } else {
+        aiStreamCancels.delete(streamId);
+        emit({ streamId, type: 'done', answer });
+      }
+    };
+    timer = window.setTimeout(step, 28);
+    aiStreamCancels.set(streamId, () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    });
+    return { streamId };
+  },
+  cancelAiStream: async (streamId) => {
+    aiStreamCancels.get(streamId)?.();
+    aiStreamCancels.delete(streamId);
+  },
+  onAiStream: (cb) => {
+    aiStreamListeners.add(cb);
+    return () => {
+      aiStreamListeners.delete(cb);
+    };
+  },
   draftWorkflow: async () => ({
     name: 'Morning routine',
     keyword: 'morning',

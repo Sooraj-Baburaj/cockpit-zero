@@ -1,4 +1,4 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateObject, generateText, streamText, type LanguageModel } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
@@ -73,6 +73,7 @@ export interface SdkProviderDeps {
   createModel?: (settings: AiSettings, key: string | null) => LanguageModel;
   generateText?: typeof generateText;
   generateObject?: typeof generateObject;
+  streamText?: typeof streamText;
 }
 
 /** Maps `config.ai.{provider,model,baseUrl}` + the vault key → an AI-SDK model. */
@@ -137,6 +138,7 @@ export function createSdkProvider(deps: SdkProviderDeps): AiProvider {
   const createModel = deps.createModel ?? defaultCreateModel;
   const doGenerateText = deps.generateText ?? generateText;
   const doGenerateObject = deps.generateObject ?? generateObject;
+  const doStreamText = deps.streamText ?? streamText;
 
   const modelFor = (settings: AiSettings) => createModel(settings, getKey(settings.provider));
 
@@ -164,6 +166,28 @@ export function createSdkProvider(deps: SdkProviderDeps): AiProvider {
         text: text.trim(),
         meta: buildMeta(ctx.settings, startedAt, usage),
         // Action suggestions come from the agent/tool loop (phase 6) — none here yet.
+        suggestions: [],
+      };
+    },
+
+    async askStream(prompt, ctx, onDelta, signal): Promise<AiAnswer> {
+      const startedAt = Date.now();
+      const result = doStreamText({
+        model: modelFor(ctx.settings),
+        system: ASK_SYSTEM,
+        prompt,
+        // The SDK aborts the underlying request when this fires (cancelAiStream).
+        abortSignal: signal,
+      });
+      // Emit each token chunk as it lands; the main process coalesces before IPC.
+      for await (const delta of result.textStream) onDelta(delta);
+      // The aggregated text + usage are settled once the stream finishes.
+      const [text, usage] = await Promise.all([result.text, result.usage]);
+      return {
+        text: text.trim(),
+        meta: buildMeta(ctx.settings, startedAt, usage),
+        // Suggestions are easiest to attach at the end; the prose streams, the
+        // (currently empty) suggestions come with `done` (phase-4 note).
         suggestions: [],
       };
     },

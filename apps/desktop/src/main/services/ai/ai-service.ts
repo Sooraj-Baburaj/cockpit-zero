@@ -35,6 +35,15 @@ export interface AiStatus {
 
 export interface AiService {
   ask(prompt: string): Promise<AiAnswer>;
+  /** Streamed counterpart of {@link ask} (production phase 4): forwards prose
+   *  chunks through `onDelta` and resolves with the finalized answer. When AI is
+   *  off or the provider is unconfigured it resolves the nudge answer with **no**
+   *  deltas (the IPC layer still pushes it as the stream's `done`). */
+  askStream(
+    prompt: string,
+    onDelta: (text: string) => void,
+    signal?: AbortSignal,
+  ): Promise<AiAnswer>;
   draftWorkflow(description: string): Promise<WorkflowDraft>;
   /** Summarize + rank a routine's notifications (Phase 5). When AI is disabled it
    *  falls back to the deterministic local ranker so the digest still works. */
@@ -76,6 +85,16 @@ export function createAiService({ providers, getConfig }: AiServiceDeps): AiServ
       // fabricate. The `mock` default stays ready, so a fresh install still renders.
       if (!provider.ready({ settings: ai })) return unconfiguredAnswer(ai.provider);
       return provider.ask(prompt, { settings: ai });
+    },
+
+    async askStream(prompt, onDelta, signal) {
+      const ai = getConfig().ai;
+      // Mirror `ask`'s short-circuits — but as a completed answer with no deltas,
+      // so the IPC layer just pushes a single `done` (the surface shows the nudge).
+      if (!ai.enabled) return disabledAnswer();
+      const provider = providers[ai.provider];
+      if (!provider.ready({ settings: ai })) return unconfiguredAnswer(ai.provider);
+      return provider.askStream(prompt, { settings: ai }, onDelta, signal);
     },
 
     async draftWorkflow(description) {

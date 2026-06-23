@@ -1,15 +1,14 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  aiPhaseReducer,
   computeLauncherView,
   hasArgument,
-  IDLE_AI_PHASE,
   type AiSuggestedAction,
   type Config,
   type LauncherItem,
 } from '@cockpitzero/shared';
 import { api } from '../lib/api.js';
 import { useLauncherSearch } from '../hooks/useLauncherSearch.js';
+import { useAiAsk } from '../hooks/useAiAsk.js';
 import { useKeyboardNav } from '../hooks/useKeyboardNav.js';
 import { useAppearance } from '../hooks/useAppearance.js';
 import { modKey } from '../lib/platform.js';
@@ -46,19 +45,19 @@ export function LauncherBar() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { resolved, settled } = useLauncherSearch(query);
-  const [phase, dispatch] = useReducer(aiPhaseReducer, IDLE_AI_PHASE);
+  const { phase, ask, reset } = useAiAsk();
 
   useEffect(() => {
     inputRef.current?.focus();
     void api.getConfig().then(setConfig);
   }, []);
 
-  // Editing or clearing the query abandons any in-flight/visible AI answer and
-  // returns to live search (covers typing, the two-stage Escape, and the
-  // programmatic clear after a row runs).
+  // Editing or clearing the query abandons any in-flight/visible AI answer (aborting
+  // the stream) and returns to live search (covers typing, the two-stage Escape, and
+  // the programmatic clear after a row runs).
   useEffect(() => {
-    dispatch({ type: 'reset' });
-  }, [query]);
+    reset();
+  }, [query, reset]);
 
   useAppearance(config?.settings.theme, config?.settings.glass);
 
@@ -112,14 +111,6 @@ export function LauncherBar() {
   /** A suggestion runs only when it maps to a real config action; AI-only
    *  suggestions are display-only this phase (real side-effects land in Phase 7). */
   const isRunnable = (s: AiSuggestedAction) => !!config?.actions.some((a) => a.id === s.id);
-
-  /** Hand the current query to the assistant and stream the answer back in. */
-  const ask = (prompt: string) => {
-    const q = prompt.trim();
-    if (q === '') return;
-    dispatch({ type: 'ask', query: q });
-    void api.askAI(q).then((answer) => dispatch({ type: 'resolved', query: q, answer }));
-  };
 
   /** Hand the current query off as an agent task (Phase 7) — the task window
    *  takes over from here, so the launcher just hides. */
@@ -239,10 +230,12 @@ export function LauncherBar() {
       if (view.kind === 'results' && tryDrill(view.results[selected])) e.preventDefault();
       return;
     }
-    // Escape: AI mode dismisses outright; otherwise two-stage (clear, then close).
+    // Escape: AI mode dismisses outright (aborting any in-flight stream); otherwise
+    // two-stage (clear, then close).
     if (e.key === 'Escape') {
       if (aiMode) {
         e.preventDefault();
+        reset();
         void api.hideLauncher();
         return;
       }
@@ -324,6 +317,7 @@ export function LauncherBar() {
         <div className="border-t [border-color:var(--cz-line-faint)]">
           <AiAnswerPanel
             pending
+            pendingText={view.text}
             listboxId={LISTBOX_ID}
             optionId={optionId}
             selected={selected}

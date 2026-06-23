@@ -22,15 +22,35 @@ const ANSWER: AiAnswer = { text: 'hi', meta: 'mock', suggestions: [] };
 const EMPTY_RESULTS: ResolvedQuery = { kind: 'results', results: [] };
 
 describe('aiPhaseReducer', () => {
-  it('ask → pending', () => {
+  it('ask → pending (with empty streamed text)', () => {
     expect(aiPhaseReducer(IDLE_AI_PHASE, { type: 'ask', query: 'q' })).toEqual({
       status: 'pending',
       query: 'q',
+      text: '',
     });
   });
 
-  it('resolved while pending the same query → answer', () => {
-    const pending: AiPhase = { status: 'pending', query: 'q' };
+  it('delta accumulates streamed text while pending the same query', () => {
+    const pending: AiPhase = { status: 'pending', query: 'q', text: 'Hello' };
+    expect(aiPhaseReducer(pending, { type: 'delta', query: 'q', text: ' world' })).toEqual({
+      status: 'pending',
+      query: 'q',
+      text: 'Hello world',
+    });
+  });
+
+  it('ignores a delta for a query we are no longer asking', () => {
+    const pending: AiPhase = { status: 'pending', query: 'new', text: '' };
+    expect(aiPhaseReducer(pending, { type: 'delta', query: 'old', text: 'x' })).toBe(pending);
+  });
+
+  it('ignores a delta once answered', () => {
+    const answer: AiPhase = { status: 'answer', query: 'q', answer: ANSWER };
+    expect(aiPhaseReducer(answer, { type: 'delta', query: 'q', text: 'x' })).toBe(answer);
+  });
+
+  it('resolved (done) while pending the same query → answer', () => {
+    const pending: AiPhase = { status: 'pending', query: 'q', text: 'partial' };
     expect(aiPhaseReducer(pending, { type: 'resolved', query: 'q', answer: ANSWER })).toEqual({
       status: 'answer',
       query: 'q',
@@ -39,11 +59,26 @@ describe('aiPhaseReducer', () => {
   });
 
   it('ignores a stale answer for a query we are no longer asking', () => {
-    const pending: AiPhase = { status: 'pending', query: 'new' };
+    const pending: AiPhase = { status: 'pending', query: 'new', text: '' };
     // An older in-flight ask for "old" resolves late — must be dropped.
     expect(aiPhaseReducer(pending, { type: 'resolved', query: 'old', answer: ANSWER })).toBe(
       pending,
     );
+  });
+
+  it('error while pending surfaces a finalized error answer', () => {
+    const pending: AiPhase = { status: 'pending', query: 'q', text: 'partial' };
+    const next = aiPhaseReducer(pending, { type: 'error', query: 'q', message: 'boom' });
+    expect(next.status).toBe('answer');
+    if (next.status === 'answer') {
+      expect(next.answer.text).toBe('boom');
+      expect(next.answer.suggestions).toEqual([]);
+    }
+  });
+
+  it('ignores an error for a query we are no longer asking', () => {
+    const pending: AiPhase = { status: 'pending', query: 'new', text: '' };
+    expect(aiPhaseReducer(pending, { type: 'error', query: 'old', message: 'boom' })).toBe(pending);
   });
 
   it('ignores resolved when idle', () => {
@@ -142,15 +177,15 @@ describe('computeLauncherView', () => {
     expect(computeLauncherView({ ...base, query: 'g ', resolved })).toBe(resolved);
   });
 
-  it('pending phase owns the body regardless of search', () => {
+  it('pending phase owns the body regardless of search (threading streamed text)', () => {
     expect(
       computeLauncherView({
         ...base,
-        phase: { status: 'pending', query: 'q' },
+        phase: { status: 'pending', query: 'q', text: 'so far' },
         query: 'q',
         resolved: EMPTY_RESULTS,
       }),
-    ).toEqual({ kind: 'ai-pending', query: 'q' });
+    ).toEqual({ kind: 'ai-pending', query: 'q', text: 'so far' });
   });
 
   it('answer phase renders the answer regardless of search', () => {

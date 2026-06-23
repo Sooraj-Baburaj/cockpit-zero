@@ -134,6 +134,7 @@ function SuggestionRow({
 export function AiAnswerPanel({
   answer,
   pending = false,
+  pendingText,
   listboxId,
   optionId,
   selected,
@@ -144,6 +145,10 @@ export function AiAnswerPanel({
   /** The resolved answer (omitted while `pending`). */
   answer?: AiAnswer;
   pending?: boolean;
+  /** Prose streamed so far while `pending` (production phase 4). Empty until the
+   *  first token; once present it replaces the "thinking" placeholder with the
+   *  live text + a caret. */
+  pendingText?: string;
   listboxId: string;
   optionId: (index: number) => string;
   selected: number;
@@ -153,6 +158,7 @@ export function AiAnswerPanel({
   isRunnable: (suggestion: AiSuggestedAction) => boolean;
 }) {
   const suggestions = answer?.suggestions ?? [];
+  const streaming = pending && !!pendingText;
   return (
     <div>
       <div className="px-5 pt-[22px] pb-2">
@@ -166,10 +172,22 @@ export function AiAnswerPanel({
           </span>
         </div>
         {pending ? (
-          <p className="text-base text-subtle">
-            Reading your workspace and history
-            <span aria-hidden="true" className="cz-caret ml-0.5 inline-block h-[18px] w-0.5 translate-y-[3px] bg-accent" />
-          </p>
+          streaming ? (
+            // Tokens are arriving — render the prose so far with a trailing caret.
+            <p className="max-w-[60ch] text-base leading-[1.62] text-fg [text-wrap:pretty]">
+              {renderBold(pendingText ?? '')}
+              <span
+                aria-hidden="true"
+                className="cz-caret ml-0.5 inline-block h-[18px] w-0.5 translate-y-[3px] bg-accent"
+              />
+            </p>
+          ) : (
+            // Asked, no tokens yet — the quiet "thinking" state.
+            <p className="text-base text-subtle">
+              Reading your workspace and history
+              <span aria-hidden="true" className="cz-caret ml-0.5 inline-block h-[18px] w-0.5 translate-y-[3px] bg-accent" />
+            </p>
+          )
         ) : (
           <p className="max-w-[60ch] text-base leading-[1.62] text-fg [text-wrap:pretty]">
             {renderBold(answer?.text ?? '')}

@@ -1,5 +1,13 @@
 import { ipcMain } from 'electron';
-import { IpcChannels, applyArguments, effectiveArguments, valuesToRecord } from '@cockpitzero/shared';
+import {
+  AI_STREAM_CHANNEL,
+  IpcChannels,
+  applyArguments,
+  createId,
+  effectiveArguments,
+  valuesToRecord,
+} from '@cockpitzero/shared';
+import type { AiStreamEvent } from '@cockpitzero/shared';
 import { getConfig, updateConfig } from '../services/config-service.js';
 import { resolveLauncherQuery, searchSystem } from '../services/search-service.js';
 import { runAction } from '../services/action-runner/index.js';
@@ -14,6 +22,10 @@ import { secretsService } from '../services/secrets/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openConsole } from '../windows/index.js';
+
+/** In-flight AI streams, keyed by `streamId`, so `cancelAiStream` can abort the
+ *  provider request (Escape / closing the bar). Cleared when the stream settles. */
+const aiStreams = new Map<string, AbortController>();
 
 /**
  * Registers every IPC handler. Each handler maps 1:1 to an IpcChannels constant
@@ -85,8 +97,71 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.completePath, (_e, input: string) => completePath(input));
 
   // AI foundation (Phase 1). The service selects the provider from config and
-  // short-circuits when AI is disabled; `draftWorkflow` is a stub until Phase 4.
+  // short-circuits when AI is disabled. `askAI` is the resolve-once path; the
+  // streamed path is `askAIStream` below.
   ipcMain.handle(IpcChannels.askAI, (_e, prompt: string) => aiService.ask(prompt));
+
+  // Streamed ask (production phase 4). Returns a `streamId` immediately, then pushes
+  // `AiStreamEvent`s back to the asking window over AI_STREAM_CHANNEL: token `delta`s
+  // (coalesced ~30ms to spare the bridge), then a final `done` with the full answer.
+  ipcMain.handle(IpcChannels.askAIStream, (event, prompt: string) => {
+    const streamId = createId('aistream');
+    const controller = new AbortController();
+    aiStreams.set(streamId, controller);
+
+    const send = (e: AiStreamEvent) => {
+      if (!event.sender.isDestroyed()) event.sender.send(AI_STREAM_CHANNEL, e);
+    };
+
+    // Coalesce token deltas: buffer and flush on a ~30ms timer so we send a handful
+    // of IPC messages instead of one per token (phase-4 backpressure note).
+    let buffer = '';
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const flush = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (buffer) {
+        send({ streamId, type: 'delta', text: buffer });
+        buffer = '';
+      }
+    };
+    const dropBuffered = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      buffer = '';
+    };
+    const onDelta = (text: string) => {
+      buffer += text;
+      if (!timer) timer = setTimeout(flush, 30);
+    };
+
+    void aiService
+      .askStream(prompt, onDelta, controller.signal)
+      .then((answer) => {
+        flush();
+        send({ streamId, type: 'done', answer });
+      })
+      .catch((err: unknown) => {
+        // A user-initiated cancel aborts the request — stop silently (the renderer
+        // already moved on, and dropped any buffered delta). Only a genuine failure
+        // surfaces an error event.
+        dropBuffered();
+        if (controller.signal.aborted) return;
+        send({ streamId, type: 'error', message: err instanceof Error ? err.message : String(err) });
+      })
+      .finally(() => aiStreams.delete(streamId));
+
+    return { streamId };
+  });
+
+  ipcMain.handle(IpcChannels.cancelAiStream, (_e, streamId: string) => {
+    aiStreams.get(streamId)?.abort();
+    aiStreams.delete(streamId);
+  });
 
   ipcMain.handle(IpcChannels.draftWorkflow, (_e, description: string) =>
     aiService.draftWorkflow(description),

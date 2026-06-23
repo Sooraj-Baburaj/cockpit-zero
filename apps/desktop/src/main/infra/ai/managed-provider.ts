@@ -26,6 +26,11 @@ export function createManagedProvider(): AiProvider {
     async ask() {
       throw new Error(NOT_AVAILABLE);
     },
+    // Never reached: `ready()` is false, so the service returns the connect-nudge
+    // answer and never calls this. Present only to keep the port total.
+    async askStream() {
+      throw new Error(NOT_AVAILABLE);
+    },
     async draftWorkflow() {
       throw new Error(NOT_AVAILABLE);
     },

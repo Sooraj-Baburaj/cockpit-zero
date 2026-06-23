@@ -205,6 +205,19 @@ export interface AiAnswer {
 }
 
 /**
+ * One event in a streamed `askAIStream` response (production phase 4). The main
+ * process pushes these over `AI_STREAM_CHANNEL` as tokens arrive: `delta` carries
+ * an incremental chunk of prose, `done` carries the finalized {@link AiAnswer}
+ * (full text + usage `meta` + suggestions), and `error` a human-readable failure.
+ * A user-initiated cancel emits **nothing** — the stream simply stops. Token-grained
+ * sibling of the task surface's `TaskRun` snapshots.
+ */
+export type AiStreamEvent =
+  | { streamId: string; type: 'delta'; text: string }
+  | { streamId: string; type: 'done'; answer: AiAnswer }
+  | { streamId: string; type: 'error'; message: string };
+
+/**
  * Runtime task/agent shapes (Phase 7). These are NOT persisted config — a
  * `taskRun` is computed by the main-process agent loop (`services/agent/task-runner`)
  * and streamed to the task surface (`ai-task.html`). The renderer renders one

@@ -1,5 +1,6 @@
 import type {
   AiAnswer,
+  AiStreamEvent,
   Config,
   Digest,
   LauncherItem,
@@ -29,6 +30,8 @@ export const IpcChannels = {
   getFavicon: 'system:get-favicon',
   completePath: 'system:complete-path',
   askAI: 'ai:ask',
+  askAIStream: 'ai:ask-stream',
+  cancelAiStream: 'ai:ask-cancel',
   draftWorkflow: 'ai:draft-workflow',
   aiStatus: 'ai:status',
   runRoutine: 'routine:run',
@@ -57,6 +60,16 @@ export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
 export const TASK_UPDATE_CHANNEL = 'task:update';
 
 /**
+ * The AI streaming push channel (main → renderer), the second `webContents.send` /
+ * `ipcRenderer.on` pair after {@link TASK_UPDATE_CHANNEL}. `askAIStream` kicks off a
+ * provider stream and the main process pushes `AiStreamEvent`s here as tokens land;
+ * the renderer subscribes with `onAiStream` (registered in preload — the only place
+ * `ipcRenderer.on` is allowed, CLAUDE.md). It is **not** in `IpcChannels` because
+ * it's a push, not an `invoke`/`handle`.
+ */
+export const AI_STREAM_CHANNEL = 'ai:stream';
+
+/**
  * The typed surface exposed to the renderer as `window.api`. Each method maps
  * to one channel. Keep this in sync with the preload bridge — the renderer is
  * typed entirely from this interface.
@@ -83,8 +96,16 @@ export interface IpcApi {
   /** Filesystem path suggestions for a partial absolute path (autocomplete). */
   completePath(input: string): Promise<string[]>;
   /** Ask the assistant a free-text question; resolves to an answer + suggested
-   *  actions. Promise-based (resolve-once) — token streaming is a later phase. */
+   *  actions. Promise-based (resolve-once) — kept as the compat/single-value path
+   *  alongside the streamed `askAIStream` (P4). */
   askAI(prompt: string): Promise<AiAnswer>;
+  /** Start a **streamed** answer (production phase 4). Resolves with the `streamId`
+   *  immediately; prose arrives token-by-token via `onAiStream` (`delta`), then a
+   *  final `done` carries the full `AiAnswer` (+ suggestions). */
+  askAIStream(prompt: string): Promise<{ streamId: string }>;
+  /** Abort an in-flight streamed answer (Escape / closing the bar). Cancels the
+   *  underlying provider request; no further `onAiStream` events fire for it. */
+  cancelAiStream(streamId: string): Promise<void>;
   /** Draft a workflow from a natural-language description. Stub here; Phase 4
    *  implements the real drafting. */
   draftWorkflow(description: string): Promise<WorkflowDraft>;
@@ -108,9 +129,12 @@ export interface IpcApi {
   /** Approve a run paused at `review`, committing its side-effecting result and
    *  letting the remaining steps run. Nothing commits to the library without it. */
   taskApprove(taskId: string): Promise<{ ok: boolean }>;
-  /** Subscribe to streamed task updates (the one push channel). Returns an
-   *  unsubscribe fn. Registered in preload (the only sanctioned `ipcRenderer.on`). */
+  /** Subscribe to streamed task updates (a push channel). Returns an unsubscribe
+   *  fn. Registered in preload (one of the two sanctioned `ipcRenderer.on`s). */
   onTaskUpdate(callback: (run: TaskRun) => void): () => void;
+  /** Subscribe to streamed AI answer events (the second push channel, P4). Returns
+   *  an unsubscribe fn. Registered in preload alongside `onTaskUpdate`. */
+  onAiStream(callback: (event: AiStreamEvent) => void): () => void;
   /** Store/replace a secret by name in the OS-keychain-backed vault (P2). Resolves
    *  `{ ok: false }` if secure storage is unavailable or the value is empty —
    *  plaintext is **never** written. Names come from `SecretName` (shared). */

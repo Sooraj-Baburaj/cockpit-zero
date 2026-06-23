@@ -8,10 +8,10 @@ import { IpcChannels, type IpcApi } from '@cockpitzero/shared';
  */
 describe('IPC contract', () => {
   it('every invoke channel has a matching IpcApi method', () => {
-    // The request/response (invoke) surface. `platform` (a value) and
-    // `onTaskUpdate` (the push-channel subscriber, registered against
-    // TASK_UPDATE_CHANNEL, not an invoke) are IpcApi members WITHOUT an
-    // `IpcChannels` entry by design, so they're excluded here.
+    // The request/response (invoke) surface. `platform` (a value) and the
+    // push-channel subscribers `onTaskUpdate` / `onAiStream` (registered against
+    // TASK_UPDATE_CHANNEL / AI_STREAM_CHANNEL, not invokes) are IpcApi members
+    // WITHOUT an `IpcChannels` entry by design, so they're excluded here.
     const channelMethods: Array<keyof IpcApi> = [
       'getConfig',
       'setConfig',
@@ -24,6 +24,8 @@ describe('IPC contract', () => {
       'getFavicon',
       'completePath',
       'askAI',
+      'askAIStream',
+      'cancelAiStream',
       'draftWorkflow',
       'aiStatus',
       'runRoutine',
