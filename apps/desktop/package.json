@@ -14,7 +14,17 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/cohere": "catalog:",
+    "@ai-sdk/deepseek": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/groq": "catalog:",
+    "@ai-sdk/mistral": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "@ai-sdk/openai-compatible": "catalog:",
+    "@ai-sdk/xai": "catalog:",
     "@fontsource/manrope": "^5.1.0",
+    "ai": "catalog:",
     "electron-store": "^8.2.0"
   },
   "devDependencies": {

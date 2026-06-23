@@ -152,24 +152,55 @@ export const SettingsSchema = z.object({
   telemetryEnabled: z.boolean().default(false),
 });
 
-/** Which engine powers AI features. `mock` is offline/deterministic — the test +
- *  dev default; `anthropic` is the (later-wired) real Claude provider seam. */
-export const AiProviderIdSchema = z.enum(['mock', 'anthropic']);
+/**
+ * Which engine powers AI features. The real set is served through one universal
+ * adapter over the Vercel AI SDK (production phase 3), so a BYOP user pastes their
+ * own key for any of these. `openai-compatible` covers OpenRouter / Ollama / Together
+ * / Fireworks / any custom `baseUrl`. `managed` is the slot for our backend proxy
+ * (phase 9, server-routed). `mock` is the offline/deterministic test + CI default and
+ * the fresh-install fallback — never a real user's selection once a key is set.
+ */
+export const AiProviderIdSchema = z.enum([
+  'anthropic',
+  'openai',
+  'google',
+  'xai',
+  'mistral',
+  'groq',
+  'cohere',
+  'deepseek',
+  'openai-compatible',
+  'managed',
+  'mock',
+]);
 
-/** Which engine tier powers AI features (mirrors the cockpit-ai "Mini / Pro /
- *  Bring your own"). Maps to concrete Claude model ids when the real provider
- *  is wired — see the `claude-api` skill, never hard-code from memory. */
+/**
+ * Managed-tier routing knob — `mini` / `pro` map to a cheap vs. frontier model when
+ * the backend router picks per request (phase 9, server-side only). It is **not**
+ * shown for BYOP users, who pick a concrete `model` directly (see `AiSettingsSchema`).
+ * Kept for back-compat + the managed path; `byo` is legacy and no longer surfaced.
+ */
 export const AiModelTierSchema = z.enum(['mini', 'pro', 'byo']);
 
 /** Tools the assistant may call. Starts as a small catalog; Phase 7 executes them. */
 export const AiToolIdSchema = z.enum(['files', 'calendar', 'slack', 'slides-sheets']);
 
-/** The `ai` config block — every AI feature reads its provider/tier/toggles here. */
+/** The `ai` config block — every AI feature reads its provider/model/toggles here. */
 export const AiSettingsSchema = z.object({
   /** Master switch — when false, no AI surface appears anywhere. */
   enabled: z.boolean().default(true),
-  /** Provider key. `mock` is offline/deterministic and the test + dev default. */
+  /** Provider key. `mock` is offline/deterministic and the test + fresh-install
+   *  default; a BYOP user switches it once they paste a key in the vault. */
   provider: AiProviderIdSchema.default('mock'),
+  /** Provider-specific model id (e.g. `claude-opus-4-8`, `gpt-5`, `gemini-2.5-pro`).
+   *  Free-text so new models work without a release — the Console offers a curated
+   *  catalog plus a custom entry. Empty = provider not yet configured (status not ok). */
+  model: z.string().default(''),
+  /** Only for `openai-compatible` (OpenRouter / Ollama / Together / custom): the
+   *  OpenAI-shaped API base URL. Ignored by every other provider. */
+  baseUrl: z.string().url().optional(),
+  /** Managed-tier routing knob — never shown for BYOP (the user picks `model`). Kept
+   *  for the phase-9 managed path + back-compat. See {@link AiModelTierSchema}. */
   modelTier: AiModelTierSchema.default('pro'),
   /** "Ask AI from the bar": when a query matches nothing, offer to ask (Phase 2). */
   askFromBar: z.boolean().default(true),

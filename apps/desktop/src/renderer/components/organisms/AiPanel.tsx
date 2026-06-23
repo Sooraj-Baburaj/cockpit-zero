@@ -1,18 +1,28 @@
 import { useEffect, useReducer, useState, type ReactNode } from 'react';
 import {
+  MODEL_CATALOG,
+  OPENAI_COMPATIBLE_PRESETS,
+  PROVIDER_CATALOG,
+  SecretName,
   aiPhaseReducer,
-  IDLE_AI_PHASE,
+  defaultModelFor,
+  providerInfo,
+  providerLabel,
   setAiToolGrant,
-  type AiModelTier,
+  IDLE_AI_PHASE,
+  type AiProviderId,
   type AiSettings,
   type AiToolId,
+  type OpenAiCompatiblePreset,
 } from '@cockpitzero/shared';
 import { api } from '../../lib/api.js';
 import { cn } from '../../lib/cn.js';
 import { Button } from '../atoms/Button.js';
+import { Input } from '../atoms/Input.js';
 import { Sparkle } from '../atoms/Sparkle.js';
 import { Toggle } from '../atoms/Toggle.js';
-import { SegmentedControl } from '../molecules/SegmentedControl.js';
+import { Dropdown } from '../molecules/Dropdown.js';
+import { SecretField } from '../molecules/SecretField.js';
 import { ToolGrantCard } from '../molecules/ToolGrantCard.js';
 import { AiAnswerPanel } from './AiAnswerPanel.js';
 
@@ -24,19 +34,15 @@ const PROMPT_CHIPS = [
   'What changed in Apollo today?',
 ];
 
-const MODEL_TIERS: { value: AiModelTier; label: string; disabled?: boolean; title?: string }[] = [
-  { value: 'mini', label: 'Mini' },
-  { value: 'pro', label: 'Pro' },
-  // "Bring your own" needs a secure key store (OS keychain / safeStorage), never
-  // the synced config.json — so it's disabled until the real provider lands.
-  // TODO(phase: provider): enable + add a secure-store-backed key field.
-  {
-    value: 'byo',
-    label: 'Bring your own',
-    disabled: true,
-    title: 'Bring your own key — available when the real provider lands.',
-  },
+/** Provider picker options: every BYOP provider plus the offline demo for `mock`
+ *  (so the control still reflects state on a fresh install). `managed` is phase 9. */
+const PROVIDER_OPTIONS = [
+  ...PROVIDER_CATALOG.map((p) => ({ value: p.id, label: p.label })),
+  { value: 'mock', label: 'Built-in demo (offline)' },
 ];
+
+/** Sentinel option that switches the model dropdown into a free-text field. */
+const CUSTOM_MODEL = '__custom__';
 
 /** Tool catalog metadata (id ↔ display). Order follows `AI_TOOL_IDS`. */
 const TOOLS: { id: AiToolId; name: string; scope: string; icon: ReactNode }[] = [
@@ -88,11 +94,12 @@ const TOOLS: { id: AiToolId; name: string; scope: string; icon: ReactNode }[] = 
 type AiStatus = Awaited<ReturnType<typeof api.aiStatus>>;
 
 /**
- * Console → AI. Binds every control to the `ai` config block (Phase 1) and
- * persists on **Save** — edits live in a local draft so the button enables only
- * when dirty (and a reopen shows the saved values). The inline composer reuses
- * the launcher's `askAI` flow + `AiAnswerPanel` (reuse, don't fork); it's an
- * entry point to the assistant, not a full chat transcript.
+ * Console → AI. The BYOP control surface (production phase 3): pick a provider and a
+ * model, paste your own API key (stored in the OS-keychain vault, never `config.json`
+ * or the renderer), and the assistant runs against your real provider. There is **no**
+ * Mini/Pro tier control — that's a managed-only knob (phase 9). Provider/model/base-URL
+ * persist on **Save**; the API key saves itself through {@link SecretField}. The inline
+ * composer reuses the launcher's `askAI` flow + `AiAnswerPanel` (reuse, don't fork).
  */
 export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSettings) => void }) {
   const [draft, setDraft] = useState<AiSettings>(ai);
@@ -100,19 +107,37 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
   const [phase, dispatch] = useReducer(aiPhaseReducer, IDLE_AI_PHASE);
   const [status, setStatus] = useState<AiStatus | null>(null);
 
+  const refreshStatus = () => void api.aiStatus().then(setStatus);
+
   // Re-sync the draft + connection chip whenever the saved config changes (a save
   // here, or an external write). `ai` is a fresh object each save, so this resets
   // dirty back to false after persisting.
   useEffect(() => {
     setDraft(ai);
-    void api.aiStatus().then(setStatus);
+    refreshStatus();
   }, [ai]);
 
   const set = <K extends keyof AiSettings>(key: K, value: AiSettings[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
+  // Switching provider seeds a sensible default model and drops the base URL unless
+  // the new provider is `openai-compatible` (the only one that uses it).
+  const onProviderChange = (value: string) => {
+    const provider = value as AiProviderId;
+    setDraft((d) => ({
+      ...d,
+      provider,
+      model: defaultModelFor(provider),
+      baseUrl: provider === 'openai-compatible' ? d.baseUrl : undefined,
+    }));
+  };
+
+  const info = providerInfo(draft.provider);
+
   const dirty =
-    draft.modelTier !== ai.modelTier ||
+    draft.provider !== ai.provider ||
+    draft.model !== ai.model ||
+    (draft.baseUrl ?? '') !== (ai.baseUrl ?? '') ||
     draft.askFromBar !== ai.askFromBar ||
     draft.memoryEnabled !== ai.memoryEnabled ||
     draft.tools.length !== ai.tools.length ||
@@ -203,28 +228,96 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
         </div>
       )}
 
-      <GroupLabel>Engine</GroupLabel>
-      <OptRow title="Default model" desc="Powers Ask AI, drafted workflows, and routine summaries.">
-        <SegmentedControl
-          ariaLabel="Default model"
-          value={draft.modelTier}
-          options={MODEL_TIERS}
-          onChange={(modelTier) => set('modelTier', modelTier)}
-        />
-      </OptRow>
+      <GroupLabel>Provider</GroupLabel>
+      <div className="space-y-4 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-4 [box-shadow:var(--cz-shadow-sm)]">
+        <Labeled
+          label="Provider"
+          description={
+            info?.blurb ??
+            'Powers Ask AI, drafted workflows, and routine summaries — bring your own key.'
+          }
+        >
+          <Dropdown
+            ariaLabel="AI provider"
+            value={draft.provider}
+            options={PROVIDER_OPTIONS}
+            onChange={onProviderChange}
+          />
+        </Labeled>
+
+        {draft.provider === 'openai-compatible' && (
+          <Labeled label="Base URL" description="The OpenAI-compatible endpoint to call.">
+            <div className="space-y-2.5">
+              <div className="flex flex-wrap gap-2">
+                {OPENAI_COMPATIBLE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => applyPreset(preset, setDraft)}
+                    className="rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-2)] px-[11px] py-[5px] text-[12px] font-medium text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)]"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <Input
+                value={draft.baseUrl ?? ''}
+                onChange={(e) => set('baseUrl', e.target.value || undefined)}
+                placeholder="https://openrouter.ai/api/v1"
+                aria-label="Base URL"
+                autoComplete="off"
+                spellCheck={false}
+                className="font-mono"
+              />
+            </div>
+          </Labeled>
+        )}
+
+        {draft.provider !== 'mock' && (
+          <Labeled label="Model" description="Pick a model, or choose Custom… to enter any id.">
+            <ModelPicker
+              key={draft.provider}
+              provider={draft.provider}
+              value={draft.model}
+              onChange={(m) => set('model', m)}
+            />
+          </Labeled>
+        )}
+      </div>
+
+      {info && (
+        <div className="mt-3">
+          <SecretField
+            key={draft.provider}
+            name={SecretName.providerKey(draft.provider)}
+            label={info.requiresKey ? `${info.label} API key` : `${info.label} API key (optional)`}
+            description={keyDescription(info)}
+            placeholder="Paste your API key…"
+            onStatusChange={refreshStatus}
+          />
+        </div>
+      )}
 
       <GroupLabel>Behavior</GroupLabel>
       <OptRow
         title="Ask AI from the bar"
         desc="When a search matches no action, app, or file, treat the query as a question."
       >
-        <Toggle checked={draft.askFromBar} onChange={(v) => set('askFromBar', v)} label="Ask AI from the bar" />
+        <Toggle
+          checked={draft.askFromBar}
+          onChange={(v) => set('askFromBar', v)}
+          label="Ask AI from the bar"
+        />
       </OptRow>
       <OptRow
         title="Memory & history"
         desc="Let the assistant carry context across sessions to do more of the busywork."
       >
-        <Toggle checked={draft.memoryEnabled} onChange={(v) => set('memoryEnabled', v)} label="Memory & history" />
+        <Toggle
+          checked={draft.memoryEnabled}
+          onChange={(v) => set('memoryEnabled', v)}
+          label="Memory & history"
+        />
       </OptRow>
 
       <GroupLabel>Tools the assistant can use</GroupLabel>
@@ -243,12 +336,105 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
 
       <footer className="mt-7 flex items-center justify-between gap-4 border-t [border-color:var(--cz-line-faint)] pt-4">
         <span className="text-[12.5px] text-subtle">
-          Local-first · anything that leaves your machine is explicit and minimal.
+          Local-first · your key stays in the OS keychain, never synced.
         </span>
         <Button variant="dark" disabled={!dirty} onClick={() => onSave(draft)}>
           Save changes
         </Button>
       </footer>
+    </div>
+  );
+}
+
+/** A help line for the key field — keychain note + where to mint a key. */
+function keyDescription(info: ReturnType<typeof providerInfo>): string {
+  if (!info) return '';
+  const base = info.requiresKey
+    ? 'Stored encrypted in your OS keychain — never written to config or synced.'
+    : 'Optional — local endpoints like Ollama need no key. Stored in your OS keychain, never synced.';
+  return info.keyUrl ? `${base} Get a key: ${info.keyUrl}` : base;
+}
+
+/** Quick-fill an openai-compatible preset: set the base URL and (if offered) a
+ *  starting model id. Pure update over the draft. */
+function applyPreset(
+  preset: OpenAiCompatiblePreset,
+  setDraft: (fn: (d: AiSettings) => AiSettings) => void,
+): void {
+  setDraft((d) => ({
+    ...d,
+    baseUrl: preset.baseUrl || undefined,
+    model: preset.models?.[0]?.id ?? d.model,
+  }));
+}
+
+/**
+ * The model control: a dropdown of the provider's curated ids plus a "Custom…"
+ * escape hatch (free text). For providers with no catalog (`openai-compatible`) it's
+ * a free-text field. Remounted on provider change (parent `key`) so its custom-mode
+ * state re-initializes from the new provider's catalog.
+ */
+function ModelPicker({
+  provider,
+  value,
+  onChange,
+}: {
+  provider: AiProviderId;
+  value: string;
+  onChange: (model: string) => void;
+}) {
+  const catalog = MODEL_CATALOG[provider];
+  const freeTextOnly = catalog.length === 0;
+  const [custom, setCustom] = useState(
+    freeTextOnly || (value !== '' && !catalog.some((m) => m.id === value)),
+  );
+
+  if (freeTextOnly) {
+    return (
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="model-id (e.g. anthropic/claude-opus-4.8)"
+        aria-label="Model id"
+        autoComplete="off"
+        spellCheck={false}
+        className="font-mono"
+      />
+    );
+  }
+
+  const options = [
+    ...catalog.map((m) => ({ value: m.id, label: m.label })),
+    { value: CUSTOM_MODEL, label: 'Custom…' },
+  ];
+
+  return (
+    <div className="space-y-2">
+      <Dropdown
+        ariaLabel="Model"
+        value={custom ? CUSTOM_MODEL : value}
+        options={options}
+        onChange={(v) => {
+          if (v === CUSTOM_MODEL) {
+            setCustom(true);
+            onChange('');
+          } else {
+            setCustom(false);
+            onChange(v);
+          }
+        }}
+      />
+      {custom && (
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter a model id (e.g. claude-opus-4-8)"
+          aria-label="Custom model id"
+          autoComplete="off"
+          spellCheck={false}
+          className="font-mono"
+        />
+      )}
     </div>
   );
 }
@@ -262,7 +448,7 @@ function ConnectionChip({ status }: { status: AiStatus | null }) {
       ? 'AI off'
       : status.ok
         ? 'Connected'
-        : 'Unavailable';
+        : 'Add a key to connect';
   return (
     <span className="inline-flex items-center gap-2 rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-1)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
       <span
@@ -276,10 +462,10 @@ function ConnectionChip({ status }: { status: AiStatus | null }) {
         )}
       />
       {label}
-      {status?.enabled && (
+      {status?.enabled && status.ok && (
         <>
           {' · '}
-          <b className="font-semibold text-fg">{status.provider}</b>
+          <b className="font-semibold text-fg">{providerLabel(status.provider as AiProviderId)}</b>
         </>
       )}
     </span>
@@ -295,16 +481,31 @@ function GroupLabel({ children }: { children: ReactNode }) {
   );
 }
 
-/** A settings option row (`.opt`): title + description on the left, control right. */
-function OptRow({
-  title,
-  desc,
+/** A labelled control block (title + optional description above the control). Used
+ *  for the provider/model/base-URL pickers — a `<div>` (not `<label>`) so wrapping a
+ *  custom Dropdown button doesn't hijack its focus/click. */
+function Labeled({
+  label,
+  description,
   children,
 }: {
-  title: string;
-  desc: string;
+  label: string;
+  description?: string;
   children: ReactNode;
 }) {
+  return (
+    <div>
+      <div className="text-sm font-medium text-fg">{label}</div>
+      {description && (
+        <div className="mt-0.5 mb-2 text-xs leading-normal text-muted">{description}</div>
+      )}
+      <div className={description ? '' : 'mt-1.5'}>{children}</div>
+    </div>
+  );
+}
+
+/** A settings option row (`.opt`): title + description on the left, control right. */
+function OptRow({ title, desc, children }: { title: string; desc: string; children: ReactNode }) {
   return (
     <div className="mb-2 flex items-center justify-between gap-4 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-[13px] [box-shadow:var(--cz-shadow-sm)]">
       <div>

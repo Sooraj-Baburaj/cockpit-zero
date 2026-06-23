@@ -1,4 +1,4 @@
-import { WorkflowDraftSchema, rankDigestItems } from '@cockpitzero/shared';
+import { WorkflowDraftSchema, providerLabel, rankDigestItems } from '@cockpitzero/shared';
 import type {
   AiAnswer,
   AiProviderId,
@@ -55,18 +55,39 @@ function disabledAnswer(): AiAnswer {
   };
 }
 
+/** The answer when AI is on but the selected provider isn't configured yet (no key /
+ *  no model). We never silently fabricate a real-looking answer here — the surface
+ *  shows a clear "connect a provider" nudge instead (production phase 3). */
+function unconfiguredAnswer(provider: AiProviderId): AiAnswer {
+  const text =
+    provider === 'managed'
+      ? 'Managed AI isn’t available yet. Pick your own provider and paste a key in the Console → AI.'
+      : `Connect ${providerLabel(provider)} in the Console → AI — choose a model and paste your API key to start asking.`;
+  return { text, meta: 'cockpit-ai · not connected', suggestions: [] };
+}
+
 export function createAiService({ providers, getConfig }: AiServiceDeps): AiService {
   return {
     async ask(prompt) {
       const ai = getConfig().ai;
       if (!ai.enabled) return disabledAnswer();
-      return providers[ai.provider].ask(prompt, { settings: ai });
+      const provider = providers[ai.provider];
+      // Real provider selected but not configured (no key/model) → nudge, don't
+      // fabricate. The `mock` default stays ready, so a fresh install still renders.
+      if (!provider.ready({ settings: ai })) return unconfiguredAnswer(ai.provider);
+      return provider.ask(prompt, { settings: ai });
     },
 
     async draftWorkflow(description) {
       const ai = getConfig().ai;
       if (!ai.enabled) return { name: '', keyword: '', steps: [] };
-      const draft = await providers[ai.provider].draftWorkflow(description, { settings: ai });
+      const provider = providers[ai.provider];
+      if (!provider.ready({ settings: ai })) {
+        throw new Error(
+          `Connect ${providerLabel(ai.provider)} in the Console → AI before drafting a workflow.`,
+        );
+      }
+      const draft = await provider.draftWorkflow(description, { settings: ai });
       // Never trust raw provider/model output — validate the structure (and each
       // step's action) before it reaches the renderer (CLAUDE.md: schemas are the
       // source of truth; the real provider emits model JSON we must not trust).
@@ -75,11 +96,13 @@ export function createAiService({ providers, getConfig }: AiServiceDeps): AiServ
 
     async summarizeDigest(items, opts) {
       const ai = getConfig().ai;
-      // Local-first: with AI off (or no items) rank deterministically on-device —
-      // no model call, the digest still surfaces. Otherwise the selected provider
-      // does the summarize + rank.
+      // Local-first: with AI off, no items, or an unconfigured provider, rank
+      // deterministically on-device — no model call, the digest still surfaces.
+      // Otherwise the selected provider does the summarize + rank.
       if (!ai.enabled || items.length === 0) return rankDigestItems(items, opts);
-      return providers[ai.provider].summarizeDigest(items, opts, { settings: ai });
+      const provider = providers[ai.provider];
+      if (!provider.ready({ settings: ai })) return rankDigestItems(items, opts);
+      return provider.summarizeDigest(items, opts, { settings: ai });
     },
 
     status() {

@@ -8,6 +8,7 @@ describe('AiSettingsSchema', () => {
     expect(ai).toEqual({
       enabled: true,
       provider: 'mock',
+      model: '',
       modelTier: 'pro',
       askFromBar: true,
       memoryEnabled: true,
@@ -20,8 +21,23 @@ describe('AiSettingsSchema', () => {
     expect(AiToolIdSchema.safeParse('nope').success).toBe(false);
   });
 
-  it('rejects an unknown provider', () => {
-    expect(AiSettingsSchema.safeParse({ provider: 'openai' }).success).toBe(false);
+  it('accepts every real BYOP provider but rejects an unknown one', () => {
+    // Production phase 3 expanded the enum from mock/anthropic to the real set.
+    expect(AiSettingsSchema.safeParse({ provider: 'openai' }).success).toBe(true);
+    expect(AiSettingsSchema.safeParse({ provider: 'openai-compatible' }).success).toBe(true);
+    expect(AiSettingsSchema.safeParse({ provider: 'not-a-provider' }).success).toBe(false);
+  });
+
+  it('accepts an openai-compatible base URL and a free-text model', () => {
+    const ai = AiSettingsSchema.parse({
+      provider: 'openai-compatible',
+      model: 'llama3.2',
+      baseUrl: 'http://localhost:11434/v1',
+    });
+    expect(ai.baseUrl).toBe('http://localhost:11434/v1');
+    expect(ai.model).toBe('llama3.2');
+    // A malformed base URL is rejected by the schema.
+    expect(AiSettingsSchema.safeParse({ baseUrl: 'not a url' }).success).toBe(false);
   });
 });
 

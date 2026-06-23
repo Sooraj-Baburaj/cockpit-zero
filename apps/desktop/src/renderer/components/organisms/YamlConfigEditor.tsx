@@ -62,7 +62,10 @@ function buildOutline(file: ConfigYamlFile, text: string): OutlineEntry[] {
     case 'config.yaml':
       return [
         { label: 'settings', sub: slice.settings?.theme },
-        { label: 'ai', sub: slice.ai && `${slice.ai.provider} · ${slice.ai.modelTier}` },
+        {
+          label: 'ai',
+          sub: slice.ai && `${slice.ai.provider}${slice.ai.model ? ` · ${slice.ai.model}` : ''}`,
+        },
         { label: plural(slice.actions?.length ?? 0, 'action') },
       ];
     case 'aliases.yaml':
@@ -139,7 +142,7 @@ export function YamlConfigEditor({
     if (!ta) return;
     const upto = ta.value.slice(0, ta.selectionStart);
     const segs = upto.split('\n');
-    setCaret({ line: segs.length - 1, col: (segs[segs.length - 1]?.length ?? 0) });
+    setCaret({ line: segs.length - 1, col: segs[segs.length - 1]?.length ?? 0 });
   };
 
   // Keep the highlight overlay + gutter scrolled in lockstep with the textarea
@@ -306,7 +309,10 @@ export function YamlConfigEditor({
           </div>
 
           <div className="relative min-w-0 overflow-hidden">
-            <div ref={highlightRef} className="pointer-events-none absolute inset-0 overflow-hidden pt-4">
+            <div
+              ref={highlightRef}
+              className="pointer-events-none absolute inset-0 overflow-hidden pt-4"
+            >
               {lines.map((line, i) => {
                 const tokens = highlightYamlLine(line);
                 return (
@@ -460,7 +466,9 @@ function ValidationRow({ issue }: { issue: ValidationIssue }) {
       <span>
         {issue.code && (
           <>
-            <code className="font-mono text-[12px] text-[var(--cz-accent-bright)]">{issue.code}</code>{' '}
+            <code className="font-mono text-[12px] text-[var(--cz-accent-bright)]">
+              {issue.code}
+            </code>{' '}
           </>
         )}
         {issue.message}

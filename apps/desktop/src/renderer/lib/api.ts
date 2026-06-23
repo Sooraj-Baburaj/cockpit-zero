@@ -16,6 +16,7 @@ const MOCK_CONFIG: Config = {
   ai: {
     enabled: true,
     provider: 'mock',
+    model: '',
     modelTier: 'pro',
     askFromBar: true,
     memoryEnabled: true,
@@ -116,7 +117,11 @@ const MOCK_TASK: TaskRun = {
     { id: 'step_3', title: 'Apply Sahara theme', state: 'waiting' },
     { id: 'step_4', title: 'Export to Keynote', state: 'waiting' },
   ],
-  result: { kind: 'slides', previews: ['title', 'kpis', 'growth', 'next'], openLabel: 'Open in Keynote' },
+  result: {
+    kind: 'slides',
+    previews: ['title', 'kpis', 'growth', 'next'],
+    openLabel: 'Open in Keynote',
+  },
 };
 
 /** In-memory secrets for the dev/browser bridge — there's no main process (and
