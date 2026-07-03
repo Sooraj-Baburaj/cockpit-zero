@@ -1,3 +1,4 @@
+import type { z } from 'zod';
 import type { AgentToolId, AiToolId, Config } from '@cockpitzero/shared';
 import type { MemoryService } from '../memory-service.js';
 import type { ToolPorts } from './ports.js';
@@ -45,10 +46,20 @@ export interface ToolContext {
 /** A pluggable capability the agent loop can call. */
 export interface Tool {
   id: AgentToolId;
+  /** Model-facing description: what the tool does + when to call it. The real agent
+   *  loop (production phase 6) feeds this to the AI SDK so the model can choose it. */
+  description: string;
+  /** Zod schema for the tool input — both the model-facing parameter contract (the
+   *  loop hands it to the AI SDK `tool()` as `inputSchema`) and runtime validation. */
+  parameters: z.ZodTypeAny;
   /** The permission gating this tool (descriptive; the runner enforces it). */
   grant: AiToolId | 'memory';
   /** Whether running this produces a side-effect that needs review before commit. */
   sideEffecting: boolean;
+  /** A not-yet-real external **stub** (its real connector lands in P10). The surface
+   *  badges it and the description says so, so stub output is never passed off as
+   *  real. Off by default via its grant, per CLAUDE.md ("no mocks in production"). */
+  stub?: boolean;
   run(input: unknown, ctx: ToolContext): Promise<ToolResult>;
 }
 

@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { TASK_TOOL_GRANT } from '@cockpitzero/shared';
 import type { Tool, ToolContext, ToolResult } from './registry.js';
 
@@ -7,13 +8,18 @@ import type { Tool, ToolContext, ToolResult } from './registry.js';
  * library / not a synced surface), so it isn't treated as a review-gated
  * side-effect; the service no-ops cleanly when memory is off.
  */
-interface MemoryWriteInput {
-  text: string;
-  kind?: string;
-}
+const memoryWriteParameters = z.object({
+  text: z.string().describe('A single durable fact worth recalling in a future session.'),
+  kind: z.string().optional().describe('Optional category, e.g. "preference" or "task".'),
+});
+type MemoryWriteInput = z.infer<typeof memoryWriteParameters>;
 
 export const memoryWrite: Tool = {
   id: 'memory.write',
+  description:
+    'Save one durable fact to the user’s local, private memory for future sessions. ' +
+    'Writes only on-device (not a synced or shared surface), so it runs without approval.',
+  parameters: memoryWriteParameters,
   grant: TASK_TOOL_GRANT['memory.write'],
   sideEffecting: false,
   async run(input: unknown, ctx: ToolContext): Promise<ToolResult> {

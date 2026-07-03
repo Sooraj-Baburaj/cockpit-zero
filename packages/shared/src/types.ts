@@ -273,8 +273,16 @@ export interface TaskStep {
   state: TaskStepState;
   /** Tool tag rendered as a mono chip, e.g. "files.read" / "slides.create". */
   tool?: string;
+  /** The model-chosen tool input, compacted to one mono line (e.g.
+   *  `path: ~/Documents/q3-brief.pdf`) — the real per-step arguments (production
+   *  phase 6), shown so an autonomous tool call is never opaque. */
+  args?: string;
   /** Sub-line under the title, e.g. "drafting 'Growth & retention'…". */
   detail?: string;
+  /** Whether this step's tool is a not-yet-real external **stub** (a labeled
+   *  placeholder until its real connector lands in P10) — the surface badges it so
+   *  stub output is never mistaken for a real side effect. */
+  stub?: boolean;
   /** 0..1 fill for the running step's progress bar. */
   progress?: number;
 }
@@ -306,6 +314,9 @@ export interface TaskRun {
   toolCount: number;
   result?: TaskResult;
   status: TaskStatus;
+  /** The model's closing summary of what it did (production phase 6) — one or two
+   *  sentences, or a "reached the limit" note when a bound stopped the loop. */
+  summary?: string;
   /** A human hint when `status` is `error` (e.g. "Enable Slides & Sheets…"). */
   note?: string;
 }

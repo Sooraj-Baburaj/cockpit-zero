@@ -274,6 +274,9 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.21)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0)
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
 
   apps/web:
     dependencies:

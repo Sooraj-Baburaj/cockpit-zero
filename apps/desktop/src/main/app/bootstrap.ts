@@ -16,7 +16,7 @@ export function bootstrap(): void {
   if (process.platform === 'darwin') app.dock?.hide();
 
   // Single-instance lock — a second launch just toggles the launcher.
-  if (!app.requestSingleInstanceLock()) {
+  if (app.isPackaged && !app.requestSingleInstanceLock()) {
     app.quit();
     return;
   }

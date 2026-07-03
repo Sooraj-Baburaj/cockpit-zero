@@ -45,8 +45,6 @@ export function getLauncherWindow(): BrowserWindow {
     console.error(`[preload-error] ${path}\n${error.stack ?? error}`);
   });
   loadEntry(launcherWindow, 'launcher');
-  // TEMP DIAGNOSTIC: open detached devtools in dev to read the real renderer console.
-  if (isDev) launcherWindow.webContents.openDevTools({ mode: 'detach' });
   return launcherWindow;
 }
 

@@ -102,7 +102,7 @@ pnpm format           # prettier --write
 ### Individual apps
 
 ```bash
-pnpm --filter @cockpitzero/desktop dev    # Electron launcher (hotkey: Cmd/Ctrl+Shift+Space)
+pnpm --filter @cockpitzero/desktop dev    # Electron launcher (hotkey: Cmd/Ctrl+J)
 pnpm --filter @cockpitzero/backend dev    # Hono server on :8787
 pnpm --filter @cockpitzero/web dev        # Next.js on :3000
 ```

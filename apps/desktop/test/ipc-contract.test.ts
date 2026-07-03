@@ -23,6 +23,7 @@ describe('IPC contract', () => {
       'getFileIcon',
       'getFavicon',
       'completePath',
+      'checkHotkey',
       'askAI',
       'askAIStream',
       'cancelAiStream',

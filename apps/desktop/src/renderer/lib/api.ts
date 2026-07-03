@@ -11,7 +11,7 @@ import type {
 const MOCK_CONFIG: Config = {
   version: 1,
   settings: {
-    hotkey: 'CommandOrControl+Shift+Space',
+    hotkey: 'CommandOrControl+J',
     theme: 'system',
     glass: true,
     launchAtLogin: false,
@@ -29,6 +29,9 @@ const MOCK_CONFIG: Config = {
     memoryEnabled: true,
     embeddingSource: 'local',
     tools: ['files', 'calendar', 'slack'],
+    maxSteps: 12,
+    maxToolCalls: 16,
+    maxTokens: 120_000,
   },
   routines: [
     {
@@ -191,6 +194,7 @@ const mockApi: IpcApi = {
   getFileIcon: async () => null,
   getFavicon: async () => null,
   completePath: async () => [],
+  checkHotkey: async () => true,
   askAI: async (prompt) => ({
     text:
       `**Mock answer** for “${prompt.trim()}” (dev bridge — no main process). Launch slipped ` +

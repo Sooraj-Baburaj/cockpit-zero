@@ -17,6 +17,25 @@ export function registerHotkey(accelerator: string): boolean {
   return ok;
 }
 
+/**
+ * Whether an accelerator can be bound right now — i.e. it isn't already claimed
+ * by us or another app. The currently-bound hotkey counts as available to
+ * itself (re-selecting it is a no-op, not a conflict). Best-effort: probes by
+ * registering a throwaway handler and releasing it immediately, restoring no
+ * state because the probe target is never the live binding.
+ */
+export function isHotkeyAvailable(accelerator: string): boolean {
+  if (accelerator === current) return true;
+  if (globalShortcut.isRegistered(accelerator)) return false;
+  try {
+    const ok = globalShortcut.register(accelerator, () => {});
+    if (ok) globalShortcut.unregister(accelerator);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Release all global shortcuts (called on quit). */
 export function unregisterHotkeys(): void {
   globalShortcut.unregisterAll();

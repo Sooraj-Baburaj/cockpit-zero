@@ -230,20 +230,13 @@ export function LauncherBar() {
       if (view.kind === 'results' && tryDrill(view.results[selected])) e.preventDefault();
       return;
     }
-    // Escape: AI mode dismisses outright (aborting any in-flight stream); otherwise
-    // two-stage (clear, then close).
+    // Escape: clear query/state and immediately close the launcher.
     if (e.key === 'Escape') {
-      if (aiMode) {
-        e.preventDefault();
-        reset();
-        void api.hideLauncher();
-        return;
-      }
-      if (query !== '') {
-        e.preventDefault();
-        setQuery('');
-        return;
-      }
+      e.preventDefault();
+      if (aiMode) reset();
+      setQuery('');
+      void api.hideLauncher();
+      return;
     }
     handleKeyDown(e);
   };

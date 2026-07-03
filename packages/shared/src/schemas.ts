@@ -143,8 +143,8 @@ export const WorkflowDraftSchema = z.object({
 });
 
 export const SettingsSchema = z.object({
-  /** Electron accelerator string, e.g. "CommandOrControl+Shift+Space". */
-  hotkey: z.string().min(1).default('CommandOrControl+Shift+Space'),
+  /** Electron accelerator string, e.g. "CommandOrControl+J". */
+  hotkey: z.string().min(1).default('CommandOrControl+J'),
   theme: z.enum(['system', 'light', 'dark']).default('system'),
   /** Frosted-glass translucency for the launcher + settings windows (Appearance). */
   glass: z.boolean().default(true),
@@ -214,6 +214,14 @@ export const AiSettingsSchema = z.object({
   embeddingSource: z.enum(['local', 'provider']).default('local'),
   /** Per-tool grants for the assistant (Phase 7 enforces). */
   tools: z.array(AiToolIdSchema).default(['files', 'calendar', 'slack']),
+  /** Bounded-cost knobs for the real agent loop (production phase 6). Hard caps so a
+   *  model-driven run can never spin unbounded: `maxSteps` bounds the model's
+   *  tool-use iterations, `maxToolCalls` the total tools executed, `maxTokens` the
+   *  cumulative token budget. Additive defaults — an older config parses to these,
+   *  so `version` stays 1; power users can raise/lower them in the Console. */
+  maxSteps: z.number().int().positive().max(50).default(12),
+  maxToolCalls: z.number().int().positive().max(100).default(16),
+  maxTokens: z.number().int().positive().default(120_000),
 });
 
 /**

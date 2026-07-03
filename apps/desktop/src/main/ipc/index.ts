@@ -21,6 +21,7 @@ import { approveTask, getTask, startTask, stopTask } from '../services/agent/ind
 import { memoryService } from '../services/memory/index.js';
 import { secretsService } from '../services/secrets/index.js';
 import { recordUse } from '../services/usage-service.js';
+import { isHotkeyAvailable } from '../app/hotkey.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openConsole } from '../windows/index.js';
 
@@ -96,6 +97,10 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.getFavicon, (_e, url: string) => getFavicon(url));
 
   ipcMain.handle(IpcChannels.completePath, (_e, input: string) => completePath(input));
+
+  ipcMain.handle(IpcChannels.checkHotkey, (_e, accelerator: string) =>
+    isHotkeyAvailable(accelerator),
+  );
 
   // AI foundation (Phase 1). The service selects the provider from config and
   // short-circuits when AI is disabled. `askAI` is the resolve-once path; the

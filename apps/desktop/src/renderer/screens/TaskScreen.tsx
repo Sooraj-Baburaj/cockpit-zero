@@ -73,7 +73,7 @@ export function TaskScreen() {
     if (run.status === 'review') {
       void api.taskApprove(taskId);
     } else if (run.status === 'done') {
-      flash('Saved to your library — opening Keynote arrives with the real export tool.');
+      flash('This is a stub preview — the real export/connector tools ship in a later phase.');
     }
   };
 

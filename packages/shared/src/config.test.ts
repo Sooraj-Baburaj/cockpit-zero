@@ -7,7 +7,7 @@ describe('config', () => {
     const cfg = defaultConfig();
     expect(() => validateConfig(cfg)).not.toThrow();
     expect(cfg.version).toBe(1);
-    expect(cfg.settings.hotkey).toBe('CommandOrControl+Shift+Space');
+    expect(cfg.settings.hotkey).toBe('CommandOrControl+J');
   });
 
   it('rejects malformed config', () => {

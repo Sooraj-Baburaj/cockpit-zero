@@ -24,6 +24,7 @@ const api: IpcApi = {
   getFileIcon: (path) => ipcRenderer.invoke(IpcChannels.getFileIcon, path),
   getFavicon: (url) => ipcRenderer.invoke(IpcChannels.getFavicon, url),
   completePath: (input) => ipcRenderer.invoke(IpcChannels.completePath, input),
+  checkHotkey: (accelerator) => ipcRenderer.invoke(IpcChannels.checkHotkey, accelerator),
   askAI: (prompt) => ipcRenderer.invoke(IpcChannels.askAI, prompt),
   askAIStream: (prompt) => ipcRenderer.invoke(IpcChannels.askAIStream, prompt),
   cancelAiStream: (streamId) => ipcRenderer.invoke(IpcChannels.cancelAiStream, streamId),

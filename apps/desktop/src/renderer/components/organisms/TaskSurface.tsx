@@ -30,7 +30,7 @@ export function TaskSurface({
   const active = run.status === 'planning' || run.status === 'working' || run.status === 'review';
   const ready = run.status === 'review' || run.status === 'done';
   const primaryLabel =
-    run.status === 'review' ? `Approve & ${lower(run.result?.openLabel ?? 'open')}` : (run.result?.openLabel ?? 'Open');
+    run.status === 'review' ? `Approve & ${lower(run.result?.openLabel ?? 'run')}` : (run.result?.openLabel ?? 'Open');
 
   return (
     <div className="flex h-full flex-col">
@@ -88,6 +88,13 @@ export function TaskSurface({
         </div>
       )}
 
+      {/* The model's closing summary (or a "reached the limit" note). */}
+      {run.summary && (
+        <div className="px-[26px] pt-2 pb-1 text-[13px] leading-relaxed text-muted [text-wrap:pretty]">
+          {run.summary}
+        </div>
+      )}
+
       {/* Actions. */}
       <div className="mt-1.5 flex items-center justify-between border-t [border-color:var(--cz-line-faint)] px-[26px] py-4">
         <span className="text-[13px] text-subtle">{actionHint(run)}</span>
@@ -129,19 +136,21 @@ export function TaskSurface({
   );
 }
 
-/** Bottom-line copy that keeps the human-review promise explicit. */
+/** Bottom-line copy that keeps the human-review promise explicit — and honest about
+ *  stubs: it never claims a real export happened (the side-effecting tools are still
+ *  labeled placeholders until P10). */
 function actionHint(run: TaskRun): string {
   switch (run.status) {
     case 'review':
-      return 'Review each slide before it’s saved to your library.';
+      return 'Approve the highlighted step before it runs — nothing is committed yet.';
     case 'done':
-      return 'Done — saved to your library.';
+      return 'Done. Read-only steps ran; any committing step ran only with your approval.';
     case 'stopped':
-      return 'Stopped. Nothing was saved.';
+      return 'Stopped. Nothing was committed.';
     case 'error':
       return run.note ?? 'Something needs your attention.';
     default:
-      return 'Review each slide before it’s saved to your library.';
+      return 'I’ll pause for your approval before any committing step.';
   }
 }
 
@@ -186,14 +195,27 @@ function StepRow({ step, first }: { step: TaskStep; first: boolean }) {
         >
           {step.title}
         </div>
-        {(step.tool || step.detail) && (
-          <div className="mt-[3px] flex items-center gap-2 font-mono text-[12.5px] text-subtle">
-            {step.tool && (
-              <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line)] px-[7px] py-px text-muted [background:var(--cz-glass-2)]">
-                {step.tool}
-              </span>
+        {(step.tool || step.args || step.detail) && (
+          <div className="mt-[3px] space-y-1 font-mono text-[12.5px] text-subtle">
+            {(step.tool || step.args || step.stub) && (
+              <div className="flex flex-wrap items-center gap-2">
+                {step.tool && (
+                  <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line)] px-[7px] py-px text-muted [background:var(--cz-glass-2)]">
+                    {step.tool}
+                  </span>
+                )}
+                {step.stub && (
+                  <span
+                    className="rounded-[var(--cz-radius-xs)] border border-dashed [border-color:var(--cz-accent-line)] px-[7px] py-px text-[10px] font-semibold tracking-[0.08em] text-[var(--cz-accent-bright)] uppercase"
+                    title="A labeled placeholder — its real connector ships later, so no real export happens."
+                  >
+                    stub
+                  </span>
+                )}
+                {step.args && <span className="min-w-0 break-all text-[var(--cz-fg-subtle)]">{step.args}</span>}
+              </div>
             )}
-            {step.detail && <span>{step.detail}</span>}
+            {step.detail && <div>{step.detail}</div>}
           </div>
         )}
         {step.state === 'running' && (

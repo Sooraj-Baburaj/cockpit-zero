@@ -31,6 +31,7 @@ export const IpcChannels = {
   getFileIcon: 'system:get-file-icon',
   getFavicon: 'system:get-favicon',
   completePath: 'system:complete-path',
+  checkHotkey: 'system:check-hotkey',
   askAI: 'ai:ask',
   askAIStream: 'ai:ask-stream',
   cancelAiStream: 'ai:ask-cancel',
@@ -101,6 +102,10 @@ export interface IpcApi {
   getFavicon(url: string): Promise<string | null>;
   /** Filesystem path suggestions for a partial absolute path (autocomplete). */
   completePath(input: string): Promise<string[]>;
+  /** Whether a global-hotkey accelerator is free to bind (not taken by us or
+   *  another app). Used by the hotkey recorder to reject a conflicting chord
+   *  before it's committed to config. The current hotkey counts as available. */
+  checkHotkey(accelerator: string): Promise<boolean>;
   /** Ask the assistant a free-text question; resolves to an answer + suggested
    *  actions. Promise-based (resolve-once) — kept as the compat/single-value path
    *  alongside the streamed `askAIStream` (P4). */

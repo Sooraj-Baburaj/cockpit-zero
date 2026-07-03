@@ -14,6 +14,21 @@ describe('AiSettingsSchema', () => {
       memoryEnabled: true,
       embeddingSource: 'local',
       tools: ['files', 'calendar', 'slack'],
+      // Bounded-cost knobs for the real agent loop (production phase 6).
+      maxSteps: 12,
+      maxToolCalls: 16,
+      maxTokens: 120_000,
+    });
+  });
+
+  it('bounds the agent-loop caps (positive integers, capped)', () => {
+    expect(AiSettingsSchema.safeParse({ maxSteps: 0 }).success).toBe(false);
+    expect(AiSettingsSchema.safeParse({ maxSteps: 999 }).success).toBe(false); // over the max
+    expect(AiSettingsSchema.safeParse({ maxToolCalls: -1 }).success).toBe(false);
+    expect(AiSettingsSchema.parse({ maxSteps: 6, maxToolCalls: 8, maxTokens: 50_000 })).toMatchObject({
+      maxSteps: 6,
+      maxToolCalls: 8,
+      maxTokens: 50_000,
     });
   });
 

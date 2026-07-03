@@ -68,6 +68,9 @@ export function taskStatusLabel(run: TaskRun): string {
     case 'planning':
       return 'Planning…';
     case 'working': {
+      // The model picks tools as it goes, so early in a run there are no steps yet
+      // — surface the "choosing a tool" beat instead of "0 of 0 steps".
+      if (total === 0) return 'Choosing a tool…';
       const done = run.steps.filter((s) => s.state === 'done').length;
       const running = run.steps.some((s) => s.state === 'running') ? 1 : 0;
       // "3 of 5" while step 3 runs (2 done + the running one), clamped to [1,total].
@@ -77,7 +80,7 @@ export function taskStatusLabel(run: TaskRun): string {
     case 'review':
       return 'Ready to review';
     case 'done':
-      return `Done · ${total} step${total === 1 ? '' : 's'}`;
+      return total === 0 ? 'Done' : `Done · ${total} step${total === 1 ? '' : 's'}`;
     case 'stopped':
       return 'Stopped';
     case 'error':

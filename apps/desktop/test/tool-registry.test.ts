@@ -38,6 +38,10 @@ describe('tool registry', () => {
       expect(TOOL_REGISTRY[id].id).toBe(id);
       // The tool's declared grant matches the shared source-of-truth map.
       expect(TOOL_REGISTRY[id].grant).toBe(TASK_TOOL_GRANT[id]);
+      // Each tool carries the model-facing contract the real agent loop needs:
+      // a non-empty description + a Zod parameter schema.
+      expect(TOOL_REGISTRY[id].description.length).toBeGreaterThan(0);
+      expect(typeof TOOL_REGISTRY[id].parameters.safeParse).toBe('function');
     }
   });
 
@@ -46,6 +50,23 @@ describe('tool registry', () => {
     expect(TOOL_REGISTRY['files.read'].sideEffecting).toBe(false);
     expect(TOOL_REGISTRY['memory.recall'].sideEffecting).toBe(false);
     expect(TOOL_REGISTRY['memory.write'].sideEffecting).toBe(false);
+  });
+
+  it('flags only slides.create as a stub (off by default, badged in the UI)', () => {
+    expect(TOOL_REGISTRY['slides.create'].stub).toBe(true);
+    expect(TOOL_REGISTRY['files.read'].stub).toBeFalsy();
+    expect(TOOL_REGISTRY['memory.recall'].stub).toBeFalsy();
+    expect(TOOL_REGISTRY['memory.write'].stub).toBeFalsy();
+    // The stub says so to the model, so it can't pass stub output off as real.
+    expect(TOOL_REGISTRY['slides.create'].description.toLowerCase()).toContain('stub');
+  });
+
+  it('validates tool input against the declared Zod parameters', () => {
+    expect(TOOL_REGISTRY['files.read'].parameters.safeParse({ path: '~/q3.pdf' }).success).toBe(true);
+    expect(TOOL_REGISTRY['files.read'].parameters.safeParse({}).success).toBe(false);
+    expect(TOOL_REGISTRY['memory.write'].parameters.safeParse({ text: 'remember this' }).success).toBe(
+      true,
+    );
   });
 
   it('files.read returns the file text through the injected port', async () => {
@@ -74,6 +95,8 @@ describe('tool registry', () => {
     );
     expect(res.ok).toBe(true);
     expect(res.previews).toEqual(['title', 'kpis', 'growth', 'next']);
-    expect(res.detail).toBe('8 slides drafted');
+    // The detail (and the result data) keep the stub honest — no "exported" claim.
+    expect(res.detail).toContain('stub');
+    expect((res.data as { stub: boolean }).stub).toBe(true);
   });
 });
