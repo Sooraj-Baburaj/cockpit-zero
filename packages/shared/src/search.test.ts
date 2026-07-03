@@ -20,7 +20,10 @@ const config: Config = {
       title: 'Open repo',
       type: 'open-url',
       url: 'https://github.com/{owner}/{repo}',
-      arguments: [{ name: 'owner', required: true }, { name: 'repo', required: true }],
+      arguments: [
+        { name: 'owner', required: true },
+        { name: 'repo', required: true },
+      ],
     },
   ],
   aliases: [

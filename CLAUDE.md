@@ -21,7 +21,7 @@ backend feature). Two tiers:
 
 - **Free / BYOP / local-first / no login.** The user pastes their **own** provider key and everything
   (memory, history, knowledge) stays on-device. No account is ever required — this is the default.
-- **Logged-in (paid) / managed.** The user depends on *our* AI; the backend routes across models
+- **Logged-in (paid) / managed.** The user depends on _our_ AI; the backend routes across models
   **automatically by task complexity**, so these users see **no Mini/Pro tier picker**. Memory/
   knowledge sync to the backend. (Billing is deferred; auth + sync come first.)
 
@@ -295,7 +295,7 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
   `electron.vite.config.ts`.
 - **Secrets never touch `config.json` or the renderer.** API keys (BYOP), the backend session token,
   and OAuth tokens live in the OS-keychain-backed **secrets vault** (Electron `safeStorage`, main
-  process). The renderer learns only *status* (set/unset) over IPC — there is no plaintext read path.
+  process). The renderer learns only _status_ (set/unset) over IPC — there is no plaintext read path.
   Don't store a key in `config.json` (it syncs!) or pass one across the preload bridge.
 - **Native AI modules are main-process only.** LanceDB (`@lancedb/lancedb`) and transformers.js
   (`@huggingface/transformers`), plus the AI SDK provider calls, run in the **main process** — never
@@ -308,8 +308,8 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
 - **System search shells out.** `infra/file-search.ts` runs `mdfind` / PowerShell; keep new OS calls
   there, always time-boxed and wrapped so failures return `[]`. Linux is unimplemented (returns
   empty) for both apps and files.
-- **macOS app icons ≠ `app.getFileIcon`.** Electron's `app.getFileIcon` returns a *generic
-  placeholder* for `.app` bundles (byte-identical across apps), so icons for app rows are read from
+- **macOS app icons ≠ `app.getFileIcon`.** Electron's `app.getFileIcon` returns a _generic
+  placeholder_ for `.app` bundles (byte-identical across apps), so icons for app rows are read from
   the bundle's real `.icns` via `infra/mac-app-icon.ts` (`defaults` + `sips`, time-boxed) — which
   **persists** the converted PNG under `userData/icon-cache` (keyed by path, invalidated by bundle
   mtime) so `sips` runs once per app, not per restart. Files and other platforms (Windows `.lnk`

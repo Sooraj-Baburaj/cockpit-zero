@@ -22,12 +22,7 @@ function fakeProvider(id: string, ready = true): AiProvider {
     ready: vi.fn(() => ready),
     ask: vi.fn(async (prompt) => ({ text: `${id}:${prompt}`, suggestions: [] })),
     askStream: vi.fn(
-      async (
-        prompt: string,
-        _ctx,
-        onDelta: (text: string) => void,
-        signal?: AbortSignal,
-      ) => {
+      async (prompt: string, _ctx, onDelta: (text: string) => void, signal?: AbortSignal) => {
         // Emit two ordered deltas (the id prefix, then the prompt), honouring abort.
         for (const chunk of [`${id}:`, prompt]) {
           if (signal?.aborted) break;
@@ -375,7 +370,12 @@ describe('mock provider', () => {
     const controller = new AbortController();
     controller.abort();
     const deltas: string[] = [];
-    await provider.askStream('anything', { settings: defaultConfig().ai }, (t) => deltas.push(t), controller.signal);
+    await provider.askStream(
+      'anything',
+      { settings: defaultConfig().ai },
+      (t) => deltas.push(t),
+      controller.signal,
+    );
     expect(deltas).toEqual([]);
   });
 

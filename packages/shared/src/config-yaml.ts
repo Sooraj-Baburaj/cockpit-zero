@@ -96,7 +96,8 @@ const FILE_SCHEMA = {
 
 /** A leading comment header per file (purely cosmetic; dropped on parse). */
 const FILE_HEADER: Record<ConfigYamlFile, string> = {
-  'config.yaml': '# CockpitZero — settings, AI, and actions.\n# Hand-edits round-trip through the same schema the GUI uses.\n\n',
+  'config.yaml':
+    '# CockpitZero — settings, AI, and actions.\n# Hand-edits round-trip through the same schema the GUI uses.\n\n',
   'aliases.yaml': '# Keyword aliases — what you type in the launcher to run an action.\n\n',
   'workflows.yaml': '# Workflows — ordered chains of actions run in sequence.\n\n',
   'routines.yaml': '# Routines — proactive jobs that run on their own.\n\n',

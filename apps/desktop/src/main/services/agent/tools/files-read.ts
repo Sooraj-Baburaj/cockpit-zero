@@ -26,6 +26,10 @@ export const filesRead: Tool = {
     const { path } = (input ?? {}) as Partial<FilesReadInput>;
     if (!path) return { ok: false, error: 'files.read needs a path.' };
     const text = await ctx.ports.files.read(path);
-    return { ok: true, detail: `read ${text.length} chars`, data: { path, text, chars: text.length } };
+    return {
+      ok: true,
+      detail: `read ${text.length} chars`,
+      data: { path, text, chars: text.length },
+    };
   },
 };

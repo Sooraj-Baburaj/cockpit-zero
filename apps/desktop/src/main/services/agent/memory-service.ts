@@ -173,7 +173,8 @@ export function createMemoryService({
       const prev = nearest.entry;
       // Prefer the more detailed phrasing; re-embed only if the text actually changed.
       const mergedText = text.length > prev.text.length ? text : prev.text;
-      const mergedEmbedding = mergedText === prev.text ? prev.embedding : await embedOne(mergedText);
+      const mergedEmbedding =
+        mergedText === prev.text ? prev.embedding : await embedOne(mergedText);
       const merged: MemoryEntry = {
         ...prev,
         text: mergedText,
@@ -216,9 +217,9 @@ export function createMemoryService({
     // Semantic channel: nearest neighbors by cosine, above the noise floor (ordered,
     // tie-aware ranks).
     const queryVec = await embedOne(query);
-    const semantic = (await store.vectorSearch(queryVec, Math.min(SEMANTIC_POOL, all.length))).filter(
-      (s) => s.score > SEMANTIC_FLOOR,
-    );
+    const semantic = (
+      await store.vectorSearch(queryVec, Math.min(SEMANTIC_POOL, all.length))
+    ).filter((s) => s.score > SEMANTIC_FLOOR);
     const semanticRanks = rankWithTies(semantic.map((s) => ({ id: s.entry.id, score: s.score })));
 
     // Keyword channel: term overlap over every entry (0-overlap entries excluded).

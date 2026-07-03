@@ -9,7 +9,10 @@ import {
 import type { AgentToolId } from './task.js';
 import type { TaskRun, TaskStep } from './types.js';
 
-const ALL_GRANTED = { tools: ['files', 'calendar', 'slack', 'slides-sheets'] as const, memoryEnabled: true };
+const ALL_GRANTED = {
+  tools: ['files', 'calendar', 'slack', 'slides-sheets'] as const,
+  memoryEnabled: true,
+};
 
 function step(state: TaskStep['state']): TaskStep {
   return { id: state, title: state, state };

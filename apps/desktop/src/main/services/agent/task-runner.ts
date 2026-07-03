@@ -116,7 +116,11 @@ function formatArgs(input: unknown): string | undefined {
   const parts: string[] = [];
   for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
     if (v === undefined || v === null || v === '') continue;
-    const val = Array.isArray(v) ? v.join(', ') : typeof v === 'object' ? JSON.stringify(v) : String(v);
+    const val = Array.isArray(v)
+      ? v.join(', ')
+      : typeof v === 'object'
+        ? JSON.stringify(v)
+        : String(v);
     parts.push(`${k}: ${val}`);
   }
   if (parts.length === 0) return undefined;
@@ -251,7 +255,11 @@ export function createTaskRunner({
         else state.distinctTools.add(toolDef.id);
         state.run.toolCount = state.distinctTools.size;
         if (res.previews) {
-          state.run.result = { kind: 'slides', previews: res.previews, openLabel: 'Open in Keynote' };
+          state.run.result = {
+            kind: 'slides',
+            previews: res.previews,
+            openLabel: 'Open in Keynote',
+          };
         }
         step.progress = undefined;
         step.state = 'done';

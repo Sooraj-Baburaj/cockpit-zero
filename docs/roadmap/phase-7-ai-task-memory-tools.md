@@ -56,19 +56,19 @@ Mostly **runtime** types; persisted additions are small and local:
 export type TaskStepState = 'done' | 'running' | 'waiting';
 export interface TaskStep {
   id: string;
-  title: string;                 // "Generating 8 slides"
+  title: string; // "Generating 8 slides"
   state: TaskStepState;
-  tool?: string;                 // "slides.create" tag
-  detail?: string;               // "drafting 'Growth & retention'…"
-  progress?: number;             // 0..1 for the running bar
+  tool?: string; // "slides.create" tag
+  detail?: string; // "drafting 'Growth & retention'…"
+  progress?: number; // 0..1 for the running bar
 }
 export interface TaskRun {
   id: string;
-  intent: string;                // "Build a deck from the Q3 brief"
+  intent: string; // "Build a deck from the Q3 brief"
   steps: TaskStep[];
   usingMemory: boolean;
   toolCount: number;
-  result?: { kind: string; previews: string[] };  // tiles: title/kpis/growth/next
+  result?: { kind: string; previews: string[] }; // tiles: title/kpis/growth/next
   status: 'planning' | 'working' | 'review' | 'done' | 'stopped' | 'error';
 }
 ```

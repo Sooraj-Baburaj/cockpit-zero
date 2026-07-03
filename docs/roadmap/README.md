@@ -16,16 +16,16 @@ the others' conversation history.
 
 ## The eight screens → phases
 
-| # | Screen(s) | Design tag | Phase doc | Net-new surface |
-| - | --------- | ---------- | --------- | --------------- |
-| — | `launcher-searching` (shimmer search) | ✅ Shipped | — | already in code |
-| 1 | _foundation — no screen_ | — | [phase-1-ai-foundation.md](phase-1-ai-foundation.md) | AI service + schema + IPC |
-| 2 | `ai-mode` + `ai-ask` | 🔜 Next | [phase-2-ai-mode-and-ask.md](phase-2-ai-mode-and-ask.md) | launcher AI mode + answer |
-| 3 | `cockpit-ai` | 🔜 Next | [phase-3-cockpit-ai-settings.md](phase-3-cockpit-ai-settings.md) | Console → AI tab |
-| 4 | `ai-workflow` | 🔜 Next | [phase-4-ai-workflows.md](phase-4-ai-workflows.md) | launcher workflow-draft state |
-| 5 | `routine-digest` | 🔜 Next | [phase-5-routines-digest.md](phase-5-routines-digest.md) | routines engine + digest window |
-| 6 | `yaml-config` | ⚙️ Config | [phase-6-yaml-config-editor.md](phase-6-yaml-config-editor.md) | YAML editor window |
-| 7 | `ai-task` | 🧭 Exploring | [phase-7-ai-task-memory-tools.md](phase-7-ai-task-memory-tools.md) | agent loop + task surface |
+| #   | Screen(s)                             | Design tag   | Phase doc                                                          | Net-new surface                 |
+| --- | ------------------------------------- | ------------ | ------------------------------------------------------------------ | ------------------------------- |
+| —   | `launcher-searching` (shimmer search) | ✅ Shipped   | —                                                                  | already in code                 |
+| 1   | _foundation — no screen_              | —            | [phase-1-ai-foundation.md](phase-1-ai-foundation.md)               | AI service + schema + IPC       |
+| 2   | `ai-mode` + `ai-ask`                  | 🔜 Next      | [phase-2-ai-mode-and-ask.md](phase-2-ai-mode-and-ask.md)           | launcher AI mode + answer       |
+| 3   | `cockpit-ai`                          | 🔜 Next      | [phase-3-cockpit-ai-settings.md](phase-3-cockpit-ai-settings.md)   | Console → AI tab                |
+| 4   | `ai-workflow`                         | 🔜 Next      | [phase-4-ai-workflows.md](phase-4-ai-workflows.md)                 | launcher workflow-draft state   |
+| 5   | `routine-digest`                      | 🔜 Next      | [phase-5-routines-digest.md](phase-5-routines-digest.md)           | routines engine + digest window |
+| 6   | `yaml-config`                         | ⚙️ Config    | [phase-6-yaml-config-editor.md](phase-6-yaml-config-editor.md)     | YAML editor window              |
+| 7   | `ai-task`                             | 🧭 Exploring | [phase-7-ai-task-memory-tools.md](phase-7-ai-task-memory-tools.md) | agent loop + task surface       |
 
 Faithful HTML copies of every screen live in [`mockups/`](mockups/) — open them in a browser for
 the pixel reference. The shipped "Searching" screen is reference-only and not re-implemented.

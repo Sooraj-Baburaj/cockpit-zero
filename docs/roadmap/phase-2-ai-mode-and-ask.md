@@ -115,7 +115,7 @@ Pull exact values from `mockups/ai-mode.html` and `mockups/ai-ask.html`; key spe
 
 ## Risks / open questions
 
-- **When exactly to offer AI** — only after *both* config and system search resolve empty, to avoid
+- **When exactly to offer AI** — only after _both_ config and system search resolve empty, to avoid
   flashing the AI offer before the slow file index returns. Gate on both promises settling.
 - **AI-only suggestions** that aren't config actions — for this phase, render them but make them
   non-runnable (or route to a "coming in Phase 7" no-op). Don't fake side-effects.

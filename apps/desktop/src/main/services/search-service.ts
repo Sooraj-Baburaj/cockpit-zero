@@ -43,7 +43,10 @@ export function resolveLauncherQuery(input: string): ResolvedQuery {
   }
 
   // Non-empty: section-order + cap the config matches (apps/files arrive later).
-  return { kind: 'results', results: mergeResults(applyFrecency(resolved.results), [], [], RESULT_LIMIT) };
+  return {
+    kind: 'results',
+    results: mergeResults(applyFrecency(resolved.results), [], [], RESULT_LIMIT),
+  };
 }
 
 /**

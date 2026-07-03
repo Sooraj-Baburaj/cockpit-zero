@@ -121,7 +121,8 @@ export function ActionForm({
     setDraft((d) => ({
       ...d,
       argEnabled: v,
-      args: v && d.args.length === 0 ? [{ name: 'query', placeholder: '', required: true }] : d.args,
+      args:
+        v && d.args.length === 0 ? [{ name: 'query', placeholder: '', required: true }] : d.args,
     }));
   const setArg = <K extends keyof ArgDraft>(index: number, key: K, value: ArgDraft[K]) =>
     setDraft((d) => ({

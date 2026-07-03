@@ -32,7 +32,7 @@ draft's actions and the `Workflow` into config via the existing path; **Discard*
 **Out**
 
 - Conditionals / branching / per-step arguments in execution — workflows remain sequential (CLAUDE.md
-  says workflow execution is intentionally basic). The draft may *suggest* arguments but execution
+  says workflow execution is intentionally basic). The draft may _suggest_ arguments but execution
   stays L3.
 - Auto-running the drafted workflow — drafting and saving only; running uses the existing
   `runWorkflow`.
@@ -41,7 +41,7 @@ draft's actions and the `Workflow` into config via the existing path; **Discard*
 
 ## Data model & schema changes
 
-`packages/shared` — a draft is a *proposed* workflow plus its proposed step actions, not yet
+`packages/shared` — a draft is a _proposed_ workflow plus its proposed step actions, not yet
 persisted. Keep it a plain inferred type, not part of `ConfigSchema`:
 
 ```ts
@@ -50,14 +50,14 @@ export const WorkflowStepDraftSchema = z.object({
   actionId: z.string().nullable(),
   /** When actionId is null, the action to create on save. */
   action: ActionSchema.optional(),
-  title: z.string(),               // step title ("Open dashboards")
-  target: z.string().optional(),   // mono subtitle ("Datadog · Linear · Stripe")
-  kindLabel: z.string(),           // badge ("URL ×3", "Command", "Snippet", "App")
+  title: z.string(), // step title ("Open dashboards")
+  target: z.string().optional(), // mono subtitle ("Datadog · Linear · Stripe")
+  kindLabel: z.string(), // badge ("URL ×3", "Command", "Snippet", "App")
 });
 
 export const WorkflowDraftSchema = z.object({
-  name: z.string(),                // serif heading ("Morning routine")
-  keyword: z.string(),             // mono pill ("morning") → becomes an alias
+  name: z.string(), // serif heading ("Morning routine")
+  keyword: z.string(), // mono pill ("morning") → becomes an alias
   steps: z.array(WorkflowStepDraftSchema).min(1),
 });
 // type WorkflowDraft = z.infer<typeof WorkflowDraftSchema>

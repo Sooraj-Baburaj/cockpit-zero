@@ -28,9 +28,7 @@ describe('resolveIconPath', () => {
   });
 
   it('maps a bare app name to its .app bundle on macOS', () => {
-    expect(resolveIconPath('Google Chrome', [dir], 'darwin')).toBe(
-      join(dir, 'Google Chrome.app'),
-    );
+    expect(resolveIconPath('Google Chrome', [dir], 'darwin')).toBe(join(dir, 'Google Chrome.app'));
     // A "<name>.app" target resolves the same way.
     expect(resolveIconPath('Google Chrome.app', [dir], 'darwin')).toBe(
       join(dir, 'Google Chrome.app'),

@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { RoutineSchema, type DigestBucket, type Routine, type RoutineSourceId } from '@cockpitzero/shared';
-import { createDigestRunner, type DigestSummarize } from '../src/main/services/routines/digest-runner.js';
+import {
+  RoutineSchema,
+  type DigestBucket,
+  type Routine,
+  type RoutineSourceId,
+} from '@cockpitzero/shared';
+import {
+  createDigestRunner,
+  type DigestSummarize,
+} from '../src/main/services/routines/digest-runner.js';
 import type { NotificationSource, RawItem } from '../src/main/services/routines/source.js';
 
 /**

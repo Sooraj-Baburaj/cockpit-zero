@@ -119,7 +119,10 @@ describe('splitArgumentValues', () => {
   });
 
   it('advances the active index once the current word is followed by a space', () => {
-    expect(splitArgumentValues(2, 'anthropic ')).toEqual({ values: ['anthropic', ''], activeIndex: 1 });
+    expect(splitArgumentValues(2, 'anthropic ')).toEqual({
+      values: ['anthropic', ''],
+      activeIndex: 1,
+    });
   });
 
   it('keeps the caret on the current word until a space is typed', () => {

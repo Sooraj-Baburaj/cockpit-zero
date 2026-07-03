@@ -56,10 +56,10 @@ describe('createAgentLoop', () => {
     const fakeGenerate = (async (opts: GenArgs) => {
       captured = opts;
       // Stand in for the model: call files.read once through the built toolset.
-      await opts.tools?.['files.read']?.execute?.(
-        { path: '~/q3.pdf' },
-        { toolCallId: 'c1', messages: [] } as never,
-      );
+      await opts.tools?.['files.read']?.execute?.({ path: '~/q3.pdf' }, {
+        toolCallId: 'c1',
+        messages: [],
+      } as never);
       return { text: '  Read the brief.  ', totalUsage: { totalTokens: 123 } };
     }) as unknown as typeof generateText;
 

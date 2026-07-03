@@ -36,7 +36,7 @@ muted "low-priority" roll-up, each item runnable (`↵ open`, `e archive`, `r re
   adapters** returning canned items (use the mockup's people/sources). Real adapters are follow-ups.
 - The AI actually replying/archiving with side-effects (`r reply with AI`) — that's Phase 7's tool
   layer; here the keys are wired but reply/archive can be stubs/local-only.
-- Arbitrary user-authored routine *types* — ship the digest routine; the schema is general but only
+- Arbitrary user-authored routine _types_ — ship the digest routine; the schema is general but only
   the digest runner is implemented.
 
 ## Data model & schema changes
@@ -48,8 +48,8 @@ export const RoutineSourceId = z.enum(['slack', 'gmail', 'teams', 'linear', 'git
 
 export const RoutineSchema = z.object({
   id: z.string().min(1),
-  label: z.string().min(1),                       // "Notification digest"
-  kind: z.literal('digest').default('digest'),    // only digest implemented now; leave room
+  label: z.string().min(1), // "Notification digest"
+  kind: z.literal('digest').default('digest'), // only digest implemented now; leave room
   sources: z.array(RoutineSourceId).default([]),
   rankBy: z.enum(['importance', 'recency']).default('importance'),
   /** cron expression; absent = on-demand only (the mockup's standup_prep). */
@@ -70,20 +70,21 @@ The **digest result** (what the surface renders) is a runtime type, not persiste
 // types.ts
 export interface DigestItem {
   id: string;
-  who: string;                 // "Priya Shah"
-  source: RoutineSourceId;     // badge "Slack"
-  summary: string;             // one-line AI summary
-  when: string;                // "12m"
+  who: string; // "Priya Shah"
+  source: RoutineSourceId; // badge "Slack"
+  summary: string; // one-line AI summary
+  when: string; // "12m"
   bucket: 'now' | 'wait' | 'noise';
-  score: number;               // rank
-  openPath?: string;           // deep link / app path when openable
+  score: number; // rank
+  openPath?: string; // deep link / app path when openable
 }
 export interface Digest {
   routineId: string;
-  title: string;               // "Morning briefing"
-  updatedAt: string;           // "8:42 AM"
+  title: string; // "Morning briefing"
+  updatedAt: string; // "8:42 AM"
   sourceCount: number;
-  surfaced: number; total: number;   // "20 of 41 surfaced"
+  surfaced: number;
+  total: number; // "20 of 41 surfaced"
   groups: { now: DigestItem[]; wait: DigestItem[]; noiseCount: number };
 }
 ```

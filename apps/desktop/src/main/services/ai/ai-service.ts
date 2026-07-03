@@ -107,11 +107,9 @@ export function createAiService({ providers, getConfig, memory }: AiServiceDeps)
    *  it never delays the response; gated + extracted by the memory engine. */
   function rememberExchange(prompt: string, answer: AiAnswer): void {
     if (!memory?.enabled() || answer.text.trim() === '') return;
-    void memory
-      .remember(`Q: ${prompt}\nA: ${answer.text}`, 'ask')
-      .catch(() => {
-        /* memory write is best-effort; a failure must never surface to the asker. */
-      });
+    void memory.remember(`Q: ${prompt}\nA: ${answer.text}`, 'ask').catch(() => {
+      /* memory write is best-effort; a failure must never surface to the asker. */
+    });
   }
 
   return {

@@ -1,5 +1,11 @@
 import { formatClockTime } from '@cockpitzero/shared';
-import type { Action, ActionKind, LauncherItem, Routine, RoutineSourceId } from '@cockpitzero/shared';
+import type {
+  Action,
+  ActionKind,
+  LauncherItem,
+  Routine,
+  RoutineSourceId,
+} from '@cockpitzero/shared';
 
 /** Short, human label for each action kind (shown in badges). */
 export const actionTypeLabel: Record<ActionKind, string> = {

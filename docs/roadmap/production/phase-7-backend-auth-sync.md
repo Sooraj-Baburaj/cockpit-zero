@@ -20,8 +20,8 @@ login is ever required.
 
 - **Auth now, billing later.** Stand up accounts + sync; defer Stripe.
 - Auth implementation = **better-auth** (Drizzle adapter, fits the existing Hono + Drizzle +
-  SQLite/Postgres backend; no auth vendor lock-in). *Managed (Clerk/WorkOS) is the documented
-  fallback if self-hosting auth proves too heavy.*
+  SQLite/Postgres backend; no auth vendor lock-in). _Managed (Clerk/WorkOS) is the documented
+  fallback if self-hosting auth proves too heavy._
 - Session token on the desktop lives in the **P2 secrets vault**, never `config.json`.
 
 ## Scope

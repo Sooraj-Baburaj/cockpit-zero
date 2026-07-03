@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { IDLE_AI_PHASE, aiPhaseReducer, type AiPhase, type AiStreamEvent } from '@cockpitzero/shared';
+import {
+  IDLE_AI_PHASE,
+  aiPhaseReducer,
+  type AiPhase,
+  type AiStreamEvent,
+} from '@cockpitzero/shared';
 import { api } from '../lib/api.js';
 
 /** A live stream subscription: its (eventually-known) `streamId` + the listener

@@ -212,7 +212,11 @@ describe('createTaskRunner', () => {
   });
 
   it('shows a connect-a-provider note when no model is configured', async () => {
-    const unconfigured: AgentLoop = async () => ({ summary: '', totalTokens: 0, unconfigured: true });
+    const unconfigured: AgentLoop = async () => ({
+      summary: '',
+      totalTokens: 0,
+      unconfigured: true,
+    });
     const { runner, store } = harness(configWith(), unconfigured);
     const { taskId } = runner.start('Build a deck from the Q3 brief');
 

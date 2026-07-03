@@ -157,7 +157,11 @@ export function registerIpcHandlers(): void {
         // surfaces an error event.
         dropBuffered();
         if (controller.signal.aborted) return;
-        send({ streamId, type: 'error', message: err instanceof Error ? err.message : String(err) });
+        send({
+          streamId,
+          type: 'error',
+          message: err instanceof Error ? err.message : String(err),
+        });
       })
       .finally(() => aiStreams.delete(streamId));
 

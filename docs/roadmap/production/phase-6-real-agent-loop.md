@@ -40,7 +40,7 @@ approval** before any committing/side-effecting step, and can be stopped. No scr
 
 **Out**
 
-- Real Slack/calendar/slides/sheets tool *connectors* (P10). Keep them as labeled local stubs that are
+- Real Slack/calendar/slides/sheets tool _connectors_ (P10). Keep them as labeled local stubs that are
   grant-gated and off by default; do not present stub output as real.
 - Multi-agent / sub-agents. Single bounded loop only.
 

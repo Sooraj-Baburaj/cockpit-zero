@@ -16,37 +16,37 @@ without the others' history. Every doc ends with a ready **kickoff prompt** to p
 
 These were decided up front; every phase assumes them. Don't relitigate inside a phase chat.
 
-| Concern | Decision | Why |
-| ------- | -------- | --- |
-| **Universal provider (BYOP)** | **Vercel AI SDK** (`ai` + `@ai-sdk/anthropic`/`openai`/`google`/`xai` + `@ai-sdk/openai-compatible`) | One `streamText`/`generateObject` API across Claude, OpenAI, Gemini, Grok, and any OpenAI-compatible endpoint (OpenRouter, Ollama, custom). TS-native; tool-calling + structured output built in. |
-| **Memory engine** | **Native TS pipeline + LanceDB + local embeddings** | Our own extract→embed→dedup→hybrid-recall pipeline. Embedded LanceDB vector store locally; `transformers.js` (ONNX) embeddings run on-device with **no key/offline**. Backend swaps LanceDB→pgvector. Full local-first control, no Python runtime. |
-| **Paid inference** | **Backend proxy (our keys) + our complexity router** | The backend holds our provider keys behind one endpoint; a complexity classifier picks the model (cheap→frontier) per request. We own cost, routing, and usage metering. |
-| **Auth / billing** | **Real auth + cloud sync now; billing deferred** | Stand up real accounts + cloud sync first so logged-in memory/sync works. Stripe metered billing comes later; paid features gate on a flag until then. Auth impl = **better-auth** (Drizzle-backed, fits our existing backend) — managed (Clerk/WorkOS) is the documented fallback. |
+| Concern                       | Decision                                                                                             | Why                                                                                                                                                                                                                                                                                 |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Universal provider (BYOP)** | **Vercel AI SDK** (`ai` + `@ai-sdk/anthropic`/`openai`/`google`/`xai` + `@ai-sdk/openai-compatible`) | One `streamText`/`generateObject` API across Claude, OpenAI, Gemini, Grok, and any OpenAI-compatible endpoint (OpenRouter, Ollama, custom). TS-native; tool-calling + structured output built in.                                                                                   |
+| **Memory engine**             | **Native TS pipeline + LanceDB + local embeddings**                                                  | Our own extract→embed→dedup→hybrid-recall pipeline. Embedded LanceDB vector store locally; `transformers.js` (ONNX) embeddings run on-device with **no key/offline**. Backend swaps LanceDB→pgvector. Full local-first control, no Python runtime.                                  |
+| **Paid inference**            | **Backend proxy (our keys) + our complexity router**                                                 | The backend holds our provider keys behind one endpoint; a complexity classifier picks the model (cheap→frontier) per request. We own cost, routing, and usage metering.                                                                                                            |
+| **Auth / billing**            | **Real auth + cloud sync now; billing deferred**                                                     | Stand up real accounts + cloud sync first so logged-in memory/sync works. Stripe metered billing comes later; paid features gate on a flag until then. Auth impl = **better-auth** (Drizzle-backed, fits our existing backend) — managed (Clerk/WorkOS) is the documented fallback. |
 
 ### Two product tiers
 
 - **Free / BYOP / local-first / no login.** The user pastes their own provider key (Claude, OpenAI,
   Gemini, Grok, …). Everything — memory, history, knowledge — lives **on-device**. No account
   required, ever. This is the default experience.
-- **Logged-in (paid) / managed.** The user depends on *our* AI. We route across models automatically
+- **Logged-in (paid) / managed.** The user depends on _our_ AI. We route across models automatically
   by task complexity — **the `Mini`/`Pro` tier picker is hidden for these users** (the router
   decides). Memory/knowledge sync to the backend for cross-device + better recall. Billing is metered
   (deferred phase).
 
 ## Phases
 
-| # | Phase | Net-new surface | Depends on |
-| - | ----- | --------------- | ---------- |
-| 1 | [Rename Settings → Console](phase-1-rename-console.md) | terminology + file/symbol rename | — |
-| 2 | [Secrets vault (safeStorage)](phase-2-secrets-vault.md) | OS-keychain secret store + IPC | — |
-| 3 | [Universal provider layer (BYOP)](phase-3-universal-providers.md) | real multi-provider AI via AI SDK | 2 |
-| 4 | [Streaming end-to-end](phase-4-streaming.md) | token streaming for ask + task | 3 |
-| 5 | [Local memory engine](phase-5-local-memory-engine.md) | LanceDB + embeddings + extraction | 3 |
-| 6 | [Real agent loop + tools](phase-6-real-agent-loop.md) | AI-SDK tool-use agent, review gate | 3, 5 |
-| 7 | [Backend auth + cloud sync](phase-7-backend-auth-sync.md) | better-auth, real `/sync`, login | — (backend) |
-| 8 | [Cloud memory + knowledge](phase-8-cloud-memory-knowledge.md) | pgvector memory + doc ingestion | 5, 7 |
-| 9 | [Paid managed inference + router](phase-9-managed-inference-router.md) | backend model router + metering | 3, 7 |
-| 10 | [Real routine sources (integrations)](phase-10-real-integrations.md) | OAuth Slack/Gmail/… connectors | 2, 7 |
+| #   | Phase                                                                  | Net-new surface                    | Depends on  |
+| --- | ---------------------------------------------------------------------- | ---------------------------------- | ----------- |
+| 1   | [Rename Settings → Console](phase-1-rename-console.md)                 | terminology + file/symbol rename   | —           |
+| 2   | [Secrets vault (safeStorage)](phase-2-secrets-vault.md)                | OS-keychain secret store + IPC     | —           |
+| 3   | [Universal provider layer (BYOP)](phase-3-universal-providers.md)      | real multi-provider AI via AI SDK  | 2           |
+| 4   | [Streaming end-to-end](phase-4-streaming.md)                           | token streaming for ask + task     | 3           |
+| 5   | [Local memory engine](phase-5-local-memory-engine.md)                  | LanceDB + embeddings + extraction  | 3           |
+| 6   | [Real agent loop + tools](phase-6-real-agent-loop.md)                  | AI-SDK tool-use agent, review gate | 3, 5        |
+| 7   | [Backend auth + cloud sync](phase-7-backend-auth-sync.md)              | better-auth, real `/sync`, login   | — (backend) |
+| 8   | [Cloud memory + knowledge](phase-8-cloud-memory-knowledge.md)          | pgvector memory + doc ingestion    | 5, 7        |
+| 9   | [Paid managed inference + router](phase-9-managed-inference-router.md) | backend model router + metering    | 3, 7        |
+| 10  | [Real routine sources (integrations)](phase-10-real-integrations.md)   | OAuth Slack/Gmail/… connectors     | 2, 7        |
 
 ## Dependency graph
 
@@ -97,7 +97,7 @@ From [`CLAUDE.md`](../../../CLAUDE.md) and the v1 roadmap, restated so a phase c
 - **No raw IPC in components.** Four-step recipe (shared `ipc.ts` → main `ipc/index.ts` → preload →
   component). `apps/desktop/test/ipc-contract.test.ts` enforces parity.
 - **Secrets never touch `config.json` or the renderer.** API keys / OAuth tokens live in the
-  **secrets vault** (P2, Electron `safeStorage`). The renderer only ever learns *status* (set/unset),
+  **secrets vault** (P2, Electron `safeStorage`). The renderer only ever learns _status_ (set/unset),
   never plaintext.
 - **OS / network access lives in `infra/` only**, reached through injected ports — services stay
   unit-testable and `electron`-free in tests.

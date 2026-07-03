@@ -29,8 +29,7 @@ export function ResultRow({
   // A parameterized action takes one or more arguments; show that affordance
   // instead of the ⌘N hint, since Enter/Tab drills into argument entry rather
   // than running. Multiple parameters are listed in declaration order.
-  const argNames =
-    item.kind === 'action' ? effectiveArguments(item.action).map((a) => a.name) : [];
+  const argNames = item.kind === 'action' ? effectiveArguments(item.action).map((a) => a.name) : [];
   const argName = argNames.length > 0 ? argNames.join(' ') : null;
 
   return (

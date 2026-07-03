@@ -91,24 +91,24 @@ task, and you review the result.
 
 ## Status legend
 
-| Stage          | Meaning                                            |
-| -------------- | -------------------------------------------------- |
-| ✅ Shipped     | In the current codebase.                           |
-| 🔜 Next        | Actively designed; foundation already in place.    |
-| 🧭 Exploring   | Direction set; details being worked out.           |
+| Stage        | Meaning                                         |
+| ------------ | ----------------------------------------------- |
+| ✅ Shipped   | In the current codebase.                        |
+| 🔜 Next      | Actively designed; foundation already in place. |
+| 🧭 Exploring | Direction set; details being worked out.        |
 
-| Capability                            | Stage         |
-| ------------------------------------- | ------------- |
-| Actions / aliases / parameterized (L1–L2) | ✅ Shipped |
-| Workflows (L3)                        | ✅ Shipped     |
-| System app + file search (L4)         | ✅ Shipped     |
-| Frecency ranking, icons, favicons     | ✅ Shipped     |
-| AI behind the bar                     | 🔜 Next        |
-| AI-authored workflows                 | 🔜 Next        |
-| Routines (notification digest)        | 🔜 Next        |
-| Memory / history / tools              | 🧭 Exploring   |
+| Capability                                  | Stage        |
+| ------------------------------------------- | ------------ |
+| Actions / aliases / parameterized (L1–L2)   | ✅ Shipped   |
+| Workflows (L3)                              | ✅ Shipped   |
+| System app + file search (L4)               | ✅ Shipped   |
+| Frecency ranking, icons, favicons           | ✅ Shipped   |
+| AI behind the bar                           | 🔜 Next      |
+| AI-authored workflows                       | 🔜 Next      |
+| Routines (notification digest)              | 🔜 Next      |
+| Memory / history / tools                    | 🧭 Exploring |
 | Task automation (summaries, slides, sheets) | 🧭 Exploring |
-| Efficiency-focused UI overhaul        | 🧭 Exploring   |
+| Efficiency-focused UI overhaul              | 🧭 Exploring |
 
 ---
 

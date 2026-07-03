@@ -113,9 +113,10 @@ describe('computeLauncherView', () => {
   });
 
   it('zero matches + AI on + settled → ai-offer (trimmed query)', () => {
-    expect(
-      computeLauncherView({ ...base, query: '  hello  ', resolved: EMPTY_RESULTS }),
-    ).toEqual({ kind: 'ai-offer', query: 'hello' });
+    expect(computeLauncherView({ ...base, query: '  hello  ', resolved: EMPTY_RESULTS })).toEqual({
+      kind: 'ai-offer',
+      query: 'hello',
+    });
   });
 
   it('zero matches but not yet settled → plain empty (no premature offer)', () => {

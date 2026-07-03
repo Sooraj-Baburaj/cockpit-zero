@@ -62,11 +62,13 @@ describe('tool registry', () => {
   });
 
   it('validates tool input against the declared Zod parameters', () => {
-    expect(TOOL_REGISTRY['files.read'].parameters.safeParse({ path: '~/q3.pdf' }).success).toBe(true);
-    expect(TOOL_REGISTRY['files.read'].parameters.safeParse({}).success).toBe(false);
-    expect(TOOL_REGISTRY['memory.write'].parameters.safeParse({ text: 'remember this' }).success).toBe(
+    expect(TOOL_REGISTRY['files.read'].parameters.safeParse({ path: '~/q3.pdf' }).success).toBe(
       true,
     );
+    expect(TOOL_REGISTRY['files.read'].parameters.safeParse({}).success).toBe(false);
+    expect(
+      TOOL_REGISTRY['memory.write'].parameters.safeParse({ text: 'remember this' }).success,
+    ).toBe(true);
   });
 
   it('files.read returns the file text through the injected port', async () => {

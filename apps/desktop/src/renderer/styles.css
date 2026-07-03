@@ -172,7 +172,8 @@
   /* Accent emphasis (soft, never glowing) */
   --cz-glow-accent: 0 0 0 1px var(--cz-accent-line);
   --cz-glow-accent-soft: 0 1px 4px rgba(194, 101, 42, 0.16);
-  --cz-glow-accent-strong: 0 0 0 1px var(--cz-accent-line), 0 4px 12px -2px rgba(194, 101, 42, 0.22);
+  --cz-glow-accent-strong:
+    0 0 0 1px var(--cz-accent-line), 0 4px 12px -2px rgba(194, 101, 42, 0.22);
   --cz-ring-focus: 0 0 0 1px var(--cz-accent), 0 0 0 4px var(--cz-accent-soft);
   --cz-glow-chip: 0 1px 6px rgba(194, 101, 42, 0.24);
 

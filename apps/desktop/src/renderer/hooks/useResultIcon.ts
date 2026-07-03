@@ -14,7 +14,9 @@ import { api } from '../lib/api.js';
 const cache = new Map<string, string | null>();
 const pending = new Map<string, Promise<string | null>>();
 
-function iconRequest(item: LauncherItem): { key: string; load: () => Promise<string | null> } | null {
+function iconRequest(
+  item: LauncherItem,
+): { key: string; load: () => Promise<string | null> } | null {
   if (item.kind === 'app' || item.kind === 'file') {
     const path = item.path;
     return { key: `file:${path}`, load: () => api.getFileIcon(path) };

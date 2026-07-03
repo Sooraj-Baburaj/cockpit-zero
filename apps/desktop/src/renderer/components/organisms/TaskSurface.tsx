@@ -30,14 +30,18 @@ export function TaskSurface({
   const active = run.status === 'planning' || run.status === 'working' || run.status === 'review';
   const ready = run.status === 'review' || run.status === 'done';
   const primaryLabel =
-    run.status === 'review' ? `Approve & ${lower(run.result?.openLabel ?? 'run')}` : (run.result?.openLabel ?? 'Open');
+    run.status === 'review'
+      ? `Approve & ${lower(run.result?.openLabel ?? 'run')}`
+      : (run.result?.openLabel ?? 'Open');
 
   return (
     <div className="flex h-full flex-col">
       {/* Intent in the search row. */}
       <div className="flex items-center gap-4 px-[26px] py-[22px]">
         <Sparkle className="size-6 flex-none text-accent" pair />
-        <div className="text-[21px] tracking-[-0.01em] text-fg [text-wrap:balance]">{run.intent}</div>
+        <div className="text-[21px] tracking-[-0.01em] text-fg [text-wrap:balance]">
+          {run.intent}
+        </div>
       </div>
 
       {/* Status row: live pulse + step count, and the memory/tools chip. */}
@@ -183,7 +187,10 @@ function StepRow({ step, first }: { step: TaskStep; first: boolean }) {
     <div className="relative flex items-start gap-3.5 py-[11px]">
       {/* The thin rail linking this marker to the one above. */}
       {!first && (
-        <span className="absolute top-0 left-3 h-[11px] w-px [background:var(--cz-line)]" aria-hidden="true" />
+        <span
+          className="absolute top-0 left-3 h-[11px] w-px [background:var(--cz-line)]"
+          aria-hidden="true"
+        />
       )}
       <Marker step={step} />
       <div className="min-w-0 flex-1 pt-0.5">
@@ -212,7 +219,9 @@ function StepRow({ step, first }: { step: TaskStep; first: boolean }) {
                     stub
                   </span>
                 )}
-                {step.args && <span className="min-w-0 break-all text-[var(--cz-fg-subtle)]">{step.args}</span>}
+                {step.args && (
+                  <span className="min-w-0 break-all text-[var(--cz-fg-subtle)]">{step.args}</span>
+                )}
               </div>
             )}
             {step.detail && <div>{step.detail}</div>}
@@ -236,7 +245,16 @@ function Marker({ step }: { step: TaskStep }) {
   if (step.state === 'done') {
     return (
       <MarkerShell className="text-[var(--cz-success)]">
-        <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          className="size-3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <path d="m5 12 4.5 4.5L19 7" />
         </svg>
       </MarkerShell>
@@ -245,7 +263,16 @@ function Marker({ step }: { step: TaskStep }) {
   if (step.state === 'running') {
     return (
       <MarkerShell className="text-[var(--cz-accent-bright)] [border-color:var(--cz-accent-line)] [background:var(--cz-accent-soft)]">
-        <svg viewBox="0 0 24 24" className="size-3.5 motion-safe:animate-spin [animation-duration:2.4s]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          className="size-3.5 motion-safe:animate-spin [animation-duration:2.4s]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <path d="M3 21v-5h5M21 3v5h-5" />
           <path d="M21 8a9 9 0 0 0-15-3.5L3 8M3 16a9 9 0 0 0 15 3.5l3-3.5" />
         </svg>
@@ -255,7 +282,16 @@ function Marker({ step }: { step: TaskStep }) {
   if (step.state === 'blocked') {
     return (
       <MarkerShell className="text-[var(--cz-danger)]">
-        <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          className="size-3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <circle cx="12" cy="12" r="9" />
           <path d="m6 6 12 12" />
         </svg>

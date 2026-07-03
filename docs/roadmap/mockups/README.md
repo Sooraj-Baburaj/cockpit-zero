@@ -9,16 +9,16 @@ Open any file directly in a browser — they link the local `styles.css` token b
 (`tokens/*.css`), so they render offline. Fonts (EB Garamond / Manrope) load from Google Fonts when
 online and fall back to system serif/sans otherwise.
 
-| File | Screen | Phase | Roadmap tag |
-| ---- | ------ | ----- | ----------- |
-| `ai-mode.html` | Launcher shifts to AI mode when nothing matches | [Phase 2](../phase-2-ai-mode-and-ask.md) | Next |
-| `ai-ask.html` | Ask AI — answer + suggested actions behind the bar | [Phase 2](../phase-2-ai-mode-and-ask.md) | Next |
-| `cockpit-ai.html` | Settings window "AI" tab (model / memory / tools) | [Phase 3](../phase-3-cockpit-ai-settings.md) | Next |
-| `ai-workflow.html` | Describe an outcome → AI drafts an editable workflow | [Phase 4](../phase-4-ai-workflows.md) | Next |
-| `routine-digest.html` | Proactive notification digest, ranked into one briefing | [Phase 5](../phase-5-routines-digest.md) | Next |
-| `yaml-config.html` | Hand-edit config as YAML — tree, validation, outline | [Phase 6](../phase-6-yaml-config-editor.md) | Config |
-| `ai-task.html` | Agentic task with memory + tools + streamed progress | [Phase 7](../phase-7-ai-task-memory-tools.md) | Exploring |
-| _(not copied)_ `launcher-searching` | Shimmer-loader search — **already shipped** | — | Shipped |
+| File                                | Screen                                                  | Phase                                         | Roadmap tag |
+| ----------------------------------- | ------------------------------------------------------- | --------------------------------------------- | ----------- |
+| `ai-mode.html`                      | Launcher shifts to AI mode when nothing matches         | [Phase 2](../phase-2-ai-mode-and-ask.md)      | Next        |
+| `ai-ask.html`                       | Ask AI — answer + suggested actions behind the bar      | [Phase 2](../phase-2-ai-mode-and-ask.md)      | Next        |
+| `cockpit-ai.html`                   | Settings window "AI" tab (model / memory / tools)       | [Phase 3](../phase-3-cockpit-ai-settings.md)  | Next        |
+| `ai-workflow.html`                  | Describe an outcome → AI drafts an editable workflow    | [Phase 4](../phase-4-ai-workflows.md)         | Next        |
+| `routine-digest.html`               | Proactive notification digest, ranked into one briefing | [Phase 5](../phase-5-routines-digest.md)      | Next        |
+| `yaml-config.html`                  | Hand-edit config as YAML — tree, validation, outline    | [Phase 6](../phase-6-yaml-config-editor.md)   | Config      |
+| `ai-task.html`                      | Agentic task with memory + tools + streamed progress    | [Phase 7](../phase-7-ai-task-memory-tools.md) | Exploring   |
+| _(not copied)_ `launcher-searching` | Shimmer-loader search — **already shipped**             | —                                             | Shipped     |
 
 ## Source of truth
 

@@ -52,7 +52,10 @@ export function createLocalEmbedder(): Embedder {
     const transformers = await import('@huggingface/transformers');
     // Cache model weights under userData so first-run is the only download.
     transformers.env.cacheDir = join(app.getPath('userData'), 'models');
-    return (await transformers.pipeline('feature-extraction', LOCAL_MODEL)) as unknown as FeaturePipeline;
+    return (await transformers.pipeline(
+      'feature-extraction',
+      LOCAL_MODEL,
+    )) as unknown as FeaturePipeline;
   }
 
   return {

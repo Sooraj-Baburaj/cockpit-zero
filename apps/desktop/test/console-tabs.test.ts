@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  INITIAL_CONSOLE_TAB,
-  CONSOLE_TABS,
-} from '../src/renderer/screens/console-tabs.js';
+import { INITIAL_CONSOLE_TAB, CONSOLE_TABS } from '../src/renderer/screens/console-tabs.js';
 
 describe('console tabs', () => {
   it('registers the AI tab', () => {

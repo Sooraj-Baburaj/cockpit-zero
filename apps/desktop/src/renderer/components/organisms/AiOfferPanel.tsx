@@ -57,7 +57,12 @@ export function AiOfferPanel({
       <div className="px-5 pt-3.5 pb-1 text-[11px] font-semibold tracking-[0.14em] text-[var(--cz-accent-bright)] uppercase">
         Ask AI
       </div>
-      <ul role="listbox" id={listboxId} aria-label="Hand off to the assistant" className="px-3.5 pb-2">
+      <ul
+        role="listbox"
+        id={listboxId}
+        aria-label="Hand off to the assistant"
+        className="px-3.5 pb-2"
+      >
         <OfferRow
           optionId={optionId(0)}
           selected={selected === 0}
@@ -78,7 +83,16 @@ export function AiOfferPanel({
           onRun={() => onRun(1)}
           onHover={() => onHover(1)}
           icon={
-            <svg viewBox="0 0 24 24" className="size-[19px]" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              className="size-[19px]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.7}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
               <path d="M3 4v4h4M12 8v4l3 2" />
             </svg>

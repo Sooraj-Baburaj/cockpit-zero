@@ -15,8 +15,7 @@
   /* Floating panel: a wide soft warm shadow so it lifts off the linen
      without ever looking heavy. */
   --cz-shadow-panel:
-    0 2px 16px rgba(58, 48, 42, 0.04),
-    0 24px 56px -28px rgba(58, 48, 42, 0.14),
+    0 2px 16px rgba(58, 48, 42, 0.04), 0 24px 56px -28px rgba(58, 48, 42, 0.14),
     0 0 48px -24px var(--cz-bloom);
 
   /* --- Accent emphasis (soft, never glowing) --- */

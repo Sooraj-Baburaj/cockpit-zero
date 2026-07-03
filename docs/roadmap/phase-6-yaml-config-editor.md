@@ -35,7 +35,7 @@ through the same validated config path the GUI uses. Format (`⌥⇧F`) and Vali
 - A full IDE (multi-cursor, find/replace, etc.). A focused editor is enough; reuse a lightweight
   editor/highlighter rather than embedding a heavy IDE if it fits CSP.
 - Editing files the schema doesn't own. Only the config-backed YAML files.
-- Two-way *live* binding with the GUI while both are open simultaneously — Save-then-reload is fine.
+- Two-way _live_ binding with the GUI while both are open simultaneously — Save-then-reload is fine.
 
 ## Data model & schema changes
 

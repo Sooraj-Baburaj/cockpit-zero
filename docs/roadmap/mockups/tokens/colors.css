@@ -9,12 +9,7 @@
   --cz-bg-0: #f1e9dd; /* deepest linen (far corners) */
   --cz-bg-1: #f6efe4; /* mid linen */
   --cz-bg-2: #faf5ee; /* near linen / page base */
-  --cz-bg-grad: radial-gradient(
-    130% 130% at 50% 0%,
-    #fdf9f3 0%,
-    #faf5ee 42%,
-    #f1e9dd 100%
-  );
+  --cz-bg-grad: radial-gradient(130% 130% at 50% 0%, #fdf9f3 0%, #faf5ee 42%, #f1e9dd 100%);
 
   /* --- Surfaces: warm whites that float above the linen --- */
   --cz-glass-1: #fffdf9; /* panel / card fill (warm white) */

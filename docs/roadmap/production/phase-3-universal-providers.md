@@ -21,7 +21,7 @@ provider reachable".
 - **Vercel AI SDK** as the single abstraction (`generateText`/`streamText`/`generateObject`).
 - Keys via the **P2 secrets vault** — never `config.json`, never the renderer.
 - BYOP users **pick their own model** directly. The old `mini`/`pro` tier picker is **not** used for
-  BYOP (it returns for *managed* users in P9, server-side only). See "Schema changes".
+  BYOP (it returns for _managed_ users in P9, server-side only). See "Schema changes".
 
 ## Scope
 
@@ -68,12 +68,18 @@ ai                          # Vercel AI SDK core
 ```ts
 /** Real providers. `mock` stays for tests/CI only; `managed` (our backend proxy) lands in P9. */
 export const AiProviderIdSchema = z.enum([
-  'anthropic', 'openai', 'google', 'xai', 'openai-compatible', 'managed', 'mock',
+  'anthropic',
+  'openai',
+  'google',
+  'xai',
+  'openai-compatible',
+  'managed',
+  'mock',
 ]);
 
 export const AiSettingsSchema = z.object({
   enabled: z.boolean().default(true),
-  provider: AiProviderIdSchema.default('mock'),          // becomes a real one once a key is set
+  provider: AiProviderIdSchema.default('mock'), // becomes a real one once a key is set
   /** Provider-specific model id (e.g. a Claude/GPT/Gemini/Grok id). Free-text so new
    *  models work without a release; the Console offers a catalog + custom entry. */
   model: z.string().default(''),
@@ -93,7 +99,7 @@ export const AiSettingsSchema = z.object({
 > but `model` is empty, treat the provider as unconfigured (status `ok:false`) — don't bump version.
 
 Consult the **`claude-api` skill** for current Claude model ids; do not hard-code from memory. For the
-catalog, store a *short* curated list per provider and always allow custom text.
+catalog, store a _short_ curated list per provider and always allow custom text.
 
 `packages/shared/src/ai-models.ts` (new) — `MODEL_CATALOG: Record<AiProviderId, {id,label}[]>` and a
 `defaultModelFor(provider)` helper. Pure; the Console reads it.
@@ -141,7 +147,7 @@ listModels: 'ai:list-models',   // returns MODEL_CATALOG (or live-fetched for op
     also a **Base URL** field.
   - **API key** field = the P2 masked secret field, keyed to the selected provider.
   - Replace the old `mini/pro/byo` `SegmentedControl` for BYOP. (Keep the component; managed reuses
-    the *idea* server-side in P9 — but the BYOP panel no longer shows tiers.)
+    the _idea_ server-side in P9 — but the BYOP panel no longer shows tiers.)
   - Connection pill from `aiStatus()` — "Connected · Claude" / "Add a key to connect".
 - Update `renderer/lib/api.ts` dev mock for any new channel (`listModels`).
 

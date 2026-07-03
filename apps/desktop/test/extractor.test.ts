@@ -37,9 +37,7 @@ describe('createExtractor — provider path', () => {
 
   it('falls back to the heuristic when the model output is malformed', async () => {
     const extractor = createExtractor({ generate: async () => ({ nope: true }) });
-    const facts = await extractor.extract(
-      'The launch slipped to Thursday. Staging is green now.',
-    );
+    const facts = await extractor.extract('The launch slipped to Thursday. Staging is green now.');
     // Malformed → coerceMemoryFacts returns [] → heuristic splits the sentences.
     expect(facts.length).toBeGreaterThanOrEqual(2);
     expect(facts.every((f) => f.kind === 'note')).toBe(true);

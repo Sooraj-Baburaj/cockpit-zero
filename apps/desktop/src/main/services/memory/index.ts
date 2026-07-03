@@ -5,7 +5,10 @@ import { readConfig } from '../../infra/store.js';
 import { secretsService } from '../secrets/index.js';
 import { buildLanguageModel } from '../../infra/ai/sdk-provider.js';
 import { resolveEmbedder } from '../../infra/agent/embedder.js';
-import { createLanceMemoryStore, migrateLegacyMemory } from '../../infra/agent/lance-memory-store.js';
+import {
+  createLanceMemoryStore,
+  migrateLegacyMemory,
+} from '../../infra/agent/lance-memory-store.js';
 import { createExtractor } from '../agent/extractor.js';
 import { createMemoryService } from '../agent/memory-service.js';
 

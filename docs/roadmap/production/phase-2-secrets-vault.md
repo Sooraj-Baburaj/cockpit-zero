@@ -30,7 +30,7 @@ secrets only inside the main process.
 
 **Out**
 
-- The provider/auth/OAuth flows that *use* the vault (P3 / P7 / P10). This phase is just the vault +
+- The provider/auth/OAuth flows that _use_ the vault (P3 / P7 / P10). This phase is just the vault +
   its IPC + a generic "API keys" affordance the Console can reuse.
 
 ## Data model & schema changes
@@ -41,12 +41,12 @@ secrets only inside the main process.
 /** Stable names for everything kept in the OS-keychain-backed vault. NOT in config.json. */
 export const SecretName = {
   providerKey: (provider: string) => `provider:${provider}` as const, // P3 BYOP keys
-  sessionToken: 'auth:session' as const,                              // P7
-  oauth: (source: string) => `oauth:${source}` as const,             // P10 refresh tokens
+  sessionToken: 'auth:session' as const, // P7
+  oauth: (source: string) => `oauth:${source}` as const, // P10 refresh tokens
 } as const;
 ```
 
-No `ConfigSchema` change — secrets are deliberately *outside* config.
+No `ConfigSchema` change — secrets are deliberately _outside_ config.
 
 ## IPC channels
 

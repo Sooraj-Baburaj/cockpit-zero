@@ -20,7 +20,7 @@ extension recipes); this doc covers the layering and data flow.
 | ------------ | --------------------------------------------------------------------------------------- |
 | `schemas.ts` | Zod schemas — actions (discriminated union), aliases, workflows, settings.              |
 | `types.ts`   | Types inferred from schemas (`Action`, `Config`, …) + the `LauncherItem` result union.  |
-| `actions.ts` | Pure Level-2 helpers: `effectiveArguments`, `applyArguments`, `splitArgumentValues`.     |
+| `actions.ts` | Pure Level-2 helpers: `effectiveArguments`, `applyArguments`, `splitArgumentValues`.    |
 | `search.ts`  | `fzf`-backed `fuzzyRank` (generic), `searchConfig`/`searchActions`, and `resolveQuery`. |
 | `ipc.ts`     | The `IpcChannels` + `IpcApi` contract shared by main and preload.                       |
 | `config.ts`  | `validateConfig` / `defaultConfig`.                                                     |

@@ -150,11 +150,11 @@ Then hit **`Cmd / Ctrl + Shift + Space`** to summon the launcher.
 
 ### Run an app on its own
 
-| App                | Command                                  | Notes                          |
-| ------------------ | ---------------------------------------- | ------------------------------ |
-| Desktop (Electron) | `pnpm --filter @cockpitzero/desktop dev` | Hotkey: `Cmd/Ctrl+J`          |
-| Backend (Hono)     | `pnpm --filter @cockpitzero/backend dev` | http://localhost:8787          |
-| Web (Next.js)      | `pnpm --filter @cockpitzero/web dev`     | http://localhost:3000          |
+| App                | Command                                  | Notes                 |
+| ------------------ | ---------------------------------------- | --------------------- |
+| Desktop (Electron) | `pnpm --filter @cockpitzero/desktop dev` | Hotkey: `Cmd/Ctrl+J`  |
+| Backend (Hono)     | `pnpm --filter @cockpitzero/backend dev` | http://localhost:8787 |
+| Web (Next.js)      | `pnpm --filter @cockpitzero/web dev`     | http://localhost:3000 |
 
 ### Everyday scripts
 

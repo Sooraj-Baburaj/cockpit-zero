@@ -58,8 +58,8 @@ pgvector (Postgres extension) + drizzle-orm/pg-core
 ## Data model & schema changes
 
 - Backend `db/schema.ts` (pg-core): `memories(id, userId, text, kind, importance, embedding vector,
-  updatedAt, source)` and `knowledge(id, userId, docId, chunk, embedding vector, source, meta,
-  updatedAt)`; a `documents(id, userId, name, source, status, createdAt)` table for ingest jobs.
+updatedAt, source)` and `knowledge(id, userId, docId, chunk, embedding vector, source, meta,
+updatedAt)`; a `documents(id, userId, name, source, status, createdAt)` table for ingest jobs.
 - `ai` config gains: `memorySync: z.boolean().default(false)` (opt-in; only meaningful signed-in) and
   reuse `embeddingSource`. Additive defaults.
 - Shared wire types for sync payloads (a `MemorySyncRecord[]` mirroring `MemoryEntry`) and ingest
@@ -123,7 +123,7 @@ knowledgeRemove(docId: string): Promise<{ ok: boolean }>;
 
 - **Embedding consistency.** Local (transformers.js, 384-dim) vs server (provider, e.g. 1536-dim) must
   not be mixed in one index. Decision: the **server re-embeds** with its own model so the cloud index
-  is internally consistent; the local index stays local-dim. Recall fuses *results*, not raw vectors.
+  is internally consistent; the local index stays local-dim. Recall fuses _results_, not raw vectors.
 - **Privacy + cost.** Syncing memory/knowledge sends user content to our backend — explicit opt-in,
   clear controls, deletion that actually deletes (cascade rows). Ingestion + embedding cost is
   server-side; meter it (ties into P9).
@@ -141,7 +141,7 @@ knowledgeRemove(docId: string): Promise<{ ok: boolean }>;
 > fusion/scoring code; build `/memory/sync` + `/memory/search` + `/knowledge/*` routes (auth-gated).
 > Add memory delta sync (local LanceDB ↔ cloud) and document ingestion (PDF/text/folder → chunk →
 > embed → recall+cite) using a **maintained chunker + PDF extractor (don't hand-roll)**. Server
-> **re-embeds** so the cloud index is dimension-consistent; recall fuses *results* across local +
+> **re-embeds** so the cloud index is dimension-consistent; recall fuses _results_ across local +
 > cloud + knowledge, degrading to local when offline. Add Console controls (sync toggle, knowledge
 > view) + IPC. Backend tests via `app.request` with a fake embedder; run `pnpm typecheck`,
 > `pnpm lint`, `pnpm test`.

@@ -255,12 +255,12 @@ export function LauncherBar() {
             { keys: 'esc', label: 'dismiss' },
           ]
         : view.kind === 'ai-answer'
-        ? [
-            { keys: '↵', label: 'run' },
-            { keys: `${modKey}↵`, label: 'run all' },
-            { keys: '↑↓', label: 'navigate' },
-          ]
-        : undefined;
+          ? [
+              { keys: '↵', label: 'run' },
+              { keys: `${modKey}↵`, label: 'run all' },
+              { keys: '↑↓', label: 'navigate' },
+            ]
+          : undefined;
 
   return (
     <LauncherLayout aiMode={aiMode}>
@@ -270,7 +270,9 @@ export function LauncherBar() {
         onChange={setQuery}
         onKeyDown={onKeyDown}
         glyph={aiMode ? 'spark' : 'search'}
-        trailing={view.kind === 'ai-offer' || view.kind === 'ai-pending' ? <AiModePill /> : undefined}
+        trailing={
+          view.kind === 'ai-offer' || view.kind === 'ai-pending' ? <AiModePill /> : undefined
+        }
         listboxId={hasListbox ? LISTBOX_ID : undefined}
         expanded={hasListbox && count > 0}
         activeId={hasListbox && count > 0 ? optionId(selected) : undefined}

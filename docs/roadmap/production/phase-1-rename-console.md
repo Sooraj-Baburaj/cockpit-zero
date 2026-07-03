@@ -40,7 +40,7 @@ config block** (that domain object stays `settings` — see "Out of scope").
 - The `settings` **config block** in `ConfigSchema` (`SettingsSchema`, `config.settings`,
   `AppearancePanel`'s `Settings` type, `updateSettings`). That's the appearance/general **domain
   object** — renaming it is a schema migration with no user value. Leave `config.settings` as-is.
-  Only the *window/screen/navigation* concept becomes "Console".
+  Only the _window/screen/navigation_ concept becomes "Console".
 
 ## Data model & schema changes
 
@@ -91,7 +91,7 @@ and the `LauncherBar` caller.
 ## Risks / open questions
 
 - **Domain `settings` vs window "Console" confusion.** The one subtlety: `config.settings` stays.
-  Be surgical — rename the *navigation/window* concept, not the appearance config object.
+  Be surgical — rename the _navigation/window_ concept, not the appearance config object.
 - **Stale doc references.** Update `CLAUDE.md` and `docs/roadmap/README.md` mentions of "Settings →"
   to "Console →" as part of this phase so the docs don't drift.
 

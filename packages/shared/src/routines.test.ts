@@ -24,9 +24,9 @@ describe('RoutineSchema', () => {
   });
 
   it('rejects a non-positive maxItems', () => {
-    expect(RoutineSchema.safeParse({ id: 'r', label: 'l', summarize: { maxItems: 0 } }).success).toBe(
-      false,
-    );
+    expect(
+      RoutineSchema.safeParse({ id: 'r', label: 'l', summarize: { maxItems: 0 } }).success,
+    ).toBe(false);
   });
 });
 

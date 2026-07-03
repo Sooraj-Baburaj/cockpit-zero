@@ -35,7 +35,7 @@ immediately.
 
 - Real model-tier → API wiring and "Bring your own" key entry UI (define the control; key capture is
   deferred with the real provider — keep secrets out of `config.json`).
-- Tool *execution* (Phase 7). Here the tool toggles only persist grants in `ai.tools`.
+- Tool _execution_ (Phase 7). Here the tool toggles only persist grants in `ai.tools`.
 - The composer producing a full chat transcript — it kicks off an ask; rich conversation is later.
 
 ## Data model & schema changes
@@ -90,7 +90,7 @@ report the resolved model label for the connection chip.
 - **Toggle "on":** `--cz-accent-grad` track, knob translateX(18px) — match the existing `Toggle`
   atom's on-state (already sienna in the Sahara renderer).
 - **One accent moment caveat:** this screen is denser than a launcher view; keep accent to the
-  composer edge + the *on* states. Off controls stay warm-neutral.
+  composer edge + the _on_ states. Off controls stay warm-neutral.
 - Voice: imperative, terse. Buttons "Ask", "Save changes". No emoji.
 
 ## Acceptance criteria

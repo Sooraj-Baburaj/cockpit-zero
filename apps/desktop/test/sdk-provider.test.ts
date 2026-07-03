@@ -107,7 +107,11 @@ describe('createSdkProvider', () => {
     expect(answer.suggestions).toEqual([]);
     expect(answer.meta).toContain('claude-opus-4-8');
     expect(answer.meta).toContain('12 tok');
-    expect(passedModel).toEqual({ sentinel: 'anthropic', model: 'claude-opus-4-8', key: 'sk-test' });
+    expect(passedModel).toEqual({
+      sentinel: 'anthropic',
+      model: 'claude-opus-4-8',
+      key: 'sk-test',
+    });
   });
 
   it('passes the abort signal through to streamText', async () => {

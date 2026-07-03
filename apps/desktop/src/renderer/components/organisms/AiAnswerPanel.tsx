@@ -185,7 +185,10 @@ export function AiAnswerPanel({
             // Asked, no tokens yet — the quiet "thinking" state.
             <p className="text-base text-subtle">
               Reading your workspace and history
-              <span aria-hidden="true" className="cz-caret ml-0.5 inline-block h-[18px] w-0.5 translate-y-[3px] bg-accent" />
+              <span
+                aria-hidden="true"
+                className="cz-caret ml-0.5 inline-block h-[18px] w-0.5 translate-y-[3px] bg-accent"
+              />
             </p>
           )
         ) : (
@@ -200,7 +203,12 @@ export function AiAnswerPanel({
           <div className="px-5 pt-[18px] pb-1 text-[11px] font-semibold tracking-[0.14em] text-subtle uppercase">
             Suggested actions
           </div>
-          <ul role="listbox" id={listboxId} aria-label="Suggested actions" className="px-3.5 pt-0.5 pb-2">
+          <ul
+            role="listbox"
+            id={listboxId}
+            aria-label="Suggested actions"
+            className="px-3.5 pt-0.5 pb-2"
+          >
             {suggestions.map((suggestion, i) => (
               <SuggestionRow
                 key={suggestion.id}

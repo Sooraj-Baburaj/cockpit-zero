@@ -3,7 +3,7 @@
 > **Status:** 🔜 Next · **Depends on:** P3 (provider abstraction + the `managed` enum slot), P7
 > (auth + user/plan) · **Blocks:** nothing. **Risk:** high — our keys, our cost, automatic routing.
 
-For a **logged-in paid** user who depends on *our* AI (not BYOP), the backend becomes the inference
+For a **logged-in paid** user who depends on _our_ AI (not BYOP), the backend becomes the inference
 provider: it holds **our** provider keys behind one endpoint and **automatically picks the model by
 task complexity** (cheap model for simple asks, frontier for hard ones). Per the product decision,
 **these users never see a Mini/Pro picker** — the router decides. Usage is **metered** now; **billing
@@ -49,7 +49,7 @@ through), and **records usage**. The Console hides the tier control and shows "A
 ## Data model & schema changes
 
 - Backend `usage` table: `(id, userId, ts, model, tier, inputTokens, outputTokens, costEstimate,
-  requestId)`. Per-user aggregates for the usage read.
+requestId)`. Per-user aggregates for the usage read.
 - `ai.provider` can be `managed` (already added in P3). For managed, `model`/`modelTier` are ignored
   by the client (router decides). Add `ai.routing` notes only if a power-user override is wanted
   (default off — the point is automatic).

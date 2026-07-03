@@ -39,7 +39,10 @@ export interface ExtractorDeps {
 
 const DEFAULT_MAX_FACTS = 8;
 
-export function createExtractor({ generate, maxFacts = DEFAULT_MAX_FACTS }: ExtractorDeps = {}): Extractor {
+export function createExtractor({
+  generate,
+  maxFacts = DEFAULT_MAX_FACTS,
+}: ExtractorDeps = {}): Extractor {
   return {
     async extract(rawText) {
       const text = rawText.trim();
@@ -68,11 +71,13 @@ function toExtracted(fact: AiMemoryFact): ExtractedFact {
 
 /** Sentence/line splitter for the keyless path: keep the durable-looking chunks. */
 function splitCandidates(text: string): string[] {
-  return text
-    .split(/(?:\r?\n)+|(?<=[.!?])\s+/)
-    .map((s) => s.replace(/\s+/g, ' ').trim())
-    // Drop fragments too short to be a real fact (and bare list bullets / numbers).
-    .filter((s) => s.replace(/[^a-z0-9]/gi, '').length >= 12);
+  return (
+    text
+      .split(/(?:\r?\n)+|(?<=[.!?])\s+/)
+      .map((s) => s.replace(/\s+/g, ' ').trim())
+      // Drop fragments too short to be a real fact (and bare list bullets / numbers).
+      .filter((s) => s.replace(/[^a-z0-9]/gi, '').length >= 12)
+  );
 }
 
 /** Cheap salience heuristic: longer statements and ones with concrete signals

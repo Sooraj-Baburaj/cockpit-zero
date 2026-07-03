@@ -59,10 +59,7 @@ export function LauncherFooter({
       <div className={wrap}>
         <div className="flex items-center gap-4">
           {hints.map((hint) => (
-            <span
-              key={hint.label}
-              className="flex items-center gap-[7px] text-xs text-muted"
-            >
+            <span key={hint.label} className="flex items-center gap-[7px] text-xs text-muted">
               <Kbd>{hint.keys}</Kbd>
               {hint.label}
             </span>

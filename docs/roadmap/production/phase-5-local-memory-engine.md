@@ -12,7 +12,7 @@ embeddings); better extraction when a provider key is present.
 
 ## Goal
 
-The assistant accumulates *meaningful* memories (not raw transcripts) and recalls the most relevant
+The assistant accumulates _meaningful_ memories (not raw transcripts) and recalls the most relevant
 ones for any prompt via semantic search fused with keyword + recency — entirely on the user's machine.
 `MemoryService.recall(query)` returns markedly better hits than keyword overlap; `ask` (P3) injects
 recalled context. Everything stays gated by `ai.memoryEnabled`.
@@ -31,7 +31,7 @@ recalled context. Everything stays gated by `ai.memoryEnabled`.
 
 - Keep the `MemoryService` **port** shape (`enabled`/`write`/`recall`) so P6/Phase-7 callers don't
   change, but swap the implementation to the new engine and add `remember(text)` (extraction entry)
-  + `forget(id)`.
+  - `forget(id)`.
 - `infra/agent/lance-memory-store.ts` — LanceDB-backed `MemoryStore` (vectors + metadata + text),
   replacing `infra/agent/memory-store.ts` (JSON). One-time **migration** of an existing `memory.json`
   into LanceDB on first run.
@@ -63,6 +63,7 @@ recalled context. Everything stays gated by `ai.memoryEnabled`.
 ```
 
 > **Native-module gotchas (important):**
+>
 > - Both run in the **main process only** — never import in the renderer.
 > - Mark them `external` in `electron.vite.config.ts` (main build) so electron-vite doesn't try to
 >   bundle the native `.node` binaries.

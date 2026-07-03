@@ -67,15 +67,15 @@ export function MemoryPanel({ memoryEnabled }: { memoryEnabled: boolean }) {
       </header>
 
       <p className="mb-4 max-w-[64ch] text-[13px] leading-relaxed text-muted">
-        Durable facts the assistant has learned from your sessions — recalled to make
-        answers context-aware. Everything here stays on this device.
+        Durable facts the assistant has learned from your sessions — recalled to make answers
+        context-aware. Everything here stays on this device.
       </p>
 
       {!memoryEnabled && (
         <div className="mb-4 rounded-[var(--cz-radius-md)] border [border-color:var(--cz-warn)] [background:var(--cz-glass-1)] px-[18px] py-[13px] text-[13px] text-muted">
-          Memory is <b className="font-semibold text-fg">off</b> — the assistant isn’t
-          reading or writing new memories. Turn it on in <b className="text-fg">Console → AI</b>.
-          You can still review and clear what’s stored below.
+          Memory is <b className="font-semibold text-fg">off</b> — the assistant isn’t reading or
+          writing new memories. Turn it on in <b className="text-fg">Console → AI</b>. You can still
+          review and clear what’s stored below.
         </div>
       )}
 
@@ -110,8 +110,8 @@ export function MemoryPanel({ memoryEnabled }: { memoryEnabled: boolean }) {
 
       <footer className="mt-7 flex items-center justify-between gap-4 border-t [border-color:var(--cz-line-faint)] pt-4">
         <span className="text-[12.5px] text-subtle">
-          Local-first · {stats?.embeddingSource === 'provider' ? 'provider' : 'on-device'} embeddings
-          · never synced.
+          Local-first · {stats?.embeddingSource === 'provider' ? 'provider' : 'on-device'}{' '}
+          embeddings · never synced.
         </span>
         {confirmingClear ? (
           <div className="flex items-center gap-2">

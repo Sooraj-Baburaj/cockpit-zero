@@ -323,9 +323,7 @@ const mockApi: IpcApi = {
   memorySearch: async (query) => {
     const q = query.trim().toLowerCase();
     const matches =
-      q === ''
-        ? [...mockMemories]
-        : mockMemories.filter((m) => m.text.toLowerCase().includes(q));
+      q === '' ? [...mockMemories] : mockMemories.filter((m) => m.text.toLowerCase().includes(q));
     return matches.sort((a, b) => b.updatedAt - a.updatedAt);
   },
   memoryForget: async (id) => {

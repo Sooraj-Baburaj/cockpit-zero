@@ -90,7 +90,11 @@ describe('snake/camel casing maps', () => {
   it('key conversion is reversible and leaves values untouched', () => {
     const camel = { rankBy: 'importance', summarize: { maxItems: 8 }, list: ['on_demand'] };
     const snake = toSnakeKeysDeep(camel);
-    expect(snake).toEqual({ rank_by: 'importance', summarize: { max_items: 8 }, list: ['on_demand'] });
+    expect(snake).toEqual({
+      rank_by: 'importance',
+      summarize: { max_items: 8 },
+      list: ['on_demand'],
+    });
     expect(toCamelKeysDeep(snake)).toEqual(camel);
   });
 });
@@ -124,7 +128,10 @@ describe('validateYaml', () => {
   });
 
   it('flags a schema error (wrong type)', () => {
-    const issues = validateYaml('routines.yaml', 'routines:\n  - id: r1\n    label: R\n    sources: not-a-list');
+    const issues = validateYaml(
+      'routines.yaml',
+      'routines:\n  - id: r1\n    label: R\n    sources: not-a-list',
+    );
     expect(issues.some((i) => i.level === 'error')).toBe(true);
   });
 });
@@ -143,7 +150,10 @@ describe('yamlFileToConfigSlice + merge', () => {
   });
 
   it('refuses an invalid slice (no partial write possible)', () => {
-    const result = yamlFileToConfigSlice('workflows.yaml', 'workflows:\n  - name: X\n    steps: []');
+    const result = yamlFileToConfigSlice(
+      'workflows.yaml',
+      'workflows:\n  - name: X\n    steps: []',
+    );
     // A workflow needs at least one step — the slice never validates.
     expect(result.ok).toBe(false);
   });
