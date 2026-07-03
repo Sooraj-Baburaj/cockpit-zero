@@ -1,0 +1,16 @@
+# Caddy terminates TLS (automatic Let's Encrypt) and proxies to the API.
+# API_DOMAIN comes from the compose .env (e.g. api.cockpitzero.app or
+# staging.cockpitzero.app).
+{$API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy api:8787 {
+		# Streaming inference responses must not be buffered.
+		flush_interval -1
+	}
+}
+
+# Uptime Kuma behind its own subdomain; protect it with basic auth or an
+# access list before exposing publicly.
+status.{$API_DOMAIN} {
+	reverse_proxy uptime-kuma:3001
+}

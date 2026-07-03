@@ -1,5 +1,8 @@
-# electron-builder config — packaging is a follow-up (see CLAUDE.md).
+# electron-builder config.
 # Run `pnpm --filter @cockpitzero/desktop package` to produce installers.
+# CI (.github/workflows/release.yml) runs the same with `--publish always`
+# on version tags, uploading artifacts to a draft GitHub Release that
+# electron-updater consumes for auto-updates.
 appId: app.cockpitzero.desktop
 productName: CockpitZero
 directories:
@@ -9,9 +12,23 @@ files:
   - out/**
 mac:
   category: public.app-category.productivity
-  target: dmg
+  # zip is required alongside dmg for electron-updater on macOS.
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  # Notarization runs automatically when APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD /
+  # APPLE_TEAM_ID env vars are present (set as CI secrets).
 win:
   target: nsis
 linux:
   target: AppImage
   category: Utility
+# NOTE: switch owner/repo to the public mirror before launch — auto-update
+# checks must hit a repo users can reach unauthenticated.
+publish:
+  provider: github
+  owner: TheBloomin
+  repo: cockpit-zero
+  releaseType: draft

@@ -1,0 +1,62 @@
+# CockpitZero backend stack — single VPS (Hetzner/AWS), Docker Compose.
+# See deploy/README.md for provisioning. Run one compose project per
+# environment (`-p cockpitzero-prod` / `-p cockpitzero-staging`) with its
+# own .env.
+services:
+  api:
+    image: ghcr.io/thebloomin/cockpitzero-backend:${API_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8787
+      DATABASE_URL: postgres://cockpitzero:${POSTGRES_PASSWORD}@postgres:5432/cockpitzero
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${PUBLIC_API_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - '8787'
+
+  postgres:
+    # pgvector-enabled Postgres 16 (required for cloud memory / knowledge).
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cockpitzero
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: cockpitzero
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cockpitzero -d cockpitzero']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    volumes:
+      - kuma_data:/app/data
+    expose:
+      - '3001'
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+  kuma_data:

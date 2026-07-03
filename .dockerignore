@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/out
+**/.next
+**/.turbo
+**/release
+**/coverage
+.git
+.github
+.codegraph
+docs
+deploy
+**/*.test.ts
+**/drizzle/*.sqlite
