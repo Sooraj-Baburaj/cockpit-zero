@@ -52,5 +52,6 @@ export function defaultConfig(): Config {
     workflows: [],
     ai: AiSettingsSchema.parse({}),
     routines: seedRoutines(),
+    connections: [],
   };
 }

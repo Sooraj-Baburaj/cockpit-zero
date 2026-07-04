@@ -7,7 +7,12 @@ import {
   effectiveArguments,
   valuesToRecord,
 } from '@cockpitzero/shared';
-import type { AiStreamEvent, PasswordCredentials, SignInMethod } from '@cockpitzero/shared';
+import type {
+  AiStreamEvent,
+  IntegrationSourceId,
+  PasswordCredentials,
+  SignInMethod,
+} from '@cockpitzero/shared';
 import { getConfig, updateConfig } from '../services/config-service.js';
 import { resolveLauncherQuery, searchSystem } from '../services/search-service.js';
 import { runAction } from '../services/action-runner/index.js';
@@ -18,6 +23,7 @@ import { completePath } from '../services/path-complete.js';
 import { aiService, fetchAiUsage } from '../services/ai/index.js';
 import { getDigest, listRoutines, runRoutine } from '../services/routines/index.js';
 import { approveTask, getTask, startTask, stopTask } from '../services/agent/index.js';
+import { integrationService } from '../services/integrations/index.js';
 import { memoryService } from '../services/memory/index.js';
 import { secretsService } from '../services/secrets/index.js';
 import { authService } from '../services/auth/index.js';
@@ -186,7 +192,8 @@ export function registerIpcHandlers(): void {
   // readout. Gated server-side; signed-out resolves `{ ok: false, error }`.
   ipcMain.handle(IpcChannels.aiUsage, () => fetchAiUsage());
 
-  // Routines (Phase 5). `runRoutine` fans out to (mock) sources, summarizes +
+  // Routines (Phase 5; real sources since P10). `runRoutine` fans out to the
+  // connected integration sources, summarizes +
   // ranks via the AI service, stores the digest, and opens the briefing window;
   // `getDigest` returns the last-computed digest for the briefing surface.
   ipcMain.handle(IpcChannels.runRoutine, (_e, routineId: string) => runRoutine(routineId));
@@ -243,6 +250,20 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.clearSecret, (_e, name: string) => secretsService.delete(name));
 
   ipcMain.handle(IpcChannels.secretStatus, () => secretsService.status());
+
+  // Integrations (production P10). Connect runs OAuth (system browser + loopback)
+  // or validates a pasted token; either way the credential lands in the vault in
+  // the main process — it never crosses back over the bridge. Status is
+  // metadata-only (connected/account/scopes), never tokens.
+  ipcMain.handle(IpcChannels.connectSource, (_e, source: IntegrationSourceId, token?: string) =>
+    integrationService.connect(source, token),
+  );
+
+  ipcMain.handle(IpcChannels.disconnectSource, (_e, source: IntegrationSourceId) =>
+    integrationService.disconnect(source),
+  );
+
+  ipcMain.handle(IpcChannels.connectionStatus, () => integrationService.status());
 
   // Backend account + sync (production P7). Sign-in stores the session token in
   // the vault inside the main process — the token itself never crosses the

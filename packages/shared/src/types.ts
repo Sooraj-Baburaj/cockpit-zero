@@ -16,6 +16,8 @@ import type {
   RoutineSourceIdSchema,
   RoutineRankBySchema,
   RoutineSummarizeSchema,
+  IntegrationSourceIdSchema,
+  IntegrationConnectionSchema,
 } from './schemas.js';
 
 /** All domain types are inferred from the Zod schemas (the source of truth). */
@@ -40,6 +42,10 @@ export type Routine = z.infer<typeof RoutineSchema>;
 export type RoutineSourceId = z.infer<typeof RoutineSourceIdSchema>;
 export type RoutineRankBy = z.infer<typeof RoutineRankBySchema>;
 export type RoutineSummarize = z.infer<typeof RoutineSummarizeSchema>;
+
+/** Integration types (production P10) — inferred from the schemas. */
+export type IntegrationSourceId = z.infer<typeof IntegrationSourceIdSchema>;
+export type IntegrationConnection = z.infer<typeof IntegrationConnectionSchema>;
 
 /**
  * The runtime types a routine's digest produces (Phase 5). These are NOT
@@ -279,10 +285,6 @@ export interface TaskStep {
   args?: string;
   /** Sub-line under the title, e.g. "drafting 'Growth & retention'…". */
   detail?: string;
-  /** Whether this step's tool is a not-yet-real external **stub** (a labeled
-   *  placeholder until its real connector lands in P10) — the surface badges it so
-   *  stub output is never mistaken for a real side effect. */
-  stub?: boolean;
   /** 0..1 fill for the running step's progress bar. */
   progress?: number;
 }

@@ -4,12 +4,6 @@ import { api } from '../lib/api.js';
 import { useAppearance } from '../hooks/useAppearance.js';
 import { TaskSurface } from '../components/organisms/TaskSurface.js';
 import { EmptyState } from '../components/atoms/EmptyState.js';
-import { Toast } from '../components/molecules/Toast.js';
-
-interface Feedback {
-  message: string;
-  error: boolean;
-}
 
 /** The run this window shows — passed via the URL hash by the opener
  *  (`task.html#<taskId>`). */
@@ -31,7 +25,6 @@ export function TaskScreen() {
   const [config, setConfig] = useState<Config | null>(null);
   const [run, setRun] = useState<TaskRun | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,11 +43,6 @@ export function TaskScreen() {
 
   useAppearance(config?.settings.theme, config?.settings.glass);
 
-  const flash = (message: string, error = false) => {
-    setFeedback({ message, error });
-    window.setTimeout(() => setFeedback(null), 2500);
-  };
-
   const active =
     run?.status === 'planning' || run?.status === 'working' || run?.status === 'review';
 
@@ -67,13 +55,13 @@ export function TaskScreen() {
     }
   };
 
-  /** Primary CTA: approve a review (commits + runs the rest), or "open" at done. */
+  /** Primary CTA: approve a review (commits + runs the rest), or dismiss at done. */
   const primary = () => {
     if (!run) return;
     if (run.status === 'review') {
       void api.taskApprove(taskId);
     } else if (run.status === 'done') {
-      flash('This is a stub preview — the real export/connector tools ship in a later phase.');
+      window.close();
     }
   };
 
@@ -112,8 +100,6 @@ export function TaskScreen() {
           />
         </div>
       )}
-
-      {feedback && <Toast message={feedback.message} error={feedback.error} />}
     </div>
   );
 }

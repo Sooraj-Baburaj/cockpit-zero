@@ -1,11 +1,13 @@
 import type { AccountStatus, PasswordCredentials, SignInMethod } from './account.js';
 import type { AiUsageSummary } from './inference.js';
+import type { ConnectionStatus } from './integrations.js';
 import type { KnowledgeDoc, MemorySyncResult } from './memory-sync.js';
 import type {
   AiAnswer,
   AiStreamEvent,
   Config,
   Digest,
+  IntegrationSourceId,
   LauncherItem,
   MemoryRecord,
   MemoryStats,
@@ -59,6 +61,9 @@ export const IpcChannels = {
   setSecret: 'secret:set',
   clearSecret: 'secret:clear',
   secretStatus: 'secret:status',
+  connectSource: 'integration:connect',
+  disconnectSource: 'integration:disconnect',
+  connectionStatus: 'integration:status',
   signIn: 'auth:sign-in',
   signOut: 'auth:sign-out',
   authStatus: 'auth:status',
@@ -195,6 +200,19 @@ export interface IpcApi {
   /** Which secrets are currently set — name → present. There is **no** matching
    *  `getSecret`: plaintext never leaves the main process. */
   secretStatus(): Promise<Record<string, boolean>>;
+  /** Connect an integration (P10). With no `token` it runs the system-browser
+   *  OAuth flow (loopback callback); with a pasted `token` it validates the
+   *  credential against the service. Either way the token lands in the vault —
+   *  it never crosses back over the bridge. */
+  connectSource(
+    source: IntegrationSourceId,
+    token?: string,
+  ): Promise<{ ok: boolean; error?: string }>;
+  /** Disconnect an integration: best-effort remote revoke + clear the vault
+   *  token + drop the connection metadata. */
+  disconnectSource(source: IntegrationSourceId): Promise<{ ok: boolean; error?: string }>;
+  /** Connection state for every source (metadata only, never tokens). */
+  connectionStatus(): Promise<ConnectionStatus[]>;
   /** Sign in to the (optional) backend account (P7). OAuth methods open the
    *  system browser and resolve when the loopback callback lands; `password`
    *  posts the inline credentials (`create: true` = sign-up). The session token

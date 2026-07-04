@@ -1,3 +1,4 @@
+import { INTEGRATION_SOURCE_IDS } from '@cockpitzero/shared';
 import type {
   IpcApi,
   AiStreamEvent,
@@ -48,6 +49,7 @@ const MOCK_CONFIG: Config = {
       summarize: { modelTier: 'mini', maxItems: 8 },
     },
   ],
+  connections: [],
 };
 
 /** A canned digest for the dev/browser bridge (mirrors the seeded morning_digest). */
@@ -96,13 +98,13 @@ const MOCK_DIGEST: Digest = {
 };
 
 /** A canned task run for the dev/browser bridge — mirrors `ai-task.html` (two
- *  steps done, one running, two waiting, with the result tiles ready). */
+ *  steps done, one paused at review, matching the real P10 tool catalog). */
 const MOCK_TASK: TaskRun = {
   id: 'task_dev',
-  intent: 'Build a deck from the Q3 brief',
+  intent: 'Summarize the Q3 brief and share it with the team',
   usingMemory: true,
   toolCount: 2,
-  status: 'working',
+  status: 'review',
   steps: [
     {
       id: 'step_0',
@@ -120,20 +122,13 @@ const MOCK_TASK: TaskRun = {
     },
     {
       id: 'step_2',
-      title: 'Generate 8 slides',
+      title: 'Post the summary to #team',
       state: 'running',
-      tool: 'slides.create',
-      detail: 'drafting “Growth & retention”…',
+      tool: 'slack.send',
+      args: 'channel: #team · text: Q3 brief summary…',
       progress: 0.62,
     },
-    { id: 'step_3', title: 'Apply Sahara theme', state: 'waiting' },
-    { id: 'step_4', title: 'Export to Keynote', state: 'waiting' },
   ],
-  result: {
-    kind: 'slides',
-    previews: ['title', 'kpis', 'growth', 'next'],
-    openLabel: 'Open in Keynote',
-  },
 };
 
 /** In-memory secrets for the dev/browser bridge — there's no main process (and
@@ -325,6 +320,15 @@ const mockApi: IpcApi = {
     return { ok: true };
   },
   secretStatus: async () => Object.fromEntries([...mockSecrets].map((name) => [name, true])),
+  // Integrations (P10): a browser tab can't run OAuth or reach the vault — every
+  // source reads as disconnected and connect attempts explain why.
+  connectSource: async () => ({
+    ok: false,
+    error: 'Connecting integrations needs the desktop app (dev bridge).',
+  }),
+  disconnectSource: async () => ({ ok: true }),
+  connectionStatus: async () =>
+    INTEGRATION_SOURCE_IDS.map((source) => ({ source, connected: false, oauthReady: false })),
   // Account + sync (P7): a browser tab has no backend session — behave as the
   // permanent signed-out free/local state.
   signIn: async () => ({ ok: false, error: 'Sign-in needs the desktop app (dev bridge).' }),

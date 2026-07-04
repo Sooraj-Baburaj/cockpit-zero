@@ -13,6 +13,7 @@ export const CONSOLE_TABS = [
   'memory',
   'workflows',
   'routines',
+  'integrations',
   'aliases',
   'config',
   'account',

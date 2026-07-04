@@ -44,6 +44,13 @@ const NAV_GLYPH: Record<string, ReactNode> = {
       <path d="M8 4.5V8l2.4 1.4" />
     </>
   ),
+  integrations: (
+    <>
+      <path d="M6 2.5v3M10 2.5v3" />
+      <path d="M4.5 5.5h7v2.5a3.5 3.5 0 0 1-7 0Z" />
+      <path d="M8 11.5v2" />
+    </>
+  ),
   config: (
     <>
       <path d="M6 5 2.5 8 6 11" />

@@ -197,7 +197,31 @@ export const usage = pgTable(
   (t) => [index('usage_user_ts_idx').on(t.userId, t.ts)],
 );
 
+/**
+ * Integration tokens for signed-in users (P10): the server-side mirror of the
+ * desktop vault, so cloud routines can pull real notifications. The OAuth
+ * token JSON is stored **encrypted** (AES-256-GCM, `src/services/token-crypto`)
+ * — never plaintext at rest — and never leaves the server: the list endpoint
+ * returns metadata only. One row per (user, source), last write wins.
+ */
+export const integrations = pgTable(
+  'integrations',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    source: text('source').notNull(),
+    accountLabel: text('account_label').notNull().default(''),
+    scopes: jsonb('scopes').$type<string[]>().notNull().default([]),
+    /** AES-256-GCM ciphertext (base64 iv.tag.data) of the token JSON. */
+    tokenCiphertext: text('token_ciphertext').notNull(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.source] })],
+);
+
 export type User = typeof users.$inferSelect;
+export type IntegrationRow = typeof integrations.$inferSelect;
 export type UsageRow = typeof usage.$inferSelect;
 export type ConfigRow = typeof configs.$inferSelect;
 export type MemoryRow = typeof memories.$inferSelect;

@@ -65,6 +65,11 @@ const api: IpcApi = {
   setSecret: (name, value) => ipcRenderer.invoke(IpcChannels.setSecret, name, value),
   clearSecret: (name) => ipcRenderer.invoke(IpcChannels.clearSecret, name),
   secretStatus: () => ipcRenderer.invoke(IpcChannels.secretStatus),
+  // Integrations (P10). Tokens live in the main-process vault — only ok/error
+  // and metadata-only status cross the bridge.
+  connectSource: (source, token) => ipcRenderer.invoke(IpcChannels.connectSource, source, token),
+  disconnectSource: (source) => ipcRenderer.invoke(IpcChannels.disconnectSource, source),
+  connectionStatus: () => ipcRenderer.invoke(IpcChannels.connectionStatus),
   // Backend account + sync (P7). The session token stays in the main-process
   // vault — only status/results cross the bridge.
   signIn: (method, credentials) => ipcRenderer.invoke(IpcChannels.signIn, method, credentials),

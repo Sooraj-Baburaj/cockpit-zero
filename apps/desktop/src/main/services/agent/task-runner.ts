@@ -208,7 +208,6 @@ export function createTaskRunner({
           state: 'running',
           progress: 0.62,
           ...(formatArgs(input) ? { args: formatArgs(input) } : {}),
-          ...(toolDef.stub ? { stub: true } : {}),
         };
         state.run.steps.push(step);
         state.run.status = 'working';

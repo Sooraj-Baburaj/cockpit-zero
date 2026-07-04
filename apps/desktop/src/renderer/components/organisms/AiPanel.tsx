@@ -49,7 +49,9 @@ const MANAGED_OPTION = { value: 'managed', label: 'CockpitZero AI — managed' }
 /** Sentinel option that switches the model dropdown into a free-text field. */
 const CUSTOM_MODEL = '__custom__';
 
-/** Tool catalog metadata (id ↔ display). Order follows `AI_TOOL_IDS`. */
+/** Tool catalog metadata (id ↔ display). Order follows `AI_TOOL_IDS`; the
+ *  external tools (P10) act in the matching **connected** integration —
+ *  `slides-sheets` has no real connector yet, so it isn't offered. */
 const TOOLS: { id: AiToolId; name: string; scope: string; icon: ReactNode }[] = [
   {
     id: 'files',
@@ -65,7 +67,7 @@ const TOOLS: { id: AiToolId; name: string; scope: string; icon: ReactNode }[] = 
   {
     id: 'calendar',
     name: 'Calendar',
-    scope: 'Read events',
+    scope: 'Create events',
     icon: (
       <Glyph>
         <rect x="3" y="4" width="18" height="17" rx="2" />
@@ -76,21 +78,10 @@ const TOOLS: { id: AiToolId; name: string; scope: string; icon: ReactNode }[] = 
   {
     id: 'slack',
     name: 'Slack',
-    scope: 'Read & post',
+    scope: 'Send messages',
     icon: (
       <Glyph>
         <path d="M21 11.5a8.4 8.4 0 0 1-1 4 8.5 8.5 0 0 1-7.5 4.5 8.4 8.4 0 0 1-4-1L3 21l1-3.5a8.4 8.4 0 0 1-1-4A8.5 8.5 0 0 1 7.5 6 8.4 8.4 0 0 1 11.5 5h.5A8.5 8.5 0 0 1 21 11v.5Z" />
-      </Glyph>
-    ),
-  },
-  {
-    id: 'slides-sheets',
-    name: 'Slides & Sheets',
-    scope: 'Create & edit',
-    icon: (
-      <Glyph>
-        <rect x="3" y="4" width="18" height="13" rx="1.5" />
-        <path d="M12 17v4M8 21h8" />
       </Glyph>
     ),
   },

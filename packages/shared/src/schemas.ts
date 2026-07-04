@@ -244,6 +244,37 @@ export const RoutineSourceIdSchema = z.enum([
   'notion',
 ]);
 
+/**
+ * Connectable integration sources (production P10). Each id maps to a real
+ * OAuth/token-backed connector in the desktop main process. Overlaps with
+ * `RoutineSourceIdSchema` where the source feeds the digest; `calendar` exists
+ * only for the agent's write tool (events aren't digest notifications).
+ */
+export const IntegrationSourceIdSchema = z.enum([
+  'slack',
+  'gmail',
+  'calendar',
+  'github',
+  'linear',
+  'notion',
+]);
+
+/**
+ * Per-source connection **metadata** (production P10) — what the Console needs
+ * to render connect state. Deliberately token-free: the OAuth/refresh tokens
+ * live in the OS-keychain vault under `SecretName.oauth(source)` (local) or
+ * encrypted server-side (signed-in), never in this synced config.
+ */
+export const IntegrationConnectionSchema = z.object({
+  source: IntegrationSourceIdSchema,
+  /** Who's connected, e.g. "sooraj@acme.com" or "Acme workspace". */
+  accountLabel: z.string().default(''),
+  /** Granted OAuth scopes (display only). */
+  scopes: z.array(z.string()).default([]),
+  /** ISO timestamp of when the connection was made. */
+  connectedAt: z.string().default(''),
+});
+
 /** How a routine's digest decides what to surface first. */
 export const RoutineRankBySchema = z.enum(['importance', 'recency']);
 
@@ -297,6 +328,9 @@ export const ConfigSchema = z.object({
   ai: AiSettingsSchema.default(AiSettingsSchema.parse({})),
   /** Proactive routines (Phase 5). Additive default — old configs parse to `[]`. */
   routines: z.array(RoutineSchema).default([]),
+  /** Connected-integration metadata (production P10) — never tokens; those live
+   *  in the vault. Additive default — old configs parse to `[]`. */
+  connections: z.array(IntegrationConnectionSchema).default([]),
 });
 
 export const ActionType = ActionSchema.options.map((o) => o.shape.type.value);

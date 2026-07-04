@@ -4,6 +4,7 @@ import { readConfig } from '../../infra/store.js';
 import { fileReader } from '../../infra/agent/file-reader.js';
 import { buildLanguageModel } from '../../infra/ai/sdk-provider.js';
 import { openTaskWindow, sendTaskUpdate } from '../../windows/index.js';
+import { integrationActions } from '../integrations/index.js';
 import { secretsService } from '../secrets/index.js';
 import { memoryService } from '../memory/index.js';
 import { createToolRegistry } from './tools/registry.js';
@@ -27,7 +28,7 @@ import { createTaskRunner } from './task-runner.js';
  * "connect a provider" note instead of faking a run (CLAUDE.md: no mocks in production).
  */
 
-const ports = { files: fileReader };
+const ports = { files: fileReader, integrations: integrationActions };
 
 const getKey = (provider: AiProviderId) => secretsService.get(SecretName.providerKey(provider));
 

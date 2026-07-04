@@ -2,10 +2,11 @@ import type { z } from 'zod';
 import type { AgentToolId, AiToolId, Config } from '@cockpitzero/shared';
 import type { MemoryService } from '../memory-service.js';
 import type { ToolPorts } from './ports.js';
+import { calendarCreateEvent } from './calendar-create-event.js';
 import { filesRead } from './files-read.js';
 import { memoryRecall } from './memory-recall.js';
 import { memoryWrite } from './memory-write.js';
-import { slidesCreate } from './slides-create.js';
+import { slackSend } from './slack-send.js';
 
 /**
  * The agent tool registry (Phase 7), mirroring the action-runner registry: a
@@ -56,10 +57,6 @@ export interface Tool {
   grant: AiToolId | 'memory';
   /** Whether running this produces a side-effect that needs review before commit. */
   sideEffecting: boolean;
-  /** A not-yet-real external **stub** (its real connector lands in P10). The surface
-   *  badges it and the description says so, so stub output is never passed off as
-   *  real. Off by default via its grant, per CLAUDE.md ("no mocks in production"). */
-  stub?: boolean;
   run(input: unknown, ctx: ToolContext): Promise<ToolResult>;
 }
 
@@ -76,7 +73,8 @@ export const TOOL_REGISTRY: ToolRegistry = {
   'files.read': filesRead,
   'memory.recall': memoryRecall,
   'memory.write': memoryWrite,
-  'slides.create': slidesCreate,
+  'slack.send': slackSend,
+  'calendar.create-event': calendarCreateEvent,
 };
 
 /** Build the registry. Pure: no `electron`, no globals. */

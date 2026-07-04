@@ -10,6 +10,7 @@ import { memory } from './routes/memory.js';
 import { knowledgeRoute } from './routes/knowledge.js';
 import { inference } from './routes/inference.js';
 import { usageRoute } from './routes/usage.js';
+import { integrationsRoute } from './routes/integrations.js';
 
 /**
  * The Hono app. Exported separately from the server (src/index.ts) so tests can
@@ -28,6 +29,7 @@ export const app = new Hono()
   .route('/knowledge', knowledgeRoute)
   .route('/inference', inference)
   .route('/usage', usageRoute)
+  .route('/integrations', integrationsRoute)
   .route('/desktop-auth', desktopAuth)
   .on(['GET', 'POST'], '/auth/*', (c) => auth.handler(c.req.raw))
   .onError((err, c) => {

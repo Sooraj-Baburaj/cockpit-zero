@@ -10,6 +10,7 @@ export * from './ai-models.js';
 export * from './ai-generation.js';
 export * from './routines.js';
 export * from './secrets.js';
+export * from './integrations.js';
 export * from './inference.js';
 export * from './memory-fusion.js';
 export * from './memory-sync.js';

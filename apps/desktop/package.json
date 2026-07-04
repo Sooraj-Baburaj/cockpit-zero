@@ -26,8 +26,14 @@
     "@fontsource/manrope": "^5.1.0",
     "@huggingface/transformers": "catalog:",
     "@lancedb/lancedb": "catalog:",
+    "@linear/sdk": "catalog:",
+    "@notionhq/client": "catalog:",
+    "@octokit/oauth-methods": "catalog:",
+    "@octokit/rest": "catalog:",
+    "@slack/web-api": "catalog:",
     "ai": "catalog:",
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "googleapis": "catalog:"
   },
   "devDependencies": {
     "@cockpitzero/eslint-config": "workspace:*",

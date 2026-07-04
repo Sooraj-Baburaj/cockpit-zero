@@ -1,7 +1,7 @@
 import type { Digest, Routine } from '@cockpitzero/shared';
 import { readConfig } from '../../infra/store.js';
-import { createMockSources } from '../../infra/routines/mock-sources.js';
 import { aiService } from '../ai/index.js';
+import { integrationSources } from '../integrations/index.js';
 import { openDigestWindow } from '../../windows/index.js';
 import { createDigestRunner } from './digest-runner.js';
 import { createScheduler } from './scheduler.js';
@@ -9,16 +9,17 @@ import { createScheduler } from './scheduler.js';
 /**
  * The wired routine service the IPC layer + scheduler call (Phase 5). This is the
  * one place that couples the pure digest runner / scheduler to their concrete
- * dependencies — the mock sources, the AI summarizer, the config reader, and the
- * delivery window (mirrors how search-service / ai/index wire their pieces). The
- * pure pieces stay `electron`-free and unit-tested; the `electron` touch
- * (opening the briefing window) lives only here.
+ * dependencies — the real integration sources (P10), the AI summarizer, the
+ * config reader, and the delivery window (mirrors how search-service / ai/index
+ * wire their pieces). The pure pieces stay `electron`-free and unit-tested; the
+ * `electron` touch (opening the briefing window) lives only here.
  */
 
-// Created once. The digest runner pulls from the mock sources and ranks via the
-// AI service; `now` is the real clock (the runner injects it for testability).
+// Created once. The digest runner pulls from the **real** connected integrations
+// (a disconnected source contributes nothing — never mock items) and ranks via
+// the AI service; `now` is the real clock (the runner injects it for testability).
 const runner = createDigestRunner({
-  sources: createMockSources(),
+  sources: integrationSources,
   summarize: (items, opts) => aiService.summarizeDigest(items, opts),
   now: () => Date.now(),
 });

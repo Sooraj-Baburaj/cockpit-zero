@@ -31,7 +31,7 @@ function configWith(over: { tools?: AiToolId[]; memoryEnabled?: boolean } = {}):
     ...base,
     ai: {
       ...base.ai,
-      tools: over.tools ?? ['files', 'calendar', 'slack', 'slides-sheets'],
+      tools: over.tools ?? ['files', 'calendar', 'slack'],
       memoryEnabled: over.memoryEnabled ?? true,
     },
   };
@@ -54,10 +54,10 @@ function scriptedLoop(
   };
 }
 
-const DECK_SCRIPT: Array<[AgentToolId, unknown]> = [
+const SHARE_SCRIPT: Array<[AgentToolId, unknown]> = [
   ['files.read', { path: '~/Documents/q3-brief.pdf' }],
   ['memory.recall', { query: 'revenue standup q3' }],
-  ['slides.create', { count: 8, previews: ['title', 'kpis', 'growth', 'next'] }],
+  ['slack.send', { channel: '#team', text: 'Q3 summary: revenue up 18%.' }],
 ];
 
 function harness(config: Config, loop: AgentLoop) {
@@ -68,7 +68,20 @@ function harness(config: Config, loop: AgentLoop) {
     extractor: { extract: async () => [] },
     getConfig: () => config,
   });
-  const ports = { files: { read: async () => 'KPI sheet: revenue, growth, retention' } };
+  const ports = {
+    files: { read: async () => 'KPI sheet: revenue, growth, retention' },
+    // Fake connectors behind the integrations port (P10 test plan) — no network.
+    integrations: {
+      slackSend: async ({ channel }: { channel: string }) => ({
+        ok: true,
+        detail: `sent to ${channel}`,
+      }),
+      calendarCreateEvent: async ({ title }: { title: string }) => ({
+        ok: true,
+        detail: `“${title}” created`,
+      }),
+    },
+  };
   const emits: TaskRun[] = [];
 
   const runner = createTaskRunner({
@@ -89,25 +102,20 @@ const last = (emits: TaskRun[]) => emits[emits.length - 1];
 
 describe('createTaskRunner', () => {
   it('runs a model-chosen plan to a review pause, then completes on approval', async () => {
-    const { runner, emits, store } = harness(configWith(), scriptedLoop(DECK_SCRIPT));
-    const { taskId } = runner.start('Build a deck from the Q3 brief');
+    const { runner, emits, store } = harness(configWith(), scriptedLoop(SHARE_SCRIPT));
+    const { taskId } = runner.start('Share the Q3 brief with the team');
 
-    // The read + recall auto-run; the side-effecting slides.create HOLDS at review,
-    // before it executes — nothing produced or committed yet.
+    // The read + recall auto-run; the side-effecting slack.send HOLDS at review,
+    // before it executes — nothing posted or committed yet.
     await vi.waitFor(() => expect(runner.get(taskId)?.status).toBe('review'));
 
     const review = runner.get(taskId)!;
     expect(review.steps.map((s) => s.state)).toEqual(['done', 'done', 'running']);
-    expect(review.steps.map((s) => s.tool)).toEqual([
-      'files.read',
-      'memory.recall',
-      'slides.create',
-    ]);
-    expect(review.steps[2]?.stub).toBe(true); // the side-effecting tool is a labeled stub
+    expect(review.steps.map((s) => s.tool)).toEqual(['files.read', 'memory.recall', 'slack.send']);
     expect(review.steps[0]?.args).toContain('q3-brief.pdf'); // real per-step args streamed
-    expect(review.result).toBeUndefined(); // not produced until the human approves
+    expect(review.steps[2]?.args).toContain('#team'); // the reviewable action is visible
     expect(review.usingMemory).toBe(true);
-    expect(review.toolCount).toBe(1); // files.read so far (slides.create hasn't run)
+    expect(review.toolCount).toBe(1); // files.read so far (slack.send hasn't run)
     expect(await store.all()).toHaveLength(0); // nothing committed yet
     expect(emits.some((r) => r.steps[2]?.state === 'running')).toBe(true);
 
@@ -116,13 +124,13 @@ describe('createTaskRunner', () => {
 
     const done = runner.get(taskId)!;
     expect(done.steps.every((s) => s.state === 'done')).toBe(true);
-    expect(done.result?.previews).toEqual(['title', 'kpis', 'growth', 'next']);
-    expect(done.toolCount).toBe(2); // files.read + slides.create (memory shown separately)
+    expect(done.steps[2]?.detail).toBe('sent to #team'); // the real connector signal
+    expect(done.toolCount).toBe(2); // files.read + slack.send (memory shown separately)
     expect(done.summary).toBe('Drafted the deck.');
     // Completion remembers the task for next time.
     const remembered = await store.all();
     expect(remembered).toHaveLength(1);
-    expect(remembered[0]?.text).toContain('Build a deck from the Q3 brief');
+    expect(remembered[0]?.text).toContain('Share the Q3 brief with the team');
     expect(last(emits)?.status).toBe('done');
   });
 
@@ -141,26 +149,25 @@ describe('createTaskRunner', () => {
   });
 
   it('blocks a tool whose grant is missing, never running it silently', async () => {
-    // No `slides-sheets` grant → slides.create (the 3rd model step) is blocked.
+    // No `slack` grant → slack.send (the 3rd model step) is blocked.
     const { runner } = harness(
-      configWith({ tools: ['files', 'calendar', 'slack'] }),
-      scriptedLoop(DECK_SCRIPT),
+      configWith({ tools: ['files', 'calendar'] }),
+      scriptedLoop(SHARE_SCRIPT),
     );
-    const { taskId } = runner.start('Build a deck from the Q3 brief');
+    const { taskId } = runner.start('Share the Q3 brief with the team');
 
     await vi.waitFor(() => expect(runner.get(taskId)?.status).toBe('error'));
 
     const run = runner.get(taskId)!;
-    expect(run.steps[2]?.tool).toBe('slides.create');
+    expect(run.steps[2]?.tool).toBe('slack.send');
     expect(run.steps[2]?.state).toBe('blocked');
-    expect(run.result).toBeUndefined(); // never produced
-    expect(run.note).toMatch(/Slides & Sheets/);
+    expect(run.note).toMatch(/Slack/);
   });
 
   it('blocks memory.recall when memory is off', async () => {
     const { runner, store } = harness(
       configWith({ memoryEnabled: false }),
-      scriptedLoop(DECK_SCRIPT),
+      scriptedLoop(SHARE_SCRIPT),
     );
     const { taskId } = runner.start('Build a deck from the Q3 brief');
 
@@ -180,7 +187,7 @@ describe('createTaskRunner', () => {
     const loop: AgentLoop = async ({ tools, signal }) => {
       signal.addEventListener('abort', () => aborts.push(true));
       const byId = new Map(tools.map((t) => [t.id, t]));
-      for (const [id, input] of DECK_SCRIPT) await byId.get(id)!.execute(input);
+      for (const [id, input] of SHARE_SCRIPT) await byId.get(id)!.execute(input);
       return { summary: 'done', totalTokens: 0 };
     };
     const { runner, store } = harness(configWith(), loop);
@@ -191,7 +198,7 @@ describe('createTaskRunner', () => {
     await vi.waitFor(() => expect(runner.get(taskId)?.status).toBe('stopped'));
 
     const run = runner.get(taskId)!;
-    expect(run.steps[2]?.state).toBe('waiting'); // the running slides.create was reset
+    expect(run.steps[2]?.state).toBe('waiting'); // the running slack.send was reset
     expect(run.result).toBeUndefined();
     expect(await store.all()).toHaveLength(0);
     expect(aborts).toEqual([true]); // stop aborted the in-flight model request
@@ -200,7 +207,7 @@ describe('createTaskRunner', () => {
   it('enforces the tool-call cap, ending in a clear state (not a hang)', async () => {
     const config = configWith();
     config.ai.maxToolCalls = 1;
-    const { runner } = harness(config, scriptedLoop(DECK_SCRIPT));
+    const { runner } = harness(config, scriptedLoop(SHARE_SCRIPT));
     const { taskId } = runner.start('Build a deck from the Q3 brief');
 
     await vi.waitFor(() => expect(runner.get(taskId)?.status).toBe('done'));

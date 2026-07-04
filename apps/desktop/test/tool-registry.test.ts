@@ -26,7 +26,14 @@ function context(over: Partial<ToolContext> = {}): ToolContext {
   return {
     config,
     memory,
-    ports: { files: { read: async () => 'KPI: revenue up 18%' } },
+    ports: {
+      files: { read: async () => 'KPI: revenue up 18%' },
+      // Fake connectors behind the port (P10 test plan) — no network.
+      integrations: {
+        slackSend: async ({ channel }) => ({ ok: true, detail: `sent to ${channel}` }),
+        calendarCreateEvent: async ({ title }) => ({ ok: true, detail: `“${title}” created` }),
+      },
+    },
     ...over,
   };
 }
@@ -45,20 +52,12 @@ describe('tool registry', () => {
     }
   });
 
-  it('marks only slides.create as side-effecting (the review-gated tool)', () => {
-    expect(TOOL_REGISTRY['slides.create'].sideEffecting).toBe(true);
+  it('marks exactly the external write tools as side-effecting (review-gated)', () => {
+    expect(TOOL_REGISTRY['slack.send'].sideEffecting).toBe(true);
+    expect(TOOL_REGISTRY['calendar.create-event'].sideEffecting).toBe(true);
     expect(TOOL_REGISTRY['files.read'].sideEffecting).toBe(false);
     expect(TOOL_REGISTRY['memory.recall'].sideEffecting).toBe(false);
     expect(TOOL_REGISTRY['memory.write'].sideEffecting).toBe(false);
-  });
-
-  it('flags only slides.create as a stub (off by default, badged in the UI)', () => {
-    expect(TOOL_REGISTRY['slides.create'].stub).toBe(true);
-    expect(TOOL_REGISTRY['files.read'].stub).toBeFalsy();
-    expect(TOOL_REGISTRY['memory.recall'].stub).toBeFalsy();
-    expect(TOOL_REGISTRY['memory.write'].stub).toBeFalsy();
-    // The stub says so to the model, so it can't pass stub output off as real.
-    expect(TOOL_REGISTRY['slides.create'].description.toLowerCase()).toContain('stub');
   });
 
   it('validates tool input against the declared Zod parameters', () => {
@@ -90,15 +89,45 @@ describe('tool registry', () => {
     expect(res.detail).toBe('matched 1 prior session');
   });
 
-  it('slides.create produces preview tiles', async () => {
-    const res = await TOOL_REGISTRY['slides.create'].run(
-      { count: 8, previews: ['title', 'kpis', 'growth', 'next'] },
+  it('slack.send posts through the injected integrations port', async () => {
+    const res = await TOOL_REGISTRY['slack.send'].run(
+      { channel: '#team', text: 'Q3 summary' },
       context(),
     );
     expect(res.ok).toBe(true);
-    expect(res.previews).toEqual(['title', 'kpis', 'growth', 'next']);
-    // The detail (and the result data) keep the stub honest — no "exported" claim.
-    expect(res.detail).toContain('stub');
-    expect((res.data as { stub: boolean }).stub).toBe(true);
+    expect(res.detail).toBe('sent to #team');
+  });
+
+  it('slack.send surfaces a disconnected Slack as a real failure, never a fake success', async () => {
+    const ctx = context({
+      ports: {
+        files: { read: async () => '' },
+        integrations: {
+          slackSend: async () => ({
+            ok: false,
+            error: 'Slack is not connected — connect it in Console → Integrations.',
+          }),
+          calendarCreateEvent: async () => ({ ok: false, error: 'not connected' }),
+        },
+      },
+    });
+    const res = await TOOL_REGISTRY['slack.send'].run({ channel: '#team', text: 'hi' }, ctx);
+    expect(res.ok).toBe(false);
+    expect(res.error).toContain('not connected');
+  });
+
+  it('calendar.create-event validates its ISO datetimes before touching the port', async () => {
+    const bad = await TOOL_REGISTRY['calendar.create-event'].run(
+      { title: 'Standup', startIso: 'tomorrow', endIso: 'later' },
+      context(),
+    );
+    expect(bad.ok).toBe(false);
+
+    const ok = await TOOL_REGISTRY['calendar.create-event'].run(
+      { title: 'Standup', startIso: '2026-07-06T09:00:00Z', endIso: '2026-07-06T09:15:00Z' },
+      context(),
+    );
+    expect(ok.ok).toBe(true);
+    expect(ok.detail).toBe('“Standup” created');
   });
 });

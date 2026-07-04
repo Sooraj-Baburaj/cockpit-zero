@@ -140,9 +140,8 @@ export function TaskSurface({
   );
 }
 
-/** Bottom-line copy that keeps the human-review promise explicit — and honest about
- *  stubs: it never claims a real export happened (the side-effecting tools are still
- *  labeled placeholders until P10). */
+/** Bottom-line copy that keeps the human-review promise explicit: side-effecting
+ *  tools act in real connected services, and only ever after approval. */
 function actionHint(run: TaskRun): string {
   switch (run.status) {
     case 'review':
@@ -204,19 +203,11 @@ function StepRow({ step, first }: { step: TaskStep; first: boolean }) {
         </div>
         {(step.tool || step.args || step.detail) && (
           <div className="mt-[3px] space-y-1 font-mono text-[12.5px] text-subtle">
-            {(step.tool || step.args || step.stub) && (
+            {(step.tool || step.args) && (
               <div className="flex flex-wrap items-center gap-2">
                 {step.tool && (
                   <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line)] px-[7px] py-px text-muted [background:var(--cz-glass-2)]">
                     {step.tool}
-                  </span>
-                )}
-                {step.stub && (
-                  <span
-                    className="rounded-[var(--cz-radius-xs)] border border-dashed [border-color:var(--cz-accent-line)] px-[7px] py-px text-[10px] font-semibold tracking-[0.08em] text-[var(--cz-accent-bright)] uppercase"
-                    title="A labeled placeholder — its real connector ships later, so no real export happens."
-                  >
-                    stub
                   </span>
                 )}
                 {step.args && (

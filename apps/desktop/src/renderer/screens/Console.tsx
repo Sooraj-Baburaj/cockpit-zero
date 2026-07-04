@@ -17,6 +17,7 @@ import { AiPanel } from '../components/organisms/AiPanel.js';
 import { MemoryPanel } from '../components/organisms/MemoryPanel.js';
 import { AccountPanel } from '../components/organisms/AccountPanel.js';
 import { RoutinesPanel } from '../components/organisms/RoutinesPanel.js';
+import { IntegrationsPanel } from '../components/organisms/IntegrationsPanel.js';
 import { YamlConfigEditor } from '../components/organisms/YamlConfigEditor.js';
 import { ActionList } from '../components/organisms/ActionList.js';
 import { ActionForm } from '../components/organisms/ActionForm.js';
@@ -111,6 +112,8 @@ export function Console() {
           onRun={(routineId) => api.runRoutine(routineId)}
         />
       )}
+
+      {tab === 'integrations' && <IntegrationsPanel />}
 
       {tab === 'config' && <YamlConfigEditor config={config} onSave={persist} />}
 

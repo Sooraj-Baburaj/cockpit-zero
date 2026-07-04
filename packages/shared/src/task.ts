@@ -10,17 +10,19 @@ import type { TaskRun } from './types.js';
  */
 
 /**
- * The assistant's tool catalog — the ids the agent loop can call, in the order
- * they appear in the first cut. Read-only `files.read` + the local `memory.*`
- * store are the safe first set; `slides.create` is a local, offline stub that
- * produces preview tiles (the real Slides/Keynote export is a later, external
- * slice — each new tool lands behind its own grant + review).
+ * The assistant's tool catalog — the ids the agent loop can call. Read-only
+ * `files.read` + the local `memory.*` store are the safe local set; the external
+ * tools (`slack.send`, `calendar.create-event`, production P10) act in **real**
+ * connected services — each is grant-gated, requires its integration to be
+ * connected in Console → Integrations, and (being side-effecting) holds at the
+ * review gate until the user approves.
  */
 export const AGENT_TOOL_IDS = [
   'files.read',
   'memory.recall',
   'memory.write',
-  'slides.create',
+  'slack.send',
+  'calendar.create-event',
 ] as const;
 
 /** A tool the agent loop can call. */
@@ -35,7 +37,8 @@ export const TASK_TOOL_GRANT: Record<AgentToolId, AiToolId | 'memory'> = {
   'files.read': 'files',
   'memory.recall': 'memory',
   'memory.write': 'memory',
-  'slides.create': 'slides-sheets',
+  'slack.send': 'slack',
+  'calendar.create-event': 'calendar',
 };
 
 /** The subset of `ai` settings a grant check needs (so callers can pass a slice). */

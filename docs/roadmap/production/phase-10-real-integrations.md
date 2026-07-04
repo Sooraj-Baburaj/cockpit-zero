@@ -1,8 +1,18 @@
 # Production Phase 10 — Real routine sources + agent connectors (integrations)
 
-> **Status:** 🔜 Next · **Depends on:** P2 (vault for OAuth tokens), P7 (per-user auth) ·
+> **Status:** ✅ Done · **Depends on:** P2 (vault for OAuth tokens), P7 (per-user auth) ·
 > **Blocks:** nothing (it completes the "no mocks" mandate). **Risk:** high · **Size:** largest —
 > schedule as its own track and split per connector.
+>
+> **Shipped:** OAuth framework (system browser + loopback, `runOAuthFlow`) + connectors for
+> Slack (OAuth + token), Gmail/Calendar (Google OAuth), GitHub (OAuth + PAT), Linear (API key),
+> Notion (integration secret) — official SDKs throughout. Real `NotificationSource` adapters
+> replace the Phase-5 mocks (`mock-sources.ts` deleted); real `slack.send` /
+> `calendar.create-event` agent tools replace the `slides.create` stub (grant + review gated).
+> Console → Integrations panel, Routines source picker (connected sources only),
+> `integration:connect/disconnect/status` IPC, encrypted per-user `/integrations` backend
+> mirror. OAuth app creds come from `COCKPITZERO_{SLACK,GOOGLE,GITHUB}_CLIENT_ID/_CLIENT_SECRET`
+> env vars; token-paste works without them.
 
 The v1 routine digest (Phase 5) pulls from **mock** notification sources, and the agent's external
 tools (slack/calendar/slides — Phase 7 v1) are **stubs**. This phase replaces them with **real
