@@ -19,7 +19,9 @@ ship-readiness track, and post-launch work. Decisions locked 2026-07-03.
 | Track | Item                                                                                                        | Status                             |
 | ----- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------- |
 | A     | P1–P6 (Console → agent loop)                                                                                | ✅ done                            |
-| A     | P7 auth + sync · P8 cloud memory · P9 managed inference · P10 integrations                                  | ⬜ per phase docs                  |
+| A     | P7 auth + sync (better-auth, Postgres + Docker dev, desktop Account panel)                                  | ✅ done                            |
+| A     | P8 cloud memory + knowledge (pgvector, memory sync, ingestion)                                              | ✅ done                            |
+| A     | P9 managed inference · P10 integrations                                                                     | ⬜ per phase docs                  |
 | B     | B1 CI/CD (`.github/workflows/`)                                                                             | ✅ done                            |
 | B     | B4 deploy stack scaffolding (`deploy/`)                                                                     | ✅ done (VPS provisioning pending) |
 | B     | B2 platform parity · B3 signing/updates · B5 onboarding · B6 telemetry · B7 hardening/perf · B8 docs/launch | ⬜ below                           |
@@ -28,8 +30,8 @@ ship-readiness track, and post-launch work. Decisions locked 2026-07-03.
 
 ```
 Wave 1  A0 land P6 · B1 CI/CD · B4 deploy scaffolding          ✅
-Wave 2  A1 = P7 (auth + sync, on Postgres from day one) · B2 platform parity
-Wave 3  A2 = P8 · A3 = P9 (parallel) · B3 signing + auto-update
+Wave 2  A1 = P7 (auth + sync, on Postgres from day one) ✅ · B2 platform parity ⬜
+Wave 3  A2 = P8 ✅ · A3 = P9 (parallel) · B3 signing + auto-update
 Wave 4  A4 = P10 (Slack + Google minimum) · B5 onboarding · B6 telemetry
 Wave 5  B7 security + perf gate · B8 docs + web → LAUNCH
 Post    C1 billing (Stripe) · C2 distribution (brew/winget) · C3 more connectors

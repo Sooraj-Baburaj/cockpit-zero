@@ -84,7 +84,7 @@ function disabledAnswer(): AiAnswer {
 function unconfiguredAnswer(provider: AiProviderId): AiAnswer {
   const text =
     provider === 'managed'
-      ? 'Managed AI isn’t available yet. Pick your own provider and paste a key in the Console → AI.'
+      ? 'CockpitZero AI needs a signed-in Pro account. Sign in via Console → Account, or pick your own provider and paste a key in Console → AI.'
       : `Connect ${providerLabel(provider)} in the Console → AI — choose a model and paste your API key to start asking.`;
   return { text, meta: 'cockpit-ai · not connected', suggestions: [] };
 }
@@ -96,7 +96,13 @@ export function createAiService({ providers, getConfig, memory }: AiServiceDeps)
     if (!memory?.enabled()) return prompt;
     const hits = await memory.recall(prompt, MEMORY_RECALL_LIMIT);
     if (hits.length === 0) return prompt;
-    const block = hits.map((h) => `- ${h.text}`).join('\n');
+    // Knowledge hits (P8 cloud recall) carry their source document — keep it in
+    // the block so the answer can cite it ("… (source: q3-brief.pdf)").
+    const block = hits
+      .map(
+        (h) => `- ${h.text}${h.kind === 'knowledge' && h.source ? ` (source: ${h.source})` : ''}`,
+      )
+      .join('\n');
     return (
       `Relevant memory from earlier sessions (use only if it helps; ignore otherwise):\n` +
       `${block}\n\n${prompt}`

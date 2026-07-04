@@ -1,6 +1,6 @@
 # Production Phase 9 — Managed inference + complexity router
 
-> **Status:** 🔜 Next · **Depends on:** P3 (provider abstraction + the `managed` enum slot), P7
+> **Status:** ✅ Done · **Depends on:** P3 (provider abstraction + the `managed` enum slot), P7
 > (auth + user/plan) · **Blocks:** nothing. **Risk:** high — our keys, our cost, automatic routing.
 
 For a **logged-in paid** user who depends on _our_ AI (not BYOP), the backend becomes the inference

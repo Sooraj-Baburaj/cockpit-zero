@@ -30,6 +30,7 @@ const api: IpcApi = {
   cancelAiStream: (streamId) => ipcRenderer.invoke(IpcChannels.cancelAiStream, streamId),
   draftWorkflow: (description) => ipcRenderer.invoke(IpcChannels.draftWorkflow, description),
   aiStatus: () => ipcRenderer.invoke(IpcChannels.aiStatus),
+  aiUsage: () => ipcRenderer.invoke(IpcChannels.aiUsage),
   runRoutine: (routineId) => ipcRenderer.invoke(IpcChannels.runRoutine, routineId),
   getDigest: (routineId) => ipcRenderer.invoke(IpcChannels.getDigest, routineId),
   listRoutines: () => ipcRenderer.invoke(IpcChannels.listRoutines),
@@ -41,6 +42,11 @@ const api: IpcApi = {
   memorySearch: (query) => ipcRenderer.invoke(IpcChannels.memorySearch, query),
   memoryForget: (id) => ipcRenderer.invoke(IpcChannels.memoryForget, id),
   memoryClear: () => ipcRenderer.invoke(IpcChannels.memoryClear),
+  // Cloud memory + knowledge (P8) — opt-in, signed-in only (gated in main).
+  memorySyncNow: () => ipcRenderer.invoke(IpcChannels.memorySyncNow),
+  knowledgeIngest: (paths) => ipcRenderer.invoke(IpcChannels.knowledgeIngest, paths),
+  knowledgeList: () => ipcRenderer.invoke(IpcChannels.knowledgeList),
+  knowledgeRemove: (docId) => ipcRenderer.invoke(IpcChannels.knowledgeRemove, docId),
   // The two push channels: subscribe to streamed task snapshots and streamed AI
   // answer events. These `ipcRenderer.on`s are the ONLY sanctioned ones (CLAUDE.md);
   // each returns an unsubscribe fn.
@@ -59,6 +65,13 @@ const api: IpcApi = {
   setSecret: (name, value) => ipcRenderer.invoke(IpcChannels.setSecret, name, value),
   clearSecret: (name) => ipcRenderer.invoke(IpcChannels.clearSecret, name),
   secretStatus: () => ipcRenderer.invoke(IpcChannels.secretStatus),
+  // Backend account + sync (P7). The session token stays in the main-process
+  // vault — only status/results cross the bridge.
+  signIn: (method, credentials) => ipcRenderer.invoke(IpcChannels.signIn, method, credentials),
+  signOut: () => ipcRenderer.invoke(IpcChannels.signOut),
+  authStatus: () => ipcRenderer.invoke(IpcChannels.authStatus),
+  syncPush: () => ipcRenderer.invoke(IpcChannels.syncPush),
+  syncPull: () => ipcRenderer.invoke(IpcChannels.syncPull),
   openConsole: () => ipcRenderer.invoke(IpcChannels.openConsole),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
   platform: process.platform,

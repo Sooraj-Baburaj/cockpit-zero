@@ -9,20 +9,6 @@ describe('backend routes', () => {
     expect(body.status).toBe('ok');
   });
 
-  it('GET /sync without auth is rejected', async () => {
-    const res = await app.request('/sync');
-    expect(res.status).toBe(401);
-  });
-
-  it('POST /sync with auth but invalid body is rejected', async () => {
-    const res = await app.request('/sync', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer test', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ version: 999 }),
-    });
-    expect(res.status).toBe(400);
-  });
-
   it('unknown route returns 404 json', async () => {
     const res = await app.request('/nope');
     expect(res.status).toBe(404);

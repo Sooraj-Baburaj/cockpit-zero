@@ -13,6 +13,8 @@ describe('AiSettingsSchema', () => {
       askFromBar: true,
       memoryEnabled: true,
       embeddingSource: 'local',
+      // Cloud memory sync (production phase 8) is opt-in — off by default.
+      memorySync: false,
       tools: ['files', 'calendar', 'slack'],
       // Bounded-cost knobs for the real agent loop (production phase 6).
       maxSteps: 12,

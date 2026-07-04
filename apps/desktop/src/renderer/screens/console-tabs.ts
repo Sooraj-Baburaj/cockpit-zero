@@ -15,6 +15,7 @@ export const CONSOLE_TABS = [
   'routines',
   'aliases',
   'config',
+  'account',
   'general',
   'appearance',
 ] as const;

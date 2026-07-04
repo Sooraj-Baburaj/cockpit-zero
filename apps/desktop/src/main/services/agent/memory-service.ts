@@ -1,3 +1,4 @@
+import { fuseHybridChannels } from '@cockpitzero/shared';
 import type { Config, MemoryRecord, MemoryStats } from '@cockpitzero/shared';
 import { cosineSimilarity, terms, type Embedder } from './embedder.js';
 import type { Extractor } from './extractor.js';
@@ -101,41 +102,10 @@ const SEMANTIC_POOL = 20;
  *  fusion, so an unrelated entry only surfaces if it also overlaps on keywords. */
 const SEMANTIC_FLOOR = 0;
 
-/** Reciprocal Rank Fusion constant — the standard 60 (dampens how much the very
- *  top of each list dominates, so the two channels combine smoothly). */
-const RRF_K = 60;
-
-/** Recency/importance fine-boosts. Deliberately smaller than one RRF rank gap
- *  (adjacent ranks differ by ~1/60−1/61 ≈ 5e-4), so semantic + keyword agreement
- *  decides ordering and these only nudge genuinely close matches / break exact ties
- *  (newer + more important first). Big enough to matter, too small to flip a clear
- *  rank — keeping a fresh, salient memory ahead of an equally-ranked stale one. */
-const RECENCY_WEIGHT = 0.0001;
-const IMPORTANCE_WEIGHT = 0.0001;
-
 /** Strip the (large, main-process-only) embedding before a record crosses IPC. */
 function toRecord(entry: MemoryEntry): MemoryRecord {
   const { embedding: _embedding, ...record } = entry;
   return record;
-}
-
-/**
- * Dense, tie-aware ranks over a score-sorted list: entries with equal score share
- * a rank. This is what lets recency genuinely break ties — two entries that score
- * identically on a channel get the same RRF contribution, so the recency boost
- * decides their order (acceptance criterion).
- */
-function rankWithTies(scored: { id: string; score: number }[]): Map<string, number> {
-  const sorted = [...scored].sort((a, b) => b.score - a.score);
-  const ranks = new Map<string, number>();
-  let rank = 0;
-  let prev: number | null = null;
-  sorted.forEach((s, i) => {
-    if (prev === null || s.score !== prev) rank = i;
-    ranks.set(s.id, rank);
-    prev = s.score;
-  });
-  return ranks;
 }
 
 export function createMemoryService({
@@ -214,13 +184,11 @@ export function createMemoryService({
     const all = await store.all();
     if (all.length === 0) return [];
 
-    // Semantic channel: nearest neighbors by cosine, above the noise floor (ordered,
-    // tie-aware ranks).
+    // Semantic channel: nearest neighbors by cosine, above the noise floor.
     const queryVec = await embedOne(query);
     const semantic = (
       await store.vectorSearch(queryVec, Math.min(SEMANTIC_POOL, all.length))
     ).filter((s) => s.score > SEMANTIC_FLOOR);
-    const semanticRanks = rankWithTies(semantic.map((s) => ({ id: s.entry.id, score: s.score })));
 
     // Keyword channel: term overlap over every entry (0-overlap entries excluded).
     const wantedSet = new Set(wanted);
@@ -232,37 +200,15 @@ export function createMemoryService({
         return { id: entry.id, score: overlap };
       })
       .filter((k) => k.score > 0);
-    const keywordRanks = rankWithTies(keyword);
 
-    // Normalize recency across the candidate set (newest = 1, oldest = 0) so the
-    // boost is bounded and deterministic regardless of absolute timestamps.
-    const byId = new Map(all.map((e) => [e.id, e]));
-    const candidateIds = new Set<string>([...semanticRanks.keys(), ...keywordRanks.keys()]);
-    const updatedAts = [...candidateIds].map((id) => byId.get(id)!.updatedAt);
-    const minTs = Math.min(...updatedAts);
-    const maxTs = Math.max(...updatedAts);
-    const recencyNorm = (ts: number) => (maxTs === minTs ? 1 : (ts - minTs) / (maxTs - minTs));
-
-    const fused = [...candidateIds].map((id) => {
-      const entry = byId.get(id)!;
-      const sRank = semanticRanks.get(id);
-      const kRank = keywordRanks.get(id);
-      let score = 0;
-      if (sRank !== undefined) score += 1 / (RRF_K + sRank);
-      if (kRank !== undefined) score += 1 / (RRF_K + kRank);
-      score += RECENCY_WEIGHT * recencyNorm(entry.updatedAt);
-      score += IMPORTANCE_WEIGHT * entry.importance;
-      return { entry, score };
+    // RRF + recency/importance nudges — the fusion math is shared with the
+    // backend's cloud recall (P8), so local and cloud rank identically.
+    return fuseHybridChannels({
+      entries: all,
+      semantic: semantic.map((s) => ({ id: s.entry.id, score: s.score })),
+      keyword,
+      limit,
     });
-
-    // Highest fused score first; newer (then higher importance) breaks exact ties.
-    fused.sort(
-      (a, b) =>
-        b.score - a.score ||
-        b.entry.updatedAt - a.entry.updatedAt ||
-        b.entry.importance - a.entry.importance,
-    );
-    return fused.slice(0, Math.max(0, limit)).map((f) => f.entry);
   }
 
   return {

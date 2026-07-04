@@ -11,6 +11,8 @@ import {
 } from '../../infra/agent/lance-memory-store.js';
 import { createExtractor } from '../agent/extractor.js';
 import { createMemoryService } from '../agent/memory-service.js';
+import { authService, backendClient } from '../auth/index.js';
+import { withCloudRecall } from './cloud-recall.js';
 
 /**
  * The wired local memory engine singleton (production phase 5) — the one place that
@@ -60,13 +62,29 @@ async function extractWithProvider(rawText: string): Promise<unknown> {
   return object;
 }
 
-const store = createLanceMemoryStore();
-const embedder = resolveEmbedder(readConfig, getKey);
+/** The LanceDB store + local embedder — exported for the P8 memory-sync wiring
+ *  (`services/sync/index.ts`), which pushes/pulls entries against this same
+ *  store and re-embeds pulled texts at the local dimension. */
+export const store = createLanceMemoryStore();
+export const embedder = resolveEmbedder(readConfig, getKey);
 
-export const memoryService = createMemoryService({
+const localMemoryService = createMemoryService({
   store,
   embedder,
   extractor: createExtractor({ generate: extractWithProvider }),
+  getConfig: readConfig,
+});
+
+/**
+ * The app-facing memory service: the local engine + P8 cloud recall fusion. For
+ * a signed-in user with `ai.memorySync` on, `recall` fuses local hits with the
+ * backend's cloud memories and ingested knowledge (degrading to local-only when
+ * offline/signed-out); every other method — writes, Console management — stays
+ * purely local. Free/local users hit the local path unchanged.
+ */
+export const memoryService = withCloudRecall(localMemoryService, {
+  http: backendClient,
+  getToken: () => authService.token(),
   getConfig: readConfig,
 });
 

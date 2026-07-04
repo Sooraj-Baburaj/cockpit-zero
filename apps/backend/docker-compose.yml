@@ -1,0 +1,29 @@
+# Dev database for the backend — Postgres 16 with pgvector, matching the
+# production stack (deploy/docker-compose.yml) so there is one migration story
+# (P7 goes straight to Postgres; P8 cloud memory needs pgvector).
+#
+#   pnpm --filter @cockpitzero/backend db:up      # start Postgres
+#   pnpm --filter @cockpitzero/backend db:migrate # apply migrations
+#   pnpm --filter @cockpitzero/backend dev        # run the API
+#
+# Credentials match the DATABASE_URL default in src/env.ts — dev only.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cockpitzero
+      POSTGRES_PASSWORD: cockpitzero
+      POSTGRES_DB: cockpitzero
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cockpitzero -d cockpitzero']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

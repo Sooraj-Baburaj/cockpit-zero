@@ -1,7 +1,21 @@
 # Production Phase 8 — Cloud memory + knowledge (logged-in)
 
-> **Status:** 🔜 Next · **Depends on:** P5 (local memory engine + ports), P7 (auth + a user id) ·
+> **Status:** ✅ Done · **Depends on:** P5 (local memory engine + ports), P7 (auth + a user id) ·
 > **Blocks:** nothing. **Risk:** high — the "best we can in the backend" memory + cross-device sync.
+>
+> **As built (July 2026):** backend `memories`/`documents`/`knowledge` tables (pgvector 1536-dim +
+> hnsw, `drizzle/0001`) behind `/memory/sync|search` + `/knowledge` routes; the pure fusion math
+> (RRF + recency/importance — `fuseHybridChannels`, `fuseRankedLists`) moved to
+> `packages/shared/src/memory-fusion.ts` and is shared by the local engine and the server. The
+> server **re-embeds** everything (`src/embedder.ts`: AI-SDK OpenAI embeddings, or a same-dimension
+> keyword-hash fallback when keyless — tests run on PGlite + `@electric-sql/pglite-pgvector`).
+> Chunker = `@langchain/textsplitters`, PDF extraction = `unpdf`. Desktop: `memory-sync-service`
+> (delta push/pull, per-device cursor in `userData/memory-sync.json`, pulled entries re-embedded
+> locally), the `withCloudRecall` decorator (local ∪ cloud ∪ knowledge; offline/signed-out ⇒
+> local-only), and `knowledge-service` + a native picker in infra. Console → Memory gained the
+> opt-in sync toggle, "Sync now" + last-synced, and the Knowledge view. One deviation from the
+> sketch below: `knowledgeIngest`/`knowledgeList` return `{ ok, …, error? }` shapes (and ingest
+> returns `docIds: string[]`) so the Console can render multi-file results + failures.
 
 For a **logged-in** user, memory and knowledge become **best-in-class server-side**: a Postgres +
 **pgvector** store, cross-device sync of memories, and **document/knowledge ingestion** (folders,
@@ -104,13 +118,13 @@ knowledgeRemove(docId: string): Promise<{ ok: boolean }>;
 
 ## Acceptance criteria
 
-- [ ] Signed in with sync on, a memory written on device A is recalled on device B after sync.
-- [ ] Recall fuses local + cloud + ingested knowledge; signed out/offline degrades cleanly to local.
-- [ ] Ingesting a PDF makes its content recallable + citable in `ask` answers (with a source).
-- [ ] Memory/knowledge are per-user and auth-gated; nothing syncs for free/local users.
-- [ ] Embedding dimensions are consistent (no mixed-dim corruption) — see Risks.
-- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm test` green (backend via `app.request`; pgvector behind a
-      test adapter or a flagged integration test).
+- [x] Signed in with sync on, a memory written on device A is recalled on device B after sync.
+- [x] Recall fuses local + cloud + ingested knowledge; signed out/offline degrades cleanly to local.
+- [x] Ingesting a PDF makes its content recallable + citable in `ask` answers (with a source).
+- [x] Memory/knowledge are per-user and auth-gated; nothing syncs for free/local users.
+- [x] Embedding dimensions are consistent (no mixed-dim corruption) — see Risks.
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm test` green (backend via `app.request`; pgvector runs
+      for real in tests via PGlite's pgvector build — no test adapter needed).
 
 ## Test plan
 

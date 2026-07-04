@@ -8,9 +8,11 @@ import {
   providerInfo,
   providerLabel,
   setAiToolGrant,
+  type AccountStatus,
   type AiProviderId,
   type AiSettings,
   type AiToolId,
+  type AiUsageSummary,
   type OpenAiCompatiblePreset,
 } from '@cockpitzero/shared';
 import { api } from '../../lib/api.js';
@@ -33,12 +35,16 @@ const PROMPT_CHIPS = [
   'What changed in Apollo today?',
 ];
 
-/** Provider picker options: every BYOP provider plus the offline demo for `mock`
- *  (so the control still reflects state on a fresh install). `managed` is phase 9. */
+/** BYOP provider picker options plus the offline demo for `mock` (so the control
+ *  still reflects state on a fresh install). The managed option (phase 9) is
+ *  prepended for signed-in users — see {@link AiPanel}. */
 const PROVIDER_OPTIONS = [
   ...PROVIDER_CATALOG.map((p) => ({ value: p.id, label: p.label })),
   { value: 'mock', label: 'Built-in demo (offline)' },
 ];
+
+/** The managed (paid) tier — "use CockpitZero's AI" vs "use my own key". */
+const MANAGED_OPTION = { value: 'managed', label: 'CockpitZero AI — managed' };
 
 /** Sentinel option that switches the model dropdown into a free-text field. */
 const CUSTOM_MODEL = '__custom__';
@@ -105,8 +111,15 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
   const [prompt, setPrompt] = useState('');
   const { phase, ask } = useAiAsk();
   const [status, setStatus] = useState<AiStatus | null>(null);
+  const [account, setAccount] = useState<AccountStatus | null>(null);
 
   const refreshStatus = () => void api.aiStatus().then(setStatus);
+
+  // Account state drives the managed-tier branch (P9): signed-in users get the
+  // "CockpitZero AI" choice; pro users on it see "Auto" instead of any picker.
+  useEffect(() => {
+    void api.authStatus().then(setAccount);
+  }, []);
 
   // Re-sync the draft + connection chip whenever the saved config changes (a save
   // here, or an external write). `ai` is a fresh object each save, so this resets
@@ -132,6 +145,13 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
   };
 
   const info = providerInfo(draft.provider);
+  const managed = draft.provider === 'managed';
+
+  // Offer the managed tier to signed-in users (a clear BYOP vs CockpitZero AI
+  // choice); always offer it while selected so the control reflects state even
+  // after a sign-out.
+  const providerOptions =
+    account?.signedIn || managed ? [MANAGED_OPTION, ...PROVIDER_OPTIONS] : PROVIDER_OPTIONS;
 
   const dirty =
     draft.provider !== ai.provider ||
@@ -233,17 +253,23 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
         <Labeled
           label="Provider"
           description={
-            info?.blurb ??
-            'Powers Ask AI, drafted workflows, and routine summaries — bring your own key.'
+            managed
+              ? 'Our models, our keys — routed automatically by task complexity. No API key needed.'
+              : (info?.blurb ??
+                'Powers Ask AI, drafted workflows, and routine summaries — bring your own key.')
           }
         >
           <Dropdown
             ariaLabel="AI provider"
             value={draft.provider}
-            options={PROVIDER_OPTIONS}
+            options={providerOptions}
             onChange={onProviderChange}
           />
         </Labeled>
+
+        {/* Managed (P9): no model/tier picker — the router decides. An "Auto"
+            explainer + plan state + the usage meter replace the BYOP controls. */}
+        {managed && <ManagedAutoCard account={account} />}
 
         {draft.provider === 'openai-compatible' && (
           <Labeled label="Base URL" description="The OpenAI-compatible endpoint to call.">
@@ -273,7 +299,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
           </Labeled>
         )}
 
-        {draft.provider !== 'mock' && (
+        {draft.provider !== 'mock' && !managed && (
           <Labeled label="Model" description="Pick a model, or choose Custom… to enter any id.">
             <ModelPicker
               key={draft.provider}
@@ -336,12 +362,70 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
 
       <footer className="mt-7 flex items-center justify-between gap-4 border-t [border-color:var(--cz-line-faint)] pt-4">
         <span className="text-[12.5px] text-subtle">
-          Local-first · your key stays in the OS keychain, never synced.
+          {managed
+            ? 'Managed · usage is metered to your account — no key ever touches this device.'
+            : 'Local-first · your key stays in the OS keychain, never synced.'}
         </span>
         <Button variant="dark" disabled={!dirty} onClick={() => onSave(draft)}>
           Save changes
         </Button>
       </footer>
+    </div>
+  );
+}
+
+/**
+ * The managed tier's control-surface replacement (P9): managed users never see a
+ * Mini/Pro/model picker — the backend router picks the model per request. This
+ * card explains "Auto", shows the connection/plan state, and reads the usage
+ * meter (`aiUsage`) so the user can see requests + tokens this period.
+ */
+function ManagedAutoCard({ account }: { account: AccountStatus | null }) {
+  const [usage, setUsage] = useState<AiUsageSummary | null>(null);
+
+  useEffect(() => {
+    void api.aiUsage().then(setUsage);
+  }, []);
+
+  const planState = !account
+    ? 'Checking your account…'
+    : !account.signedIn
+      ? 'Sign in via Console → Account to use CockpitZero AI.'
+      : account.plan === 'pro'
+        ? `Signed in as ${account.email} · Pro plan`
+        : `Signed in as ${account.email} · CockpitZero AI requires the Pro plan.`;
+  const eligible = account?.signedIn === true && account.plan === 'pro';
+
+  return (
+    <div className="rounded-[var(--cz-radius-md)] border [border-color:var(--cz-accent-line)] [background:var(--cz-glass-2)] px-4 py-3.5">
+      <div className="flex items-center gap-2">
+        <Sparkle className="size-4 shrink-0 text-accent" />
+        <span className="text-sm font-semibold text-fg">
+          Auto — we pick the best model per task
+        </span>
+      </div>
+      <p className="mt-1.5 text-[13px] leading-normal text-muted">
+        Simple asks run on a fast model, complex ones on a frontier model — routed per request by
+        task complexity. There is nothing to configure.
+      </p>
+      <p className={cn('mt-2 text-[12.5px]', eligible ? 'text-muted' : '[color:var(--cz-warn)]')}>
+        {planState}
+      </p>
+      {usage?.ok && (
+        <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1 border-t [border-color:var(--cz-line-faint)] pt-2.5 text-[12.5px] text-muted">
+          <span>
+            Usage {usage.period}: <b className="font-semibold text-fg">{usage.requests}</b>{' '}
+            requests
+          </span>
+          <span>
+            <b className="font-semibold text-fg">{usage.inputTokens.toLocaleString()}</b> tokens in
+          </span>
+          <span>
+            <b className="font-semibold text-fg">{usage.outputTokens.toLocaleString()}</b> tokens
+            out
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -11,6 +11,8 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import {
   AiDigestSummarySchema,
   AiWorkflowPlanSchema,
+  INFERENCE_SYSTEM_PROMPTS,
+  buildDigestPrompt,
   coerceDigestRankings,
   planToWorkflowDraft,
   providerInfo,
@@ -22,8 +24,6 @@ import type {
   AiProviderId,
   AiSettings,
   DigestRanking,
-  DigestSourceItem,
-  DigestSummarizeOptions,
   WorkflowDraft,
 } from '@cockpitzero/shared';
 import type { AiContext, AiProvider } from '../../services/ai/provider.js';
@@ -44,22 +44,11 @@ import type { AiContext, AiProvider } from '../../services/ai/provider.js';
  * (`planToWorkflowDraft` / `coerceDigestRankings`) and re-validated, never trusted raw.
  */
 
-const ASK_SYSTEM =
-  'You are CockpitZero, a fast, keyboard-first desktop assistant. Answer the user ' +
-  'concisely and concretely. Prefer short paragraphs and tight bullet points; lead ' +
-  'with the answer. You may use light markdown (bold, bullets). Do not invent facts.';
-
-const DRAFT_SYSTEM =
-  'You design small automation workflows for a desktop launcher. Given a request, ' +
-  'return an ordered list of 1–8 steps. Each step has a short title, a kind ' +
-  '(open-url | open-app | run-command | snippet), and a target: a full URL for ' +
-  'open-url, an application name for open-app, a shell command line for run-command, ' +
-  'or the literal text for snippet. Keep it realistic and minimal.';
-
-const DIGEST_SYSTEM =
-  'You triage a set of notifications into a morning digest. For each input item return ' +
-  'its exact id, a one-line summary, a bucket (now = needs action soon, wait = later, ' +
-  'noise = ignorable), and an importance score in [0,1]. Echo every id back exactly once.';
+// The task system prompts live in shared (`INFERENCE_SYSTEM_PROMPTS`) so the
+// managed backend (P9) runs the exact same prompts as this BYOP adapter.
+const ASK_SYSTEM = INFERENCE_SYSTEM_PROMPTS.ask;
+const DRAFT_SYSTEM = INFERENCE_SYSTEM_PROMPTS.workflow;
+const DIGEST_SYSTEM = INFERENCE_SYSTEM_PROMPTS.digest;
 
 /** Token usage shape we read defensively (AI SDK v5+: input/output/totalTokens). */
 type Usage = { inputTokens?: number; outputTokens?: number; totalTokens?: number };
@@ -118,17 +107,6 @@ function buildMeta(settings: AiSettings, startedAt: number, usage?: Usage): stri
   const total = usage?.totalTokens ?? (usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0);
   if (total > 0) parts.push(`${total} tok`);
   return parts.join(' · ');
-}
-
-/** Compact one-line-per-item prompt body for the digest summarize/rank step. */
-function digestPrompt(items: DigestSourceItem[], opts: DigestSummarizeOptions): string {
-  const lines = items
-    .map((it) => `- id=${it.id} | ${it.who} via ${it.source} | ${it.ageMinutes}m ago | ${it.text}`)
-    .join('\n');
-  return (
-    `Rank primarily by ${opts.rankBy}. Surface at most ${opts.maxItems} items as now/wait; ` +
-    `the rest are noise.\n\n${lines}`
-  );
 }
 
 /**
@@ -211,7 +189,7 @@ export function createSdkProvider(deps: SdkProviderDeps): AiProvider {
           model: modelFor(ctx.settings),
           schema: AiDigestSummarySchema,
           system: DIGEST_SYSTEM,
-          prompt: digestPrompt(items, opts),
+          prompt: buildDigestPrompt(items, opts),
         });
         return coerceDigestRankings(object, items, opts);
       } catch {

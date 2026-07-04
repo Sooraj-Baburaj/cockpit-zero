@@ -1,3 +1,6 @@
+import type { AccountStatus, PasswordCredentials, SignInMethod } from './account.js';
+import type { AiUsageSummary } from './inference.js';
+import type { KnowledgeDoc, MemorySyncResult } from './memory-sync.js';
 import type {
   AiAnswer,
   AiStreamEvent,
@@ -37,6 +40,7 @@ export const IpcChannels = {
   cancelAiStream: 'ai:ask-cancel',
   draftWorkflow: 'ai:draft-workflow',
   aiStatus: 'ai:status',
+  aiUsage: 'ai:usage',
   runRoutine: 'routine:run',
   getDigest: 'routine:get-digest',
   listRoutines: 'routine:list',
@@ -48,9 +52,18 @@ export const IpcChannels = {
   memorySearch: 'memory:search',
   memoryForget: 'memory:forget',
   memoryClear: 'memory:clear',
+  memorySyncNow: 'memory:sync',
+  knowledgeIngest: 'knowledge:ingest',
+  knowledgeList: 'knowledge:list',
+  knowledgeRemove: 'knowledge:remove',
   setSecret: 'secret:set',
   clearSecret: 'secret:clear',
   secretStatus: 'secret:status',
+  signIn: 'auth:sign-in',
+  signOut: 'auth:sign-out',
+  authStatus: 'auth:status',
+  syncPush: 'sync:push',
+  syncPull: 'sync:pull',
   openConsole: 'window:open-console',
   hideLauncher: 'window:hide-launcher',
 } as const;
@@ -122,6 +135,9 @@ export interface IpcApi {
   draftWorkflow(description: string): Promise<WorkflowDraft>;
   /** Whether AI is enabled + reachable, for surfaces that show connected state. */
   aiStatus(): Promise<{ enabled: boolean; provider: string; ok: boolean }>;
+  /** Managed-inference usage this period (P9): requests + tokens metered by the
+   *  backend per user. Resolves `{ ok: false, error }` when signed out. */
+  aiUsage(): Promise<AiUsageSummary>;
   /** Run a routine now (Phase 5): fan out to its sources, summarize + rank, and
    *  deliver. Resolves to the freshly computed digest (also stored for `getDigest`). */
   runRoutine(routineId: string): Promise<Digest>;
@@ -151,6 +167,19 @@ export interface IpcApi {
   memoryForget(id: string): Promise<{ ok: boolean }>;
   /** Clear all memory (the Console "clear memory" control). Idempotent. */
   memoryClear(): Promise<{ ok: boolean }>;
+  /** Cloud memory sync (production phase 8): push local deltas to the backend and
+   *  pull remote ones down (LWW + server dedup). Requires signed-in +
+   *  `ai.memorySync` on — otherwise resolves `{ ok: false, error }`. */
+  memorySyncNow(): Promise<MemorySyncResult>;
+  /** Ingest documents into the cloud knowledge base (P8). Empty `paths` opens the
+   *  native file picker in the main process; the files are extracted, chunked, and
+   *  embedded **server-side**. Signed-in only. */
+  knowledgeIngest(paths: string[]): Promise<{ ok: boolean; docIds: string[]; error?: string }>;
+  /** The user's ingested knowledge documents (Console → Memory → Knowledge). */
+  knowledgeList(): Promise<{ ok: boolean; docs: KnowledgeDoc[]; error?: string }>;
+  /** Remove one ingested document (deletes its chunks server-side — a real
+   *  deletion, not a soft hide). */
+  knowledgeRemove(docId: string): Promise<{ ok: boolean; error?: string }>;
   /** Subscribe to streamed task updates (a push channel). Returns an unsubscribe
    *  fn. Registered in preload (one of the two sanctioned `ipcRenderer.on`s). */
   onTaskUpdate(callback: (run: TaskRun) => void): () => void;
@@ -166,6 +195,24 @@ export interface IpcApi {
   /** Which secrets are currently set — name → present. There is **no** matching
    *  `getSecret`: plaintext never leaves the main process. */
   secretStatus(): Promise<Record<string, boolean>>;
+  /** Sign in to the (optional) backend account (P7). OAuth methods open the
+   *  system browser and resolve when the loopback callback lands; `password`
+   *  posts the inline credentials (`create: true` = sign-up). The session token
+   *  goes straight into the vault — it never crosses back over the bridge. */
+  signIn(
+    method: SignInMethod,
+    credentials?: PasswordCredentials,
+  ): Promise<{ ok: boolean; error?: string }>;
+  /** Sign out: revoke the backend session (best-effort) and clear the vault token. */
+  signOut(): Promise<void>;
+  /** Whoami — signed-in state + email/plan for the Account panel. Resolves
+   *  `{ signedIn: false }` when logged out or the backend is unreachable. */
+  authStatus(): Promise<AccountStatus>;
+  /** Push the current local Config to the backend (`POST /sync`, LWW). */
+  syncPush(): Promise<{ ok: boolean; syncedAt?: string; error?: string }>;
+  /** Pull the latest cloud Config (`GET /sync`) — `null` if never pushed. The
+   *  renderer decides whether to apply it (via `setConfig`). */
+  syncPull(): Promise<{ ok: boolean; config: Config | null; error?: string }>;
   openConsole(): Promise<void>;
   hideLauncher(): Promise<void>;
   /** The host platform, so the renderer can render OS-correct shortcut glyphs. */

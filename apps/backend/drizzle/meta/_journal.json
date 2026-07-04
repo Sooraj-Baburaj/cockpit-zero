@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783099050282,
+      "tag": "0000_dry_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783100791187,
+      "tag": "0001_freezing_lilandra",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783154375743,
+      "tag": "0002_right_steel_serpent",
+      "breakpoints": true
+    }
+  ]
+}

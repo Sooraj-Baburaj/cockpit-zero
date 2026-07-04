@@ -28,6 +28,7 @@ const MOCK_CONFIG: Config = {
     askFromBar: true,
     memoryEnabled: true,
     embeddingSource: 'local',
+    memorySync: false,
     tools: ['files', 'calendar', 'slack'],
     maxSteps: 12,
     maxToolCalls: 16,
@@ -297,6 +298,15 @@ const mockApi: IpcApi = {
     ],
   }),
   aiStatus: async () => ({ enabled: true, provider: 'mock', ok: true }),
+  // A browser tab has no backend session — the permanent signed-out state.
+  aiUsage: async () => ({
+    ok: false,
+    period: '',
+    requests: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    error: 'Sign in to see your AI usage.',
+  }),
   runRoutine: async () => MOCK_DIGEST,
   getDigest: async () => MOCK_DIGEST,
   listRoutines: async () => MOCK_CONFIG.routines,
@@ -315,6 +325,13 @@ const mockApi: IpcApi = {
     return { ok: true };
   },
   secretStatus: async () => Object.fromEntries([...mockSecrets].map((name) => [name, true])),
+  // Account + sync (P7): a browser tab has no backend session — behave as the
+  // permanent signed-out free/local state.
+  signIn: async () => ({ ok: false, error: 'Sign-in needs the desktop app (dev bridge).' }),
+  signOut: async () => {},
+  authStatus: async () => ({ signedIn: false }),
+  syncPush: async () => ({ ok: false, error: 'Sign in to sync your config.' }),
+  syncPull: async () => ({ ok: false, config: null, error: 'Sign in to sync your config.' }),
   memoryStats: async () => ({
     count: mockMemories.length,
     updatedAt: mockMemories.length === 0 ? null : Math.max(...mockMemories.map((m) => m.updatedAt)),
@@ -335,6 +352,21 @@ const mockApi: IpcApi = {
     mockMemories = [];
     return { ok: true };
   },
+  // Cloud memory + knowledge (P8): a browser tab has no backend session — behave
+  // as the permanent signed-out state (the real gating lives in the main process).
+  memorySyncNow: async () => ({
+    ok: false,
+    pushed: 0,
+    pulled: 0,
+    error: 'Sign in and turn on memory sync to sync memories.',
+  }),
+  knowledgeIngest: async () => ({
+    ok: false,
+    docIds: [],
+    error: 'Sign in to add documents to your cloud knowledge.',
+  }),
+  knowledgeList: async () => ({ ok: true, docs: [] }),
+  knowledgeRemove: async () => ({ ok: false }),
   openConsole: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',

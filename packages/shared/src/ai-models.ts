@@ -240,8 +240,10 @@ export function providerInfo(provider: AiProviderId): ProviderInfo | undefined {
   return PROVIDER_CATALOG.find((p) => p.id === provider);
 }
 
-/** Human label for any provider id, falling back to the raw id (mock/managed). */
+/** Human label for any provider id. `managed` (P9, not in the BYOP catalog) gets
+ *  its product name; anything else non-catalog falls back to the raw id. */
 export function providerLabel(provider: AiProviderId): string {
+  if (provider === 'managed') return 'CockpitZero AI';
   return providerInfo(provider)?.label ?? provider;
 }
 

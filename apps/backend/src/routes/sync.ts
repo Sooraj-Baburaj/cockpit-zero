@@ -1,24 +1,37 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
+import { eq } from 'drizzle-orm';
 import { ConfigSchema } from '@cockpitzero/shared';
+import { db } from '../db/index.js';
+import { configs } from '../db/schema.js';
 import { requireAuth } from '../middleware/auth.js';
 
 /**
- * Config sync across devices (auth-gated, stubbed). The shared ConfigSchema is
- * the source of truth for the request body — no separate validation type.
+ * Real cross-device config sync (P7). One config row per user, validated
+ * against the shared ConfigSchema on write. Conflict policy is last-write-wins
+ * on `updatedAt` — config is coarse-grained, so LWW is acceptable for now
+ * (a real merge is a later refinement, per the phase doc).
  */
 export const sync = new Hono()
   .use('*', requireAuth)
-  // Push local config up.
-  .post('/', zValidator('json', ConfigSchema), (c) => {
+  // Push local config up (upsert — the newest push wins).
+  .post('/', zValidator('json', ConfigSchema), async (c) => {
     const config = c.req.valid('json');
     const userId = c.get('userId');
-    // TODO: persist `config` for `userId` via db (configs table).
-    return c.json({ ok: true, userId, syncedAt: new Date().toISOString(), config });
+    const updatedAt = new Date();
+    await db
+      .insert(configs)
+      .values({ userId, payload: config, updatedAt })
+      .onConflictDoUpdate({ target: configs.userId, set: { payload: config, updatedAt } });
+    return c.json({ ok: true, syncedAt: updatedAt.toISOString() });
   })
-  // Pull latest config down.
-  .get('/', (c) => {
+  // Pull the latest config down (null when the user has never pushed).
+  .get('/', async (c) => {
     const userId = c.get('userId');
-    // TODO: load latest config for `userId`; null means none yet.
-    return c.json({ ok: true, userId, config: null });
+    const row = await db.query.configs.findFirst({ where: eq(configs.userId, userId) });
+    return c.json({
+      ok: true,
+      config: row?.payload ?? null,
+      syncedAt: row?.updatedAt.toISOString() ?? null,
+    });
   });

@@ -324,8 +324,8 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
   (`.cz-window`) share `--cz-panel-bg`'s alpha (per theme); the "Frosted glass" toggle swaps both to
   opaque via `.cz-no-glass`. Tune transparency on that token, not on components.
 - **Console nav order** is the `CONSOLE_TABS` array in `screens/console-tabs.ts` (actions → ai →
-  workflows → routines → aliases → config → general → appearance); the initial tab
-  (`INITIAL_CONSOLE_TAB`) must be a member of it.
+  memory → workflows → routines → aliases → config → account → general → appearance); the initial
+  tab (`INITIAL_CONSOLE_TAB`) must be a member of it.
 
 ## Code intelligence (codegraph)
 
@@ -359,8 +359,19 @@ absent, run `codegraph init .`. It's an authoring aid only — nothing at runtim
   a copy-paste kickoff prompt.
 - electron-builder packaging (`electron-builder.yml`) is scaffolded but not a focus; add signing
   - icons before shipping installers.
-- Backend `/sync` and `/auth` are still **stubs** (shape-validated, no real persistence/auth) — made
-  real in production phase 7 (better-auth + real `/sync`).
-- SQLite is the dev default; Postgres is supported structurally (swap the driver in
-  `apps/backend/src/db/index.ts` + `drizzle.config.ts`) and is **required** from production phase 8
-  (cloud memory needs pgvector).
+- Backend auth + sync are **real** (production phase 7): better-auth (email/password + optional
+  Google/GitHub) mounted at `/auth/*`, `requireAuth` validates real sessions (cookie or bearer),
+  `/sync` persists per-user `Config` (LWW upsert). Desktop OAuth = system browser →
+  `/desktop-auth/*` one-time-code handoff → loopback; the session token lives in the P2 vault.
+- The backend is **Postgres-only** (P7 went straight to Postgres per SHIPPING.md):
+  `pnpm --filter @cockpitzero/backend db:up` starts the dev instance (Docker, pgvector image),
+  `db:migrate` applies migrations. Backend tests need no Docker — they run on **PGlite**
+  (in-process Postgres, `DATABASE_URL=pglite://memory` + the `@electric-sql/pglite-pgvector`
+  extension, so the P8 vector/hnsw schema works in tests; see `apps/backend/vitest.config.ts`).
+- Cloud memory + knowledge are **real** (production phase 8): opt-in (`ai.memorySync`) + signed-in
+  only. Backend `memories`/`documents`/`knowledge` tables (pgvector) behind `/memory/*` +
+  `/knowledge/*`; the recall **fusion math is shared** (`packages/shared/src/memory-fusion.ts`) —
+  never fork it per store. The server **re-embeds** all synced/ingested text (`src/embedder.ts`,
+  `OPENAI_API_KEY` or a keyless hash fallback); devices never upload vectors, and the desktop
+  re-embeds pulls locally (`memory-sync-service`). Recall fuses local ∪ cloud ∪ knowledge via the
+  `withCloudRecall` decorator and degrades to local-only offline/signed-out.

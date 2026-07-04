@@ -1,11 +1,12 @@
 import { SecretName } from '@cockpitzero/shared';
-import type { AiProviderId } from '@cockpitzero/shared';
+import type { AiProviderId, AiUsageSummary } from '@cockpitzero/shared';
 import { readConfig } from '../../infra/store.js';
 import { createMockProvider } from '../../infra/ai/mock-provider.js';
 import { createManagedProvider } from '../../infra/ai/managed-provider.js';
 import { createSdkProvider } from '../../infra/ai/sdk-provider.js';
 import { secretsService } from '../secrets/index.js';
 import { memoryService } from '../memory/index.js';
+import { authService, backendClient } from '../auth/index.js';
 import { createAiService } from './ai-service.js';
 
 /**
@@ -17,7 +18,8 @@ import { createAiService } from './ai-service.js';
  * Every real BYOP provider is served by **one** universal SDK adapter (it branches on
  * `config.ai.provider` internally), reading the API key in-process from the secrets
  * vault — never `config.json` or the renderer (CLAUDE.md). `mock` stays for tests/CI
- * + the fresh-install fallback; `managed` is the reserved phase-9 slot.
+ * + the fresh-install fallback; `managed` (P9) proxies through our backend with the
+ * vault session token — no client-side key, the server's router picks the model.
  */
 const sdk = createSdkProvider({
   getKey: (provider: AiProviderId) => secretsService.get(SecretName.providerKey(provider)),
@@ -34,7 +36,11 @@ export const aiService = createAiService({
     cohere: sdk,
     deepseek: sdk,
     'openai-compatible': sdk,
-    managed: createManagedProvider(),
+    managed: createManagedProvider({
+      http: backendClient,
+      getToken: () => authService.token(),
+      getPlan: () => authService.plan(),
+    }),
     mock: createMockProvider(),
   },
   getConfig: readConfig,
@@ -43,3 +49,19 @@ export const aiService = createAiService({
   // the launcher, and the Console all read/write one memory.
   memory: memoryService,
 });
+
+/** Managed-usage read for the Console (`aiUsage` IPC): the backend's per-user
+ *  meter for the current period. Signed-out (or unreachable) resolves a zeroed
+ *  `{ ok: false }` — the panel shows the sign-in nudge, nothing throws. */
+export async function fetchAiUsage(): Promise<AiUsageSummary> {
+  const empty = { period: '', requests: 0, inputTokens: 0, outputTokens: 0 };
+  const token = authService.token();
+  if (!token) return { ok: false, ...empty, error: 'Sign in to see your AI usage.' };
+  try {
+    const res = await backendClient.request('/usage', { token });
+    if (!res.ok) return { ok: false, ...empty, error: `Usage read failed (${res.status}).` };
+    return (await res.json()) as AiUsageSummary;
+  } catch (err) {
+    return { ok: false, ...empty, error: err instanceof Error ? err.message : String(err) };
+  }
+}

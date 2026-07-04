@@ -7,7 +7,7 @@ import {
   effectiveArguments,
   valuesToRecord,
 } from '@cockpitzero/shared';
-import type { AiStreamEvent } from '@cockpitzero/shared';
+import type { AiStreamEvent, PasswordCredentials, SignInMethod } from '@cockpitzero/shared';
 import { getConfig, updateConfig } from '../services/config-service.js';
 import { resolveLauncherQuery, searchSystem } from '../services/search-service.js';
 import { runAction } from '../services/action-runner/index.js';
@@ -15,11 +15,14 @@ import { runWorkflow } from '../services/workflow-runner.js';
 import { getFileIcon } from '../services/icon-service.js';
 import { getFavicon } from '../services/favicon-service.js';
 import { completePath } from '../services/path-complete.js';
-import { aiService } from '../services/ai/index.js';
+import { aiService, fetchAiUsage } from '../services/ai/index.js';
 import { getDigest, listRoutines, runRoutine } from '../services/routines/index.js';
 import { approveTask, getTask, startTask, stopTask } from '../services/agent/index.js';
 import { memoryService } from '../services/memory/index.js';
 import { secretsService } from '../services/secrets/index.js';
+import { authService } from '../services/auth/index.js';
+import { memorySyncService, syncService } from '../services/sync/index.js';
+import { knowledgeService } from '../services/knowledge/index.js';
 import { recordUse } from '../services/usage-service.js';
 import { isHotkeyAvailable } from '../app/hotkey.js';
 import { electronPorts } from '../infra/electron-ports.js';
@@ -179,6 +182,10 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IpcChannels.aiStatus, () => aiService.status());
 
+  // Managed-inference usage meter (P9) — the Console's "AI usage this period"
+  // readout. Gated server-side; signed-out resolves `{ ok: false, error }`.
+  ipcMain.handle(IpcChannels.aiUsage, () => fetchAiUsage());
+
   // Routines (Phase 5). `runRoutine` fans out to (mock) sources, summarizes +
   // ranks via the AI service, stores the digest, and opens the briefing window;
   // `getDigest` returns the last-computed digest for the briefing surface.
@@ -210,6 +217,21 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IpcChannels.memoryClear, () => memoryService.clear());
 
+  // Cloud memory + knowledge (production P8) — opt-in, signed-in only. The
+  // services gate themselves (vault token + `ai.memorySync`), so these handlers
+  // stay thin; a signed-out call resolves `{ ok: false, error }`.
+  ipcMain.handle(IpcChannels.memorySyncNow, () => memorySyncService.syncNow());
+
+  ipcMain.handle(IpcChannels.knowledgeIngest, (_e, paths: string[]) =>
+    knowledgeService.ingest(Array.isArray(paths) ? paths : []),
+  );
+
+  ipcMain.handle(IpcChannels.knowledgeList, () => knowledgeService.list());
+
+  ipcMain.handle(IpcChannels.knowledgeRemove, (_e, docId: string) =>
+    knowledgeService.remove(docId),
+  );
+
   // Secrets vault (production Phase 2). The OS-keychain-backed vault for BYOP keys
   // (P3), the session token (P7), and OAuth tokens (P10). Deliberately NO
   // `getSecret` handler — plaintext never crosses the bridge; in-process callers
@@ -221,6 +243,23 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.clearSecret, (_e, name: string) => secretsService.delete(name));
 
   ipcMain.handle(IpcChannels.secretStatus, () => secretsService.status());
+
+  // Backend account + sync (production P7). Sign-in stores the session token in
+  // the vault inside the main process — the token itself never crosses the
+  // bridge; the renderer only ever sees ok/error and the AccountStatus shape.
+  ipcMain.handle(
+    IpcChannels.signIn,
+    (_e, method: SignInMethod, credentials?: PasswordCredentials) =>
+      authService.signIn(method, credentials),
+  );
+
+  ipcMain.handle(IpcChannels.signOut, () => authService.signOut());
+
+  ipcMain.handle(IpcChannels.authStatus, () => authService.status());
+
+  ipcMain.handle(IpcChannels.syncPush, () => syncService.push());
+
+  ipcMain.handle(IpcChannels.syncPull, () => syncService.pull());
 
   ipcMain.handle(IpcChannels.openConsole, () => {
     openConsole();

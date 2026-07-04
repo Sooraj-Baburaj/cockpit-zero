@@ -212,6 +212,11 @@ export const AiSettingsSchema = z.object({
    *  model (higher quality, needs a key). Switching source changes the vector
    *  dimension, so it requires a one-time "rebuild memory" (clear + re-embed). */
   embeddingSource: z.enum(['local', 'provider']).default('local'),
+  /** Cloud memory sync (production phase 8). **Opt-in** and only meaningful when
+   *  signed in: memories sync to the backend pgvector store and recall fuses
+   *  local + cloud + knowledge. Off (the default) ⇒ fully local, nothing leaves
+   *  the device. Additive default so `version` stays 1. */
+  memorySync: z.boolean().default(false),
   /** Per-tool grants for the assistant (Phase 7 enforces). */
   tools: z.array(AiToolIdSchema).default(['files', 'calendar', 'slack']),
   /** Bounded-cost knobs for the real agent loop (production phase 6). Hard caps so a

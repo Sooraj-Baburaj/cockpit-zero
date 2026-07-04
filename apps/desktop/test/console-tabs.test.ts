@@ -18,6 +18,10 @@ describe('console tabs', () => {
     expect(CONSOLE_TABS).toContain('routines');
   });
 
+  it('registers the Account tab (P7)', () => {
+    expect(CONSOLE_TABS).toContain('account');
+  });
+
   it('omits the still-out-of-scope scripts tab', () => {
     expect(CONSOLE_TABS).not.toContain('scripts');
   });

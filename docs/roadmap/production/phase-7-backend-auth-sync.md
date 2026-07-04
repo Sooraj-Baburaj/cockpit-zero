@@ -1,8 +1,17 @@
 # Production Phase 7 — Backend auth + real cloud sync
 
-> **Status:** 🔜 Next · **Depends on:** P2 (vault, for the desktop session token) · **Blocks:** P8
+> **Status:** ✅ Done · **Depends on:** P2 (vault, for the desktop session token) · **Blocks:** P8
 > (cloud memory), P9 (managed inference), P10 (per-user OAuth). **Risk:** high — real accounts +
 > the security boundary. Can run as a parallel backend track from day one.
+>
+> **As built (July 2026):** better-auth 1.6 (Drizzle adapter, `bearer` plugin) mounted at `/auth/*`;
+> the backend went **straight to Postgres** (SHIPPING.md delta) — `apps/backend/docker-compose.yml`
+> (pgvector image) for dev, **PGlite** for tests, one pg-core schema + committed migrations. Desktop
+> OAuth is system browser → `/desktop-auth/start|complete|exchange` (one-time-code handoff) →
+> 127.0.0.1 loopback; email/password is inline in the Console → **Account** panel. The session token
+> lives in the vault (`SecretName.sessionToken`); sync is `syncPush`/`syncPull` over IPC (pull
+> applies via the normal `setConfig` path after ConfigSchema validation). Verification/reset emails
+> go via Resend when `RESEND_API_KEY` is set, else the dev console log.
 
 The backend `/auth` and `/sync` are **stubs** (`token: 'stub-token'`, `requireAuth` fakes a user,
 `/sync` persists nothing). This phase makes accounts and cross-device config sync **real**, so a
@@ -109,15 +118,15 @@ syncPull(): Promise<{ ok: boolean; config: Config | null }>;
 
 ## Acceptance criteria
 
-- [ ] A real account can be created and signed into (email/password + at least one OAuth provider);
+- [x] A real account can be created and signed into (email/password + at least one OAuth provider);
       verification/reset emails are sent (or dev-logged).
-- [ ] `requireAuth` rejects missing/invalid sessions and accepts real ones (the stub is gone).
-- [ ] `POST /sync` persists the user's `Config` to the DB; `GET /sync` returns it; round-trips through
+- [x] `requireAuth` rejects missing/invalid sessions and accepts real ones (the stub is gone).
+- [x] `POST /sync` persists the user's `Config` to the DB; `GET /sync` returns it; round-trips through
       `ConfigSchema`.
-- [ ] The desktop stores the session token in the **vault** (not `config.json`); sign-out clears it.
-- [ ] Free/local usage requires **no** login and is unchanged.
-- [ ] Backend tests (`app.request`) cover auth-gated sync (200 with session, 401 without).
-- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm test` green.
+- [x] The desktop stores the session token in the **vault** (not `config.json`); sign-out clears it.
+- [x] Free/local usage requires **no** login and is unchanged.
+- [x] Backend tests (`app.request`) cover auth-gated sync (200 with session, 401 without).
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm test` green.
 
 ## Test plan
 

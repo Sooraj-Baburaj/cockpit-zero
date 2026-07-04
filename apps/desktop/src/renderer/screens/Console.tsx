@@ -15,6 +15,7 @@ import { ConsolePanel } from '../components/organisms/ConsolePanel.js';
 import { AppearancePanel } from '../components/organisms/AppearancePanel.js';
 import { AiPanel } from '../components/organisms/AiPanel.js';
 import { MemoryPanel } from '../components/organisms/MemoryPanel.js';
+import { AccountPanel } from '../components/organisms/AccountPanel.js';
 import { RoutinesPanel } from '../components/organisms/RoutinesPanel.js';
 import { YamlConfigEditor } from '../components/organisms/YamlConfigEditor.js';
 import { ActionList } from '../components/organisms/ActionList.js';
@@ -99,7 +100,9 @@ export function Console() {
 
       {tab === 'ai' && <AiPanel ai={config.ai} onSave={(ai) => persist({ ...config, ai })} />}
 
-      {tab === 'memory' && <MemoryPanel memoryEnabled={config.ai.memoryEnabled} />}
+      {tab === 'memory' && (
+        <MemoryPanel ai={config.ai} onSaveAi={(ai) => persist({ ...config, ai })} />
+      )}
 
       {tab === 'routines' && (
         <RoutinesPanel
@@ -110,6 +113,8 @@ export function Console() {
       )}
 
       {tab === 'config' && <YamlConfigEditor config={config} onSave={persist} />}
+
+      {tab === 'account' && <AccountPanel onApplyConfig={persist} />}
 
       {tab === 'appearance' && (
         <AppearancePanel settings={config.settings} onChange={updateSettings} />

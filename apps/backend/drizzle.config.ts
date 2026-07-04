@@ -1,15 +1,17 @@
 import { defineConfig } from 'drizzle-kit';
 
 /**
- * Local dev uses SQLite (libSQL). To target Postgres for prod, change
- * `dialect` to 'postgresql' and point DATABASE_URL at your Postgres instance
- * (see src/db/index.ts for the matching driver swap).
+ * Postgres everywhere (P7 goes straight to Postgres — see SHIPPING.md): dev
+ * points at the docker-compose.yml instance, prod at the deploy-stack DB via
+ * DATABASE_URL. Migrations in ./drizzle are committed; regenerate with
+ * `pnpm db:generate` after schema changes, apply with `pnpm db:migrate`.
  */
 export default defineConfig({
   schema: './src/db/schema.ts',
   out: './drizzle',
-  dialect: 'sqlite',
+  dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? 'file:./drizzle/dev.sqlite',
+    url:
+      process.env.DATABASE_URL ?? 'postgres://cockpitzero:cockpitzero@localhost:5432/cockpitzero',
   },
 });
