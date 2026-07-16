@@ -37,6 +37,7 @@ export const IpcChannels = {
   getFavicon: 'system:get-favicon',
   completePath: 'system:complete-path',
   checkHotkey: 'system:check-hotkey',
+  hotkeyStatus: 'system:hotkey-status',
   askAI: 'ai:ask',
   askAIStream: 'ai:ask-stream',
   cancelAiStream: 'ai:ask-cancel',
@@ -61,6 +62,7 @@ export const IpcChannels = {
   setSecret: 'secret:set',
   clearSecret: 'secret:clear',
   secretStatus: 'secret:status',
+  secretsAvailable: 'secret:available',
   connectSource: 'integration:connect',
   disconnectSource: 'integration:disconnect',
   connectionStatus: 'integration:status',
@@ -124,6 +126,10 @@ export interface IpcApi {
    *  another app). Used by the hotkey recorder to reject a conflicting chord
    *  before it's committed to config. The current hotkey counts as available. */
   checkHotkey(accelerator: string): Promise<boolean>;
+  /** Whether the configured global hotkey actually registered, plus whether the
+   *  session is Wayland (where Electron global shortcuts don't work — the
+   *  Console then offers the `cockpitzero --toggle` system-shortcut fallback). */
+  hotkeyStatus(): Promise<{ registered: boolean; wayland: boolean }>;
   /** Ask the assistant a free-text question; resolves to an answer + suggested
    *  actions. Promise-based (resolve-once) — kept as the compat/single-value path
    *  alongside the streamed `askAIStream` (P4). */
@@ -200,6 +206,10 @@ export interface IpcApi {
   /** Which secrets are currently set — name → present. There is **no** matching
    *  `getSecret`: plaintext never leaves the main process. */
   secretStatus(): Promise<Record<string, boolean>>;
+  /** Whether OS-keychain-backed secure storage is available at all — false e.g.
+   *  on Linux without a keyring (libsecret). Surfaces let the user know keys
+   *  can't be saved *before* they try, instead of failing the save. */
+  secretsAvailable(): Promise<boolean>;
   /** Connect an integration (P10). With no `token` it runs the system-browser
    *  OAuth flow (loopback callback); with a pasted `token` it validates the
    *  credential against the service. Either way the token lands in the vault —

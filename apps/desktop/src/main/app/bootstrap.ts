@@ -15,7 +15,9 @@ export function bootstrap(): void {
   // macOS: keep running with no visible windows (launcher is a background agent).
   if (process.platform === 'darwin') app.dock?.hide();
 
-  // Single-instance lock — a second launch just toggles the launcher.
+  // Single-instance lock — a second launch just toggles the launcher. This is
+  // also the Wayland hotkey fallback: `cockpitzero --toggle` bound to a system
+  // shortcut lands here as a second instance and summons the bar.
   if (app.isPackaged && !app.requestSingleInstanceLock()) {
     app.quit();
     return;
@@ -29,6 +31,10 @@ export function bootstrap(): void {
 
     const hotkey = getConfig().settings.hotkey;
     if (!registerHotkey(hotkey)) console.error(`Failed to register global hotkey: ${hotkey}`);
+
+    // `cockpitzero --toggle` when the app wasn't running yet: the system
+    // shortcut started us, so show the bar immediately rather than just idling.
+    if (process.argv.includes('--toggle')) toggleLauncher();
 
     // Fire scheduled routines (e.g. the morning digest) in the background.
     startRoutineScheduler();

@@ -191,6 +191,7 @@ const mockApi: IpcApi = {
   getFavicon: async () => null,
   completePath: async () => [],
   checkHotkey: async () => true,
+  hotkeyStatus: async () => ({ registered: true, wayland: false }),
   askAI: async (prompt) => ({
     text:
       `**Mock answer** for “${prompt.trim()}” (dev bridge — no main process). Launch slipped ` +
@@ -320,6 +321,7 @@ const mockApi: IpcApi = {
     return { ok: true };
   },
   secretStatus: async () => Object.fromEntries([...mockSecrets].map((name) => [name, true])),
+  secretsAvailable: async () => true,
   // Integrations (P10): a browser tab can't run OAuth or reach the vault — every
   // source reads as disconnected and connect attempts explain why.
   connectSource: async () => ({

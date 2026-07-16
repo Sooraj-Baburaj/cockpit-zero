@@ -1,4 +1,4 @@
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -8,8 +8,9 @@ import type { AppEntry, ScanInstalledApps } from '../services/search/provider.js
  * Discovers installed applications per-OS. Pure Node (fs/os/path) — no electron —
  * so it's cheap and directly testable; the apps-provider caches the result so the
  * scan runs rarely. macOS reads the standard Applications dirs for `.app`
- * bundles; Windows walks the Start-Menu tree for `.lnk` shortcuts. Missing or
- * unreadable directories are skipped silently. Linux is not supported yet.
+ * bundles; Windows walks the Start-Menu tree for `.lnk` shortcuts; Linux parses
+ * `.desktop` entries from the XDG data dirs (plus flatpak/snap exports). Missing
+ * or unreadable directories are skipped silently.
  */
 
 /** Immediate entries of a dir (with file types), or [] if it can't be read. */
@@ -87,13 +88,107 @@ async function scanWindows(): Promise<AppEntry[]> {
   return apps;
 }
 
-/** Scan installed apps for the current platform (darwin/win32; else empty). */
+/** The fields of a `.desktop` file's `[Desktop Entry]` group we care about. */
+export interface DesktopEntry {
+  /** The unlocalized `Name=`, or null if the file doesn't declare one. */
+  name: string | null;
+  /** False when the entry asks not to be listed (`NoDisplay`/`Hidden`) or isn't
+   *  a launchable application (`Type` other than `Application`). */
+  listed: boolean;
+}
+
+/**
+ * Parse the `[Desktop Entry]` group of a freedesktop `.desktop` file. Localized
+ * keys (`Name[de]=`) are ignored — the unlocalized `Name` is the stable one.
+ * Exported for tests (the only pure part of the Linux scan).
+ */
+export function parseDesktopEntry(content: string): DesktopEntry {
+  let inEntry = false;
+  let name: string | null = null;
+  let listed = true;
+  for (const raw of content.split('\n')) {
+    const line = raw.trim();
+    if (line === '' || line.startsWith('#')) continue;
+    if (line.startsWith('[')) {
+      // Only the [Desktop Entry] group matters; stop at the next group
+      // ([Desktop Action …] etc.) once we've seen it.
+      if (inEntry) break;
+      inEntry = line === '[Desktop Entry]';
+      continue;
+    }
+    if (!inEntry) continue;
+    const eq = line.indexOf('=');
+    if (eq === -1) continue;
+    const key = line.slice(0, eq).trim();
+    const value = line.slice(eq + 1).trim();
+    if (key === 'Name') name = value;
+    else if ((key === 'NoDisplay' || key === 'Hidden') && value === 'true') listed = false;
+    else if (key === 'Type' && value !== 'Application') listed = false;
+  }
+  return { name, listed };
+}
+
+/** Read + parse one `.desktop` file, or null if it can't be read. */
+async function safeParseDesktopFile(path: string): Promise<DesktopEntry | null> {
+  try {
+    return parseDesktopEntry(await readFile(path, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/** XDG data dirs that can hold `.desktop` entries, user dirs first (they take
+ *  precedence per the XDG spec), plus the flatpak and snap export dirs. */
+function linuxAppDirs(): string[] {
+  const dataHome = process.env['XDG_DATA_HOME'] ?? join(homedir(), '.local', 'share');
+  const dataDirs = (process.env['XDG_DATA_DIRS'] ?? '/usr/local/share:/usr/share')
+    .split(':')
+    .filter(Boolean);
+  return [
+    ...new Set([
+      join(dataHome, 'applications'),
+      join(dataHome, 'flatpak', 'exports', 'share', 'applications'),
+      ...dataDirs.map((dir) => join(dir, 'applications')),
+      '/var/lib/flatpak/exports/share/applications',
+      '/var/lib/snapd/desktop/applications',
+    ]),
+  ];
+}
+
+/**
+ * Scan `.desktop` entries across the given dirs. Entries are deduped by desktop
+ * id (the file basename) with earlier dirs winning — so a user override in
+ * `~/.local/share/applications` shadows the system entry, including a
+ * `Hidden=true` override that removes an app from the list entirely.
+ * `roots` is injected for tests; production passes `linuxAppDirs()`.
+ */
+export async function scanLinuxApps(roots: string[]): Promise<AppEntry[]> {
+  const apps: AppEntry[] = [];
+  const seen = new Set<string>();
+  for (const root of roots) {
+    for (const entry of await safeReaddir(root)) {
+      if (entry.isDirectory() || !entry.name.endsWith('.desktop')) continue;
+      if (seen.has(entry.name)) continue;
+      const path = join(root, entry.name);
+      const parsed = await safeParseDesktopFile(path);
+      if (!parsed) continue;
+      seen.add(entry.name);
+      if (!parsed.listed) continue;
+      apps.push({ name: parsed.name ?? stripExt(entry.name, '.desktop'), path });
+    }
+  }
+  return apps;
+}
+
+/** Scan installed apps for the current platform. */
 export const scanInstalledApps: ScanInstalledApps = async () => {
   switch (process.platform) {
     case 'darwin':
       return scanMac();
     case 'win32':
       return scanWindows();
+    case 'linux':
+      return scanLinuxApps(linuxAppDirs());
     default:
       return [];
   }

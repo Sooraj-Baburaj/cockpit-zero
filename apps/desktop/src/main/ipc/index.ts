@@ -30,7 +30,7 @@ import { authService } from '../services/auth/index.js';
 import { memorySyncService, syncService } from '../services/sync/index.js';
 import { knowledgeService } from '../services/knowledge/index.js';
 import { recordUse } from '../services/usage-service.js';
-import { isHotkeyAvailable } from '../app/hotkey.js';
+import { hotkeyStatus, isHotkeyAvailable } from '../app/hotkey.js';
 import { electronPorts } from '../infra/electron-ports.js';
 import { hideLauncher, openConsole } from '../windows/index.js';
 
@@ -110,6 +110,8 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.checkHotkey, (_e, accelerator: string) =>
     isHotkeyAvailable(accelerator),
   );
+
+  ipcMain.handle(IpcChannels.hotkeyStatus, () => hotkeyStatus());
 
   // AI foundation (Phase 1). The service selects the provider from config and
   // short-circuits when AI is disabled. `askAI` is the resolve-once path; the
@@ -250,6 +252,8 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.clearSecret, (_e, name: string) => secretsService.delete(name));
 
   ipcMain.handle(IpcChannels.secretStatus, () => secretsService.status());
+
+  ipcMain.handle(IpcChannels.secretsAvailable, () => secretsService.isAvailable());
 
   // Integrations (production P10). Connect runs OAuth (system browser + loopback)
   // or validates a pasted token; either way the credential lands in the vault in

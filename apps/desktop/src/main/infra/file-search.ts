@@ -5,9 +5,10 @@ import type { FileEntry, SearchFiles } from '../services/search/provider.js';
 /**
  * File search backed by the OS index — fast and always current without us
  * maintaining a crawler. macOS uses Spotlight (`mdfind`); Windows queries the
- * Search index (`SystemIndex`) via PowerShell/ADO. Every call is time-boxed and
- * any failure (index disabled, tool missing, timeout) degrades to `[]`, so a slow
- * index can never block the launcher. Pure Node (child_process) — no electron.
+ * Search index (`SystemIndex`) via PowerShell/ADO; Linux uses `plocate` when
+ * installed (files are simply skipped when it isn't). Every call is time-boxed
+ * and any failure (index disabled, tool missing, timeout) degrades to `[]`, so a
+ * slow index can never block the launcher. Pure Node (child_process) — no electron.
  */
 
 const TIMEOUT_MS = 1500;
@@ -56,7 +57,13 @@ async function searchWindows(query: string, limit: number): Promise<FileEntry[]>
   return toEntries(stdout, limit);
 }
 
-/** Search files by name for the current platform (darwin/win32; else empty). */
+/** Linux: `plocate` basename search, case-insensitive and capped. Missing
+ *  binary or database just resolves to '' via `run`, i.e. no file results. */
+async function searchLinux(query: string, limit: number): Promise<FileEntry[]> {
+  return toEntries(await run('plocate', ['-i', '-b', '-l', String(limit), '--', query]), limit);
+}
+
+/** Search files by name for the current platform. */
 export const searchFiles: SearchFiles = async (query, limit) => {
   const q = query.trim();
   if (q === '' || limit <= 0) return [];
@@ -66,6 +73,8 @@ export const searchFiles: SearchFiles = async (query, limit) => {
         return await searchMac(q, limit);
       case 'win32':
         return await searchWindows(q, limit);
+      case 'linux':
+        return await searchLinux(q, limit);
       default:
         return [];
     }

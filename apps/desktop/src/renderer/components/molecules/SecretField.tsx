@@ -46,6 +46,12 @@ export function SecretField({
     void refresh();
   }, [refresh]);
 
+  // Surface a missing OS keychain (e.g. Linux without libsecret) up front, so
+  // the user learns keys can't be saved *before* pasting one into a dead field.
+  useEffect(() => {
+    void api.secretsAvailable().then((ok) => setUnavailable(!ok));
+  }, []);
+
   const save = async () => {
     const trimmed = value.trim();
     if (trimmed === '' || busy) return;
@@ -106,7 +112,11 @@ export function SecretField({
           className="font-mono"
           aria-label={label}
         />
-        <Button variant="dark" onClick={() => void save()} disabled={value.trim() === '' || busy}>
+        <Button
+          variant="dark"
+          onClick={() => void save()}
+          disabled={value.trim() === '' || busy || unavailable}
+        >
           Save
         </Button>
         <Button variant="danger" onClick={() => void clear()} disabled={!present || busy}>

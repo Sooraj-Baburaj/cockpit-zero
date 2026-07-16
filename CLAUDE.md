@@ -305,9 +305,11 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
   when `import.meta.env.DEV` (browser/dev). In production a missing bridge **throws** — don't
   "fix" a preload error by widening the fallback; that would hide the real failure behind a silent
   no-op launcher.
-- **System search shells out.** `infra/file-search.ts` runs `mdfind` / PowerShell; keep new OS calls
-  there, always time-boxed and wrapped so failures return `[]`. Linux is unimplemented (returns
-  empty) for both apps and files.
+- **System search shells out.** `infra/file-search.ts` runs `mdfind` / PowerShell / `plocate`; keep
+  new OS calls there, always time-boxed and wrapped so failures return `[]`. Linux apps come from
+  the XDG `.desktop` scan in `infra/app-scanner.ts` (launched via `gio launch`/`gtk-launch` in
+  `electron-ports.ts` — `shell.openPath` would open the file as text); Linux files need `plocate`
+  installed, else file results are skipped.
 - **macOS app icons ≠ `app.getFileIcon`.** Electron's `app.getFileIcon` returns a _generic
   placeholder_ for `.app` bundles (byte-identical across apps), so icons for app rows are read from
   the bundle's real `.icns` via `infra/mac-app-icon.ts` (`defaults` + `sips`, time-boxed) — which

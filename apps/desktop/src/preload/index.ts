@@ -25,6 +25,7 @@ const api: IpcApi = {
   getFavicon: (url) => ipcRenderer.invoke(IpcChannels.getFavicon, url),
   completePath: (input) => ipcRenderer.invoke(IpcChannels.completePath, input),
   checkHotkey: (accelerator) => ipcRenderer.invoke(IpcChannels.checkHotkey, accelerator),
+  hotkeyStatus: () => ipcRenderer.invoke(IpcChannels.hotkeyStatus),
   askAI: (prompt) => ipcRenderer.invoke(IpcChannels.askAI, prompt),
   askAIStream: (prompt) => ipcRenderer.invoke(IpcChannels.askAIStream, prompt),
   cancelAiStream: (streamId) => ipcRenderer.invoke(IpcChannels.cancelAiStream, streamId),
@@ -65,6 +66,7 @@ const api: IpcApi = {
   setSecret: (name, value) => ipcRenderer.invoke(IpcChannels.setSecret, name, value),
   clearSecret: (name) => ipcRenderer.invoke(IpcChannels.clearSecret, name),
   secretStatus: () => ipcRenderer.invoke(IpcChannels.secretStatus),
+  secretsAvailable: () => ipcRenderer.invoke(IpcChannels.secretsAvailable),
   // Integrations (P10). Tokens live in the main-process vault — only ok/error
   // and metadata-only status cross the bridge.
   connectSource: (source, token) => ipcRenderer.invoke(IpcChannels.connectSource, source, token),
