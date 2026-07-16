@@ -119,10 +119,10 @@ describe('computeLauncherView', () => {
     });
   });
 
-  it('zero matches but not yet settled → plain empty (no premature offer)', () => {
+  it('zero matches but not yet settled → searching shimmer (no premature offer or verdict)', () => {
     expect(
       computeLauncherView({ ...base, settled: false, query: 'hello', resolved: EMPTY_RESULTS }),
-    ).toEqual({ kind: 'empty' });
+    ).toEqual({ kind: 'searching' });
   });
 
   it('zero matches + AI off → plain empty', () => {

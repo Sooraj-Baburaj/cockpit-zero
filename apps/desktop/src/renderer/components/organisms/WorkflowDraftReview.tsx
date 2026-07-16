@@ -70,9 +70,7 @@ export function WorkflowDraftReview({
           Drafted workflow · {draft.steps.length} step{draft.steps.length === 1 ? '' : 's'}
         </div>
         <div className="flex items-baseline gap-3">
-          <h2 className="font-serif text-[28px] font-medium tracking-[-0.015em] text-fg">
-            {draft.name}
-          </h2>
+          <h2 className="text-[28px] font-semibold tracking-[-0.02em] text-fg">{draft.name}</h2>
           {draft.keyword.trim() !== '' && (
             <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] [background:var(--cz-glass-2)] px-[9px] py-1 font-mono text-[13px] font-medium text-muted">
               {draft.keyword}

@@ -63,7 +63,7 @@ export function IntegrationsPanel() {
   return (
     <div className="max-w-2xl">
       <header className="mb-6">
-        <h1 className="font-serif text-[30px] leading-none font-medium tracking-[-0.015em] text-fg">
+        <h1 className="text-[30px] leading-none font-semibold tracking-[-0.02em] text-fg">
           Integrations
         </h1>
         <p className="mt-2 max-w-[62ch] text-[13px] text-muted">

@@ -1,10 +1,10 @@
 import { effectiveArguments, type LauncherItem } from '@cockpitzero/shared';
 import { cn } from '../../lib/cn.js';
-import { itemBadge, itemSubtitle } from '../../lib/format.js';
+import { itemBadge, itemBadgeTone, itemSubtitle } from '../../lib/format.js';
 import { Highlight } from '../../lib/highlight.js';
 import { modKey } from '../../lib/platform.js';
 import { Badge } from '../atoms/Badge.js';
-import { Kbd } from '../atoms/Kbd.js';
+import { ShortcutChip } from '../atoms/ShortcutChip.js';
 import { ResultIcon } from './ResultIcon.js';
 
 /** A single launcher result: icon, highlighted title, subtitle, a kind badge,
@@ -44,21 +44,30 @@ export function ResultRow({
         selected ? '[background:var(--cz-glass-selected)]' : 'hover:bg-[var(--cz-glass-3)]',
       )}
     >
-      {/* sienna left rail on the selected row */}
+      {/* glowing accent left rail on the selected row */}
       <span
         aria-hidden="true"
         className={cn(
-          'absolute top-[9px] bottom-[9px] left-1.5 w-0.5 rounded-[2px] bg-accent transition-opacity duration-200 [box-shadow:var(--cz-rail-glow)]',
+          'absolute top-[9px] bottom-[9px] left-1.5 w-0.5 rounded-[2px] bg-accent transition-opacity duration-180 [box-shadow:var(--cz-rail-glow)]',
           selected ? 'opacity-100' : 'opacity-0',
         )}
       />
       <div className="flex min-w-0 items-center gap-3">
         <ResultIcon item={item} lit={selected} />
         <div className="min-w-0">
-          <div className="truncate text-fg">
+          <div className="truncate font-medium text-fg">
             <Highlight text={item.title} ranges={item.matches} />
           </div>
-          <div className="truncate text-sm text-muted">{itemSubtitle(item)}</div>
+          {/* Machine-literal subtitles (URLs, paths, commands) are mono; the
+              workflow step count is prose and stays sans. */}
+          <div
+            className={cn(
+              'mt-0.5 truncate text-xs text-subtle',
+              item.kind === 'workflow' ? 'text-sm' : 'font-mono',
+            )}
+          >
+            {itemSubtitle(item)}
+          </div>
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
@@ -72,18 +81,17 @@ export function ResultRow({
           </span>
         ) : (
           shortcut && (
-            <Kbd
+            <ShortcutChip
+              keys={[modKey, shortcut]}
+              accent={selected}
               className={cn(
                 'transition-opacity',
                 selected ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-60',
               )}
-            >
-              {modKey}
-              {shortcut}
-            </Kbd>
+            />
           )
         )}
-        <Badge tone={selected ? 'accent' : 'neutral'}>{itemBadge(item)}</Badge>
+        <Badge tone={itemBadgeTone(item)}>{itemBadge(item)}</Badge>
       </div>
     </li>
   );

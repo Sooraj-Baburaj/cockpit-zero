@@ -87,7 +87,10 @@ export type LauncherView =
   | Extract<ResolvedQuery, { kind: 'argument' }>
   /** Ranked config + system results. */
   | { kind: 'results'; results: LauncherItem[] }
-  /** Non-empty query, nothing matched, AI off (or unsettled): the plain empty state. */
+  /** Non-empty query, no config match yet, system search still in flight: the
+   *  loading shimmer (never the "no matches" verdict before the index answers). */
+  | { kind: 'searching' }
+  /** Non-empty query, nothing matched anywhere, AI off: the plain empty state. */
   | { kind: 'empty' }
   /** Nothing matched + AI enabled: offer to ask. */
   | { kind: 'ai-offer'; query: string }
@@ -140,8 +143,9 @@ export function computeLauncherView({
 
   if (query.trim() === '') return { kind: 'resting' };
 
-  // No matches. Offer AI only once both searches have settled (so the offer never
-  // flashes before the slow file index returns); otherwise the plain empty state.
-  if (settled && canOfferAi(ai)) return { kind: 'ai-offer', query: query.trim() };
+  // No matches yet. Until both searches settle, the verdict isn't in — show the
+  // loading shimmer rather than a premature "no matches" (or a flashing AI offer).
+  if (!settled) return { kind: 'searching' };
+  if (canOfferAi(ai)) return { kind: 'ai-offer', query: query.trim() };
   return { kind: 'empty' };
 }

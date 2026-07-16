@@ -34,7 +34,7 @@ export function ResultList({
       id={listboxId}
       role="listbox"
       aria-label="Results"
-      className="max-h-80 overflow-y-auto py-1"
+      className="max-h-80 overflow-y-auto pt-1 pb-1.5"
     >
       {results.map((item, i) => {
         const startsSection = i === 0 || results[i - 1]?.kind !== item.kind;
@@ -43,7 +43,7 @@ export function ResultList({
             {startsSection && (
               <li
                 role="presentation"
-                className="px-5 pt-3 pb-1 text-xs font-semibold tracking-[0.08em] text-muted uppercase"
+                className="px-5 pt-3 pb-1 font-mono text-xs font-medium tracking-[var(--cz-tracking-label)] text-subtle uppercase"
               >
                 {SECTION_LABEL[item.kind]}
               </li>

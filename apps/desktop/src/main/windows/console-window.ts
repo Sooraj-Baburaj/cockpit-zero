@@ -6,8 +6,8 @@ import { loadEntry, secureWebPreferences } from './internal.js';
 
 let consoleWindow: BrowserWindow | null = null;
 
-/** Opaque fallback background (warm linen) when frosted glass is off. */
-const SOLID_BG = '#faf5ee';
+/** Opaque fallback background when frosted glass is off — Clarity's `--cz-bg-2`. */
+const SOLID_BG = '#f1f4f9';
 
 /**
  * Bring the app to the foreground. The launcher runs as a background agent (dock
@@ -50,12 +50,26 @@ export function openConsole(): void {
   const win32 = process.platform === 'win32';
   const frosted = glass && (darwin || win32);
 
+  // Matches the design system's settings-window kits (1040×764).
+  //
+  // macOS drops the native title bar (`hiddenInset`) so the app's own chrome runs
+  // edge to edge; the traffic lights stay, floated into the sidebar's header gap
+  // (ConsoleLayout reserves room for them and supplies the drag region, since
+  // there's no title bar left to drag).
+  //
+  // Windows/Linux keep their native frame: `titleBarStyle: 'hidden'` there
+  // removes the window controls entirely unless a `titleBarOverlay` is drawn and
+  // kept in sync with the theme — shipping that untested would leave those users
+  // unable to close the window.
   consoleWindow = new BrowserWindow({
-    width: 880,
-    height: 640,
+    width: 1040,
+    height: 764,
     show: false,
     title: 'CockpitZero Console',
     backgroundColor: frosted ? '#00000000' : SOLID_BG,
+    ...(darwin
+      ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 18, y: 20 } }
+      : {}),
     ...(glass && darwin ? { vibrancy: 'under-window' as const } : {}),
     ...(glass && win32 ? { backgroundMaterial: 'acrylic' as const } : {}),
     webPreferences: secureWebPreferences,

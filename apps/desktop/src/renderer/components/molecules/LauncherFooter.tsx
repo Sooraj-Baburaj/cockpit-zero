@@ -12,7 +12,7 @@ export interface FooterHint {
 /** The branded wordmark — left in the normal footer, right in the AI-mode one. */
 function Wordmark() {
   return (
-    <span className="flex items-center gap-[7px] text-xs font-semibold tracking-[-0.01em] text-muted">
+    <span className="flex items-center gap-[7px] text-xs font-semibold tracking-[-0.01em] text-subtle">
       <span className="grid size-4 place-items-center rounded-[5px] [background:var(--cz-accent-grad)] [box-shadow:var(--cz-glow-accent-soft)]">
         <svg
           viewBox="0 0 16 16"

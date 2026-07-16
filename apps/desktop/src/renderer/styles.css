@@ -1,21 +1,34 @@
-/* Self-hosted body font (Manrope). Bundled by Vite so it loads from 'self' —
-   the renderer's CSP locks out the Google Fonts CDN, so no @import url(...). */
-@import '@fontsource/manrope/400.css';
-@import '@fontsource/manrope/500.css';
-@import '@fontsource/manrope/600.css';
-@import '@fontsource/manrope/700.css';
+/* Self-hosted UI fonts (Geist / Geist Mono). Bundled by Vite so they load from
+   'self' — the renderer's CSP locks out the Google Fonts CDN, so no
+   @import url(...). The design system's tokens/typography.css reaches for the
+   CDN; that is a specimen-only convenience and must not be copied here. */
+@import '@fontsource/geist-sans/400.css';
+@import '@fontsource/geist-sans/500.css';
+@import '@fontsource/geist-sans/600.css';
+@import '@fontsource/geist-sans/700.css';
+@import '@fontsource/geist-mono/400.css';
+@import '@fontsource/geist-mono/500.css';
+@import '@fontsource/geist-mono/600.css';
 
 @import 'tailwindcss';
 
 /*
- * CockpitZero — "Sahara, warm minimalism" design system.
- * Sun-baked simplicity: a warm-linen page, warm-white panels with barely-there
- * elevation, burnt-sienna rationed as the single accent, generous whitespace.
+ * CockpitZero — "Clarity, adaptive glass" design system.
+ * Frosted translucent panels float over the desktop; cool neutrals carry the UI;
+ * one vivid blue is the only accent. Geist for everything, Geist Mono for the
+ * machine-literal (paths, commands, aliases, keycaps, the wordmark).
  *
- * The `--cz-*` custom properties are the source of truth (light = :root, a warm
- * dark variant under `.theme-dark`). They are surfaced to Tailwind via @theme,
- * which generates the `bg-surface`, `text-muted`, `text-accent`, … utilities the
- * components use — so the whole UI re-themes at runtime from these variables.
+ * The `--cz-*` custom properties are the source of truth (light = :root, dark
+ * under `.theme-dark`). Token NAMES are identical across modes, so consumers get
+ * both for free. They are surfaced to Tailwind via @theme, which generates the
+ * `bg-surface`, `text-muted`, `text-accent`, … utilities the components use — so
+ * the whole UI re-themes at runtime from these variables.
+ *
+ * The design system expresses dark via `@media (prefers-color-scheme: dark)`.
+ * Here it stays a `.theme-dark` class because Appearance → Theme is a real
+ * product setting (system / light / dark); `useAppearance` resolves `system`
+ * through `matchMedia`, which yields the design's adaptive behaviour while
+ * keeping the explicit overrides working.
  */
 @theme {
   /* Semantic colors (Tailwind utilities resolve to the warm tokens) */
@@ -30,13 +43,14 @@
   --color-accent-fg: var(--cz-accent-fg);
   --color-danger: var(--cz-danger);
 
-  /* Type — Manrope body/UI, EB Garamond serif for editorial headings, mono for
-     paths/commands/aliases. */
+  /* Type — Geist carries body, UI and headings; Geist Mono carries anything
+     machine-literal. Clarity has no serif: `--font-serif` is a back-compat alias
+     onto sans so the existing `font-serif` headings keep resolving. */
   --font-sans: var(--cz-font-sans);
   --font-serif: var(--cz-font-serif);
   --font-mono: var(--cz-font-mono);
 
-  /* UI type scale: 12 / 13 / 15 / 18 / 22 (+ serif steps). */
+  /* UI type scale: 12 / 13 / 15 / 18 / 22 (+ display steps). */
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 15px;
@@ -46,103 +60,140 @@
 }
 
 /* ============================================================
-   Tokens — light (Sahara). Default for both windows.
+   Tokens — light (Clarity). Default for every window.
    ============================================================ */
 :root,
 .theme-light {
-  /* Backdrop: warm linen, never cold white */
-  --cz-bg-0: #f1e9dd;
-  --cz-bg-1: #f6efe4;
-  --cz-bg-2: #faf5ee;
-  --cz-bg-grad: radial-gradient(130% 130% at 50% 0%, #fdf9f3 0%, #faf5ee 42%, #f1e9dd 100%);
+  /* Backdrop: the cool desktop, seen softly through the glass */
+  --cz-bg-0: #d6deea;
+  --cz-bg-1: #e6ecf4;
+  --cz-bg-2: #f1f4f9;
+  --cz-bg-grad: radial-gradient(120% 120% at 50% 0%, #f7f9fc 0%, #eaeff6 46%, #dbe3ee 100%);
 
-  /* Surfaces: warm whites that float above the linen */
-  --cz-glass-1: #fffdf9;
-  /* Floating launcher panel + settings window: warm white at high opacity over a
-     backdrop blur, so the desktop reads faintly through the frosted glass
-     (Spotlight-style). */
-  --cz-panel-bg: rgba(255, 253, 249, 0.86);
-  --cz-blur-panel: 20px;
-  --cz-glass-2: rgba(58, 48, 42, 0.035);
-  --cz-glass-3: rgba(58, 48, 42, 0.07);
-  --cz-glass-selected: rgba(194, 101, 42, 0.1);
-  --cz-scrim: rgba(58, 48, 42, 0.2);
+  /* Soft wallpaper light-blooms behind the panels (decorative) */
+  --cz-wall-1: rgba(120, 165, 255, 0.28);
+  --cz-wall-2: rgba(180, 200, 235, 0.22);
 
-  /* Hairline borders (warm gray) */
-  --cz-line: rgba(216, 208, 200, 0.6);
-  --cz-line-strong: rgba(204, 194, 182, 0.85);
-  --cz-line-faint: rgba(216, 208, 200, 0.4);
+  /* Surfaces. NOTE the split, which the design system names differently:
+     `--cz-panel-bg` is the translucent frosted fill (the design's `--cz-glass-1`)
+     and `--cz-glass-1` is the OPAQUE fill (the design's `--cz-glass-solid`) that
+     `.cz-no-glass` swaps in. Keeping those roles is what makes the Appearance →
+     "Frosted glass" toggle work; don't collapse them. */
+  --cz-glass-1: #ffffff;
+  --cz-glass-solid: var(--cz-glass-1);
+  --cz-panel-bg: rgba(255, 255, 255, 0.72);
+  --cz-blur-panel: 26px;
+  --cz-blur-chip: 10px;
+  --cz-glass-2: rgba(18, 26, 45, 0.04);
+  --cz-glass-3: rgba(18, 26, 45, 0.07);
+  --cz-glass-selected: rgba(47, 107, 255, 0.1);
+  --cz-scrim: rgba(16, 24, 44, 0.28);
 
-  /* Foreground text (warm near-black). Muted is tuned to clear WCAG AA (≈5:1 on
-     the warm-white surfaces); subtle (≈3.4:1) is for placeholders/decorative
-     only, never body copy. */
-  --cz-fg: #3a302a;
-  --cz-fg-muted: rgba(58, 48, 42, 0.72);
-  --cz-fg-subtle: rgba(58, 48, 42, 0.58);
-  --cz-fg-faint: rgba(58, 48, 42, 0.34);
+  /* Hairline borders (cool) + the bright frosted top edge */
+  --cz-line: rgba(20, 32, 60, 0.1);
+  --cz-line-strong: rgba(20, 32, 60, 0.16);
+  --cz-line-faint: rgba(20, 32, 60, 0.065);
+  --cz-rim-line: rgba(255, 255, 255, 0.75);
+
+  /* Foreground text (cool near-black). Muted clears WCAG AA on the glass
+     surfaces; subtle is for placeholders/decorative only, never body copy. */
+  --cz-fg: #171b24;
+  --cz-fg-muted: rgba(23, 27, 36, 0.62);
+  --cz-fg-subtle: rgba(23, 27, 36, 0.45);
+  --cz-fg-faint: rgba(23, 27, 36, 0.3);
 
   /* Scrollbar thumb (rails stay transparent) */
-  --cz-scrollbar-thumb: rgba(58, 48, 42, 0.22);
-  --cz-scrollbar-thumb-hover: rgba(58, 48, 42, 0.38);
+  --cz-scrollbar-thumb: rgba(23, 27, 36, 0.2);
+  --cz-scrollbar-thumb-hover: rgba(23, 27, 36, 0.36);
 
-  /* Accent: burnt sienna — rationed to one accent moment per view */
-  --cz-accent: #c2652a;
-  --cz-accent-bright: #a8511f;
-  --cz-accent-deep: #8a4017;
-  --cz-accent-fg: #fffaf3;
-  --cz-accent-grad: linear-gradient(180deg, #cd7236 0%, #c2652a 100%);
-  --cz-accent-soft: rgba(194, 101, 42, 0.12);
-  --cz-accent-line: rgba(194, 101, 42, 0.42);
+  /* Accent: vivid blue — the one accent */
+  --cz-accent: #2f6bff;
+  --cz-accent-bright: #1f56e0;
+  --cz-accent-deep: #1746b8;
+  --cz-accent-fg: #ffffff;
+  --cz-accent-grad: linear-gradient(180deg, #4079ff 0%, #2f6bff 100%);
+  --cz-accent-soft: rgba(47, 107, 255, 0.12);
+  --cz-accent-line: rgba(47, 107, 255, 0.42);
 
-  /* Tertiary: dusty rose (sparse emphasis) */
-  --cz-tertiary: #8c3c3c;
-  --cz-tertiary-soft: rgba(140, 60, 60, 0.1);
-  --cz-tertiary-line: rgba(140, 60, 60, 0.38);
+  /* Tertiary: violet (sparse secondary emphasis) */
+  --cz-tertiary: #6a4fe0;
+  --cz-tertiary-soft: rgba(106, 79, 224, 0.12);
+  --cz-tertiary-line: rgba(106, 79, 224, 0.38);
 
-  /* Warm-white top sheen on raised surfaces + whisper of warm bloom */
+  /* Bright cool top sheen on raised glass + a whisper of accent bloom */
   --cz-rim: linear-gradient(
     160deg,
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(255, 255, 255, 0.18) 22%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.28) 20%,
     rgba(255, 255, 255, 0) 46%
   );
-  --cz-bloom: rgba(194, 101, 42, 0.08);
+  --cz-bloom: rgba(47, 107, 255, 0.1);
 
-  /* Semantic status (warm-shifted, kept quiet) */
-  --cz-danger: #b3261e;
-  --cz-danger-soft: rgba(179, 38, 30, 0.1);
-  --cz-warn: #b06a16;
-  --cz-success: #5a7d3f;
+  /* Semantic status (cool-shifted, rare) */
+  --cz-danger: #e04b52;
+  --cz-danger-soft: rgba(224, 75, 82, 0.12);
+  --cz-warn: #d38a1f;
+  --cz-warn-soft: rgba(211, 138, 31, 0.14);
+  --cz-success: #2f9e6b;
+  --cz-success-soft: rgba(47, 158, 107, 0.14);
 
-  /* Result-kind icon-chip tints */
-  --cz-kind-action: #c2652a;
-  --cz-kind-workflow: #8c3c3c;
-  --cz-kind-app: #a0692e;
-  --cz-kind-file: #8a7a66;
+  /* Result-kind icon-tile base colours (colourful app tiles) */
+  --cz-kind-action: #2f6bff;
+  --cz-kind-workflow: #d38a1f;
+  --cz-kind-app: #17b283;
+  --cz-kind-file: #5b6472;
 
-  /* Typography families & scale */
+  /* Type-badge palette (URL / APP / WORKFLOW / SCRIPT / COMMAND / FILE) */
+  --cz-badge-url-fg: #1f56e0;
+  --cz-badge-url-bg: rgba(47, 107, 255, 0.12);
+  --cz-badge-url-line: rgba(47, 107, 255, 0.34);
+  --cz-badge-app-fg: #0e8a63;
+  --cz-badge-app-bg: rgba(23, 178, 131, 0.14);
+  --cz-badge-app-line: rgba(23, 178, 131, 0.36);
+  --cz-badge-workflow-fg: #b0741b;
+  --cz-badge-workflow-bg: rgba(211, 138, 31, 0.15);
+  --cz-badge-workflow-line: rgba(211, 138, 31, 0.4);
+  --cz-badge-script-fg: #6247cf;
+  --cz-badge-script-bg: rgba(106, 79, 224, 0.14);
+  --cz-badge-script-line: rgba(106, 79, 224, 0.36);
+  --cz-badge-command-fg: rgba(23, 27, 36, 0.6);
+  --cz-badge-command-bg: rgba(18, 26, 45, 0.05);
+  --cz-badge-command-line: rgba(20, 32, 60, 0.16);
+  --cz-badge-file-fg: #566072;
+  --cz-badge-file-bg: rgba(90, 100, 120, 0.12);
+  --cz-badge-file-line: rgba(90, 100, 120, 0.3);
+
+  /* Typography families & scale. Geist for everything; Geist Mono for anything
+     machine-literal (paths, commands, aliases, keycaps, the wordmark). Clarity
+     has no serif — `--cz-font-serif` stays as a back-compat alias onto sans so
+     existing `font-serif` headings resolve to Geist instead of breaking. */
   --cz-font-sans:
-    'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    'Geist Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
     sans-serif;
-  --cz-font-serif: 'EB Garamond', Georgia, 'Times New Roman', 'Iowan Old Style', serif;
-  --cz-font-heading: var(--cz-font-serif);
-  --cz-font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --cz-font-mono:
+    'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Segoe UI Symbol',
+    'Noto Sans Symbols2', 'Apple Symbols', monospace;
+  --cz-font-heading: var(--cz-font-sans);
+  --cz-font-serif: var(--cz-font-sans);
   --cz-text-xs: 12px;
   --cz-text-sm: 13px;
   --cz-text-base: 15px;
   --cz-text-lg: 18px;
   --cz-text-xl: 22px;
+  --cz-text-query: 27px;
   --cz-text-2xl: 30px;
   --cz-text-display: 44px;
-  --cz-leading-tight: 1.12;
+  --cz-leading-tight: 1.1;
   --cz-leading-snug: 1.25;
   --cz-leading-normal: 1.5;
   --cz-weight-regular: 400;
   --cz-weight-medium: 500;
   --cz-weight-semibold: 600;
   --cz-weight-bold: 700;
-  --cz-tracking-label: 0.08em;
-  --cz-tracking-tight: -0.015em;
+  --cz-tracking-label: 0.12em;
+  --cz-tracking-wide: 0.24em;
+  --cz-tracking-tight: -0.02em;
+  --cz-tracking-normal: 0;
 
   /* Spacing & radii (4-pt grid; restrained radii) */
   --cz-space-1: 4px;
@@ -154,32 +205,33 @@
   --cz-space-8: 32px;
   --cz-space-10: 40px;
   --cz-space-12: 48px;
-  --cz-radius-xs: 4px;
-  --cz-radius-sm: 6px;
-  --cz-radius-md: 8px;
-  --cz-radius-lg: 12px;
-  --cz-radius-xl: 16px;
+  /* Radii — 5 / 7 / 10 / 14 / 18 / 22 (+ full for pills) */
+  --cz-radius-xs: 5px;
+  --cz-radius-sm: 7px;
+  --cz-radius-md: 10px;
+  --cz-radius-lg: 14px;
+  --cz-radius-xl: 18px;
+  --cz-radius-2xl: 22px;
   --cz-radius-full: 999px;
   --cz-hairline: 1px;
 
-  /* Elevation — warm, ultra-soft, barely visible (no neon glow) */
-  --cz-shadow-sm: 0 1px 3px rgba(58, 48, 42, 0.05);
-  --cz-shadow-md: 0 2px 16px rgba(58, 48, 42, 0.06);
+  /* Elevation — cool and soft, so the glass lifts off the desktop */
+  --cz-shadow-sm: 0 1px 2px rgba(16, 24, 44, 0.08);
+  --cz-shadow-md: 0 4px 18px rgba(16, 24, 44, 0.1);
   --cz-shadow-panel:
-    0 2px 16px rgba(58, 48, 42, 0.04), 0 24px 56px -28px rgba(58, 48, 42, 0.14),
-    0 0 48px -24px var(--cz-bloom);
+    0 2px 8px rgba(16, 24, 44, 0.06), 0 28px 64px -24px rgba(16, 24, 44, 0.32),
+    0 0 60px -30px var(--cz-bloom);
 
-  /* Accent emphasis (soft, never glowing) */
-  --cz-glow-accent: 0 0 0 1px var(--cz-accent-line);
-  --cz-glow-accent-soft: 0 1px 4px rgba(194, 101, 42, 0.16);
-  --cz-glow-accent-strong:
-    0 0 0 1px var(--cz-accent-line), 0 4px 12px -2px rgba(194, 101, 42, 0.22);
+  /* Accent emphasis */
+  --cz-glow-accent: 0 1px 2px rgba(16, 24, 44, 0.12);
+  --cz-glow-accent-soft: 0 2px 10px rgba(47, 107, 255, 0.28);
+  --cz-glow-accent-strong: 0 4px 16px -2px rgba(47, 107, 255, 0.42);
   --cz-ring-focus: 0 0 0 1px var(--cz-accent), 0 0 0 4px var(--cz-accent-soft);
-  --cz-glow-chip: 0 1px 6px rgba(194, 101, 42, 0.24);
+  --cz-glow-chip: 0 2px 8px rgba(47, 107, 255, 0.32);
 
   /* Surface sheen + selected-row rail */
-  --cz-rim-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
-  --cz-rail-glow: 0 1px 4px rgba(194, 101, 42, 0.28);
+  --cz-rim-inset: inset 0 1px 0 0 var(--cz-rim-line);
+  --cz-rail-glow: 0 0 8px rgba(47, 107, 255, 0.4);
 
   /* Motion */
   --cz-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -190,52 +242,103 @@
 }
 
 /* ============================================================
-   Tokens — warm dark variant. Keeps the theme selector working
-   without ever returning to the old cold/neon palette: espresso
-   surfaces, warm cream text, the same sienna accent.
+   Tokens — dark. A deep navy desktop, dark frosted panels, a
+   brighter blue. Only values change; every token NAME above is
+   redeclared here, so consumers get both modes for free.
    ============================================================ */
 .theme-dark {
-  --cz-bg-0: #16110d;
-  --cz-bg-1: #1d1611;
-  --cz-bg-2: #221a14;
-  --cz-bg-grad: radial-gradient(130% 130% at 50% 0%, #2a211a 0%, #211a14 50%, #16110d 100%);
+  --cz-bg-0: #05070c;
+  --cz-bg-1: #0a0e15;
+  --cz-bg-2: #0c1017;
+  --cz-bg-grad: radial-gradient(120% 120% at 50% 0%, #141b28 0%, #0d121b 50%, #06090f 100%);
 
-  --cz-glass-1: #2b2219;
-  --cz-panel-bg: rgba(43, 34, 25, 0.82);
-  --cz-glass-2: rgba(255, 246, 235, 0.05);
-  --cz-glass-3: rgba(255, 246, 235, 0.09);
-  --cz-glass-selected: rgba(205, 114, 54, 0.2);
-  --cz-scrim: rgba(0, 0, 0, 0.5);
+  --cz-wall-1: rgba(59, 130, 255, 0.22);
+  --cz-wall-2: rgba(90, 120, 200, 0.16);
 
-  --cz-line: rgba(255, 246, 235, 0.12);
-  --cz-line-strong: rgba(255, 246, 235, 0.22);
-  --cz-line-faint: rgba(255, 246, 235, 0.08);
+  --cz-glass-1: #161b24;
+  --cz-glass-solid: var(--cz-glass-1);
+  --cz-panel-bg: rgba(28, 34, 46, 0.66);
+  --cz-glass-2: rgba(255, 255, 255, 0.05);
+  --cz-glass-3: rgba(255, 255, 255, 0.09);
+  --cz-glass-selected: rgba(59, 130, 255, 0.16);
+  --cz-scrim: rgba(0, 0, 0, 0.55);
 
-  --cz-fg: #f4eadd;
-  --cz-fg-muted: rgba(244, 234, 221, 0.74);
-  --cz-fg-subtle: rgba(244, 234, 221, 0.58);
-  --cz-fg-faint: rgba(244, 234, 221, 0.34);
+  --cz-line: rgba(255, 255, 255, 0.1);
+  --cz-line-strong: rgba(255, 255, 255, 0.17);
+  --cz-line-faint: rgba(255, 255, 255, 0.06);
+  --cz-rim-line: rgba(255, 255, 255, 0.14);
 
-  --cz-scrollbar-thumb: rgba(244, 234, 221, 0.2);
-  --cz-scrollbar-thumb-hover: rgba(244, 234, 221, 0.36);
+  --cz-fg: #eceef4;
+  --cz-fg-muted: rgba(236, 238, 244, 0.62);
+  --cz-fg-subtle: rgba(236, 238, 244, 0.42);
+  --cz-fg-faint: rgba(236, 238, 244, 0.28);
 
-  --cz-accent: #cd7236;
-  --cz-accent-bright: #e69356;
-  --cz-accent-deep: #a8511f;
-  --cz-accent-fg: #1a130d;
-  --cz-accent-grad: linear-gradient(180deg, #d97f41 0%, #cd7236 100%);
-  --cz-accent-soft: rgba(205, 114, 54, 0.18);
-  --cz-accent-line: rgba(205, 114, 54, 0.45);
+  --cz-scrollbar-thumb: rgba(236, 238, 244, 0.2);
+  --cz-scrollbar-thumb-hover: rgba(236, 238, 244, 0.36);
 
-  --cz-bloom: rgba(205, 114, 54, 0.12);
+  --cz-accent: #3b82ff;
+  --cz-accent-bright: #7aa8ff;
+  --cz-accent-deep: #2f6bff;
+  --cz-accent-fg: #ffffff;
+  --cz-accent-grad: linear-gradient(180deg, #4a8bff 0%, #2f6bff 100%);
+  --cz-accent-soft: rgba(59, 130, 255, 0.18);
+  --cz-accent-line: rgba(59, 130, 255, 0.5);
 
-  --cz-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --cz-shadow-md: 0 2px 16px rgba(0, 0, 0, 0.4);
+  --cz-tertiary: #9d86ff;
+  --cz-tertiary-soft: rgba(157, 134, 255, 0.16);
+  --cz-tertiary-line: rgba(157, 134, 255, 0.42);
+
+  --cz-rim: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.05) 22%,
+    rgba(255, 255, 255, 0) 48%
+  );
+  --cz-bloom: rgba(59, 130, 255, 0.24);
+
+  --cz-danger: #ff6b70;
+  --cz-danger-soft: rgba(255, 107, 112, 0.16);
+  --cz-warn: #e6a63a;
+  --cz-warn-soft: rgba(230, 166, 58, 0.16);
+  --cz-success: #3fca8c;
+  --cz-success-soft: rgba(63, 202, 140, 0.16);
+
+  --cz-kind-action: #3b82ff;
+  --cz-kind-workflow: #e6a63a;
+  --cz-kind-app: #2bcf9c;
+  --cz-kind-file: #8892a4;
+
+  --cz-badge-url-fg: #7aa8ff;
+  --cz-badge-url-bg: rgba(59, 130, 255, 0.18);
+  --cz-badge-url-line: rgba(59, 130, 255, 0.4);
+  --cz-badge-app-fg: #47d6a3;
+  --cz-badge-app-bg: rgba(43, 207, 156, 0.16);
+  --cz-badge-app-line: rgba(43, 207, 156, 0.4);
+  --cz-badge-workflow-fg: #e9b256;
+  --cz-badge-workflow-bg: rgba(230, 166, 58, 0.18);
+  --cz-badge-workflow-line: rgba(230, 166, 58, 0.42);
+  --cz-badge-script-fg: #b3a0ff;
+  --cz-badge-script-bg: rgba(157, 134, 255, 0.18);
+  --cz-badge-script-line: rgba(157, 134, 255, 0.42);
+  --cz-badge-command-fg: rgba(236, 238, 244, 0.6);
+  --cz-badge-command-bg: rgba(255, 255, 255, 0.06);
+  --cz-badge-command-line: rgba(255, 255, 255, 0.18);
+  --cz-badge-file-fg: #9aa4b6;
+  --cz-badge-file-bg: rgba(150, 165, 190, 0.14);
+  --cz-badge-file-line: rgba(150, 165, 190, 0.3);
+
+  --cz-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --cz-shadow-md: 0 4px 18px rgba(0, 0, 0, 0.45);
   --cz-shadow-panel:
-    0 2px 16px rgba(0, 0, 0, 0.3), 0 24px 56px -28px rgba(0, 0, 0, 0.6),
-    0 0 48px -24px var(--cz-bloom);
+    0 2px 8px rgba(0, 0, 0, 0.4), 0 30px 70px -24px rgba(0, 0, 0, 0.7),
+    0 0 70px -30px var(--cz-bloom);
 
-  --cz-rim-inset: inset 0 1px 0 0 rgba(255, 246, 235, 0.06);
+  --cz-glow-accent: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --cz-glow-accent-soft: 0 2px 12px rgba(59, 130, 255, 0.4);
+  --cz-glow-accent-strong: 0 4px 20px -2px rgba(59, 130, 255, 0.55);
+  --cz-glow-chip: 0 2px 10px rgba(59, 130, 255, 0.45);
+
+  --cz-rim-inset: inset 0 1px 0 0 var(--cz-rim-line);
 }
 
 /* ============================================================
@@ -289,7 +392,7 @@ body {
    this to keyboard focus for most controls — but browsers treat text inputs as
    always focus-visible (they expect typing), so the launcher's permanently
    auto-focused search field (`.cz-search-input`) is excluded: it has its own
-   focus treatment (lit glyph + sienna caret) and shouldn't carry a ring. */
+   focus treatment (lit glyph + accent caret) and shouldn't carry a ring. */
 a:focus-visible,
 button:focus-visible,
 select:focus-visible,
@@ -305,21 +408,29 @@ input:not(.cz-search-input):focus-visible {
    Helpers (the warm-surface recipe, kept DRY)
    ============================================================ */
 
-/* Warm-white floating panel: soft elevation, thin warm border, lit-from-above
-   top sheen. Used by the launcher command bar and the settings window. */
+/* The floating command panel.
+ *
+ * NOTE — no border and no `--cz-rim-inset` here, deliberately. Stacking a
+ * uniform 1px `--cz-line` border with a top-only bright inset highlight drew a
+ * DOUBLED edge along the top and a plain one down the sides, and the inset
+ * shadow doesn't track the border-radius the way the border does — which read as
+ * an uneven line ringing the panel. Elevation comes from the shadow alone.
+ */
 .cz-panel {
   background: var(--cz-panel-bg);
-  -webkit-backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.3);
-  backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.3);
-  border: var(--cz-hairline) solid var(--cz-line);
-  box-shadow: var(--cz-shadow-panel), var(--cz-rim-inset);
+  -webkit-backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.6);
+  backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.6);
+  box-shadow: var(--cz-shadow-panel);
 }
 
-/* AI mode: the launcher panel grows a soft sienna edge + accent glow (the 2px
-   top rail is rendered as an element so it clips to the panel's rounded top). */
+/* AI mode: the launcher panel grows a soft accent edge + glow. The edge is a
+   spread box-shadow rather than a border so it tracks the panel's border-radius
+   exactly (a border would reintroduce the uneven-edge artifact above). */
 .cz-panel-ai {
-  border-color: var(--cz-accent-line);
-  box-shadow: var(--cz-shadow-panel), var(--cz-rim-inset), var(--cz-glow-accent-soft);
+  box-shadow:
+    0 0 0 1px var(--cz-accent-line),
+    var(--cz-shadow-panel),
+    var(--cz-glow-accent-soft);
 }
 
 /* The settings window surface. Translucent so the OS frosted-glass effect
@@ -329,7 +440,7 @@ input:not(.cz-search-input):focus-visible {
   background: var(--cz-panel-bg);
 }
 
-/* Frosted glass disabled (Appearance toggle) → solid warm surfaces, no blur. */
+/* Frosted glass disabled (Appearance toggle) → solid surfaces, no blur. */
 .cz-no-glass .cz-panel,
 .cz-no-glass .cz-window {
   background: var(--cz-glass-1);
@@ -337,18 +448,18 @@ input:not(.cz-search-input):focus-visible {
   backdrop-filter: none;
 }
 
-/* The warm-linen page backdrop */
+/* The cool desktop page backdrop */
 .cz-backdrop {
   background: var(--cz-bg-grad);
   background-color: var(--cz-bg-2);
 }
 
-/* Shared text-control surface: pure white field, warm border, sienna focus ring.
+/* Shared text-control surface: opaque field, cool border, blue focus ring.
    Backs Input, Select, the run-command/snippet textareas and the hotkey field. */
 .cz-input {
   width: 100%;
   box-sizing: border-box;
-  background: #ffffff;
+  background: var(--cz-glass-solid);
   color: var(--cz-fg);
   border: 1px solid var(--cz-line-strong);
   border-radius: var(--cz-radius-sm);
@@ -376,13 +487,13 @@ input:not(.cz-search-input):focus-visible {
    ============================================================ */
 
 /* Syntax-highlight token colours, scoped so the short class names can't leak.
-   Keys carry the accent; strings are the one warm-green moment, reserved strictly
-   for YAML scalars; numbers the dusty rose; comments faint italic. */
+   Keys carry the accent; strings are the one green moment, reserved strictly for
+   YAML scalars; numbers the violet tertiary; comments faint italic. */
 .cz-yaml .k {
   color: var(--cz-accent-bright);
 }
 .cz-yaml .s {
-  color: #5a7d3f;
+  color: var(--cz-success);
 }
 .cz-yaml .num {
   color: var(--cz-tertiary);
@@ -398,7 +509,7 @@ input:not(.cz-search-input):focus-visible {
   color: var(--cz-fg-subtle);
 }
 
-/* The active (caret) line: a soft accent wash + a 2px sienna left rail, mirrored
+/* The active (caret) line: a soft accent wash + a 2px accent left rail, mirrored
    on the gutter so the line number lights up in accent-bright. */
 .cz-yaml-line.act {
   background: var(--cz-accent-soft);
@@ -434,9 +545,24 @@ input:not(.cz-search-input):focus-visible {
   animation: czCaret 1.1s steps(1) infinite;
 }
 
+/* Loading shimmer (skeleton bars while the async system search resolves). */
+@keyframes czShimmer {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+.cz-shimmer {
+  animation: czShimmer 1.3s var(--cz-ease-in-out) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cz-appear,
-  .cz-caret {
+  .cz-caret,
+  .cz-shimmer {
     animation: none;
   }
 }

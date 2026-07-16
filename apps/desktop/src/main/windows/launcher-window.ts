@@ -4,8 +4,12 @@ import { isDev, loadEntry, secureWebPreferences } from './internal.js';
 
 /** The frameless, transparent Spotlight-style command bar. */
 
-const LAUNCHER_WIDTH = 720;
-const LAUNCHER_HEIGHT = 480;
+/* The design system's command panel is 620px wide; the window adds 40px of
+   transparent margin per side so the panel's wide soft shadow (and its appear
+   animation) render without clipping. LauncherLayout's p-10 is the other half
+   of this contract. */
+const LAUNCHER_WIDTH = 700;
+const LAUNCHER_HEIGHT = 520;
 
 let launcherWindow: BrowserWindow | null = null;
 

@@ -3,18 +3,22 @@ import { cn } from '../../lib/cn.js';
 import { Sparkle } from '../atoms/Sparkle.js';
 
 /** Magnifier glyph drawn inline so the renderer needs no icon dependency.
- *  Lights sienna when the field is focused. */
+ *  Lights accent-blue when the field is focused. */
 function SearchGlyph({ focused }: { focused: boolean }) {
   return (
     <svg
-      width="18"
-      height="18"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
-      className={cn('shrink-0', focused ? 'text-[var(--cz-accent-bright)]' : 'text-subtle')}
+      strokeLinejoin="round"
+      className={cn(
+        'shrink-0 transition-colors duration-110',
+        focused ? 'text-[var(--cz-accent-bright)]' : 'text-subtle',
+      )}
       aria-hidden
     >
       <circle cx="11" cy="11" r="7" />
@@ -56,7 +60,7 @@ export function SearchField({
 }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div className="flex items-center gap-3 px-5">
+    <div className="flex items-center gap-4 px-6">
       {glyph === 'spark' ? (
         <Sparkle className="size-6 shrink-0 text-[var(--cz-accent)]" pair />
       ) : (
@@ -78,7 +82,7 @@ export function SearchField({
         aria-controls={listboxId}
         aria-activedescendant={activeId}
         aria-autocomplete="list"
-        className="cz-search-input flex-1 bg-transparent py-4 text-lg text-fg caret-[var(--cz-accent-bright)] outline-none placeholder:text-subtle"
+        className="cz-search-input flex-1 bg-transparent py-[18px] text-[length:var(--cz-text-query)] font-normal tracking-[-0.01em] text-fg caret-[var(--cz-accent)] outline-none placeholder:text-subtle"
       />
       {trailing}
     </div>

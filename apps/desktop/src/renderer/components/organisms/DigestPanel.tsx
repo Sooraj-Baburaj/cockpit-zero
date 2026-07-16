@@ -47,7 +47,7 @@ export function DigestPanel({
     <div className="flex h-full flex-col">
       <header className="flex items-start justify-between gap-4 px-7 pt-7 pb-4">
         <div>
-          <h1 className="font-serif text-[34px] leading-[1.05] font-medium tracking-[-0.015em] text-fg">
+          <h1 className="text-[34px] leading-[1.05] font-semibold tracking-[-0.02em] text-fg">
             {digest.title}
           </h1>
           <div className="mt-2 text-[13px] text-subtle">

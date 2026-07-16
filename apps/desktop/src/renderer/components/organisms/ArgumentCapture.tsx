@@ -44,7 +44,7 @@ export function ArgumentCapture({
               </span>
               {active && (
                 <span
-                  className="cz-caret ml-px h-5 w-px bg-[var(--cz-accent-bright)]"
+                  className="cz-caret ml-px h-5 w-[1.5px] rounded-[1px] bg-[var(--cz-accent-bright)]"
                   aria-hidden="true"
                 />
               )}
@@ -52,9 +52,9 @@ export function ArgumentCapture({
           );
         })}
       </div>
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="truncate font-mono text-sm text-muted">{preview ?? action.title}</span>
-        <span className="flex shrink-0 items-center gap-1 text-sm text-muted">
+      <div className="mt-3.5 flex items-center justify-between gap-3">
+        <span className="truncate font-mono text-sm text-subtle">{preview ?? action.title}</span>
+        <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted">
           <Kbd>↵</Kbd> run
         </span>
       </div>

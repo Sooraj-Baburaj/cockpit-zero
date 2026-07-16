@@ -32,8 +32,8 @@ const glyphs: Record<LauncherItemKind, React.ReactNode> = {
  * Themed icon chip at the start of a launcher result row. Apps and files show
  * their real OS icon once it loads; configured actions/workflows (and any icon
  * that fails to load) fall back to the thin-line kind glyph. Default chip is a
- * quiet warm surface; `lit` (the selected row): sienna fill, white glyph and a
- * soft glow — the row's one accent moment.
+ * quiet glass surface; `lit` (the selected row): accent-gradient fill, white
+ * glyph and a soft glow — the row's one accent moment.
  */
 export function ResultIcon({ item, lit = false }: { item: LauncherItem; lit?: boolean }) {
   const kind: LauncherItemKind = item.kind;
@@ -50,7 +50,7 @@ export function ResultIcon({ item, lit = false }: { item: LauncherItem; lit?: bo
   return (
     <span
       className={cn(
-        'flex size-7 shrink-0 items-center justify-center rounded-md border transition-[background,box-shadow,color] duration-200',
+        'flex size-7 shrink-0 items-center justify-center rounded-[var(--cz-radius-md)] border transition-[background,box-shadow,color] duration-180',
         lit
           ? '[background:var(--cz-accent-grad)] text-accent-fg [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-chip)]'
           : 'bg-surface-2 border-border text-muted',

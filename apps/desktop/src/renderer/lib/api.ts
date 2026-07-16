@@ -1,4 +1,4 @@
-import { INTEGRATION_SOURCE_IDS } from '@cockpitzero/shared';
+import { INTEGRATION_SOURCE_IDS, resolveQuery } from '@cockpitzero/shared';
 import type {
   IpcApi,
   AiStreamEvent,
@@ -18,9 +18,22 @@ const MOCK_CONFIG: Config = {
     launchAtLogin: false,
     telemetryEnabled: false,
   },
-  actions: [],
-  aliases: [],
-  workflows: [],
+  actions: [
+    {
+      id: 'a1',
+      title: 'GitHub Search',
+      type: 'open-url',
+      url: 'https://github.com/search?q={query}',
+    },
+    { id: 'a2', title: 'GitKraken', type: 'open-app', target: '/Applications/GitKraken.app' },
+    { id: 'a3', title: 'Git status', type: 'run-command', command: 'git', args: ['status'] },
+    { id: 'a4', title: 'Signature', type: 'snippet', content: '— Sooraj' },
+  ],
+  aliases: [
+    { id: 'al1', keyword: 'gs', label: 'GitHub Search', actionId: 'a1' },
+    { id: 'al2', keyword: 'gk', label: 'GitKraken', actionId: 'a2' },
+  ],
+  workflows: [{ id: 'w1', name: 'Clone Repo', steps: ['a2', 'a3'] }],
   ai: {
     enabled: true,
     provider: 'mock',
@@ -182,7 +195,11 @@ const aiStreamCancels = new Map<string, () => void>();
 const mockApi: IpcApi = {
   getConfig: async () => MOCK_CONFIG,
   setConfig: async (config) => config,
-  resolveQuery: async () => ({ kind: 'results', results: [] }),
+  // Run the REAL resolver from `shared` against the mock config, so the dev
+  // browser bridge exercises actual ranking/argument-capture rather than a
+  // second, drifting implementation of it. System results (apps/files) still
+  // need the main process, so `searchSystem` stays empty here.
+  resolveQuery: async (input: string) => resolveQuery(input, MOCK_CONFIG),
   searchSystem: async () => [],
   runAction: async () => ({ ok: true }),
   runWorkflow: async () => ({ ok: true }),

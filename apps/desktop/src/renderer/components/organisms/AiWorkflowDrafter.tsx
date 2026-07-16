@@ -93,7 +93,7 @@ export function AiWorkflowDrafter({
     return (
       <div className="max-w-2xl space-y-4">
         <div>
-          <h2 className="font-serif text-[22px] font-medium tracking-[-0.015em] text-fg">
+          <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-fg">
             Edit step {editingStep + 1}
           </h2>
           <p className="text-[13px] text-subtle">
@@ -125,7 +125,7 @@ export function AiWorkflowDrafter({
   return (
     <div className="max-w-2xl">
       <div className="mb-5">
-        <h2 className="font-serif text-[22px] font-medium tracking-[-0.015em] text-fg">
+        <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-fg">
           Draft a workflow with AI
         </h2>
         <p className="mt-1 max-w-[56ch] text-[13px] text-muted">

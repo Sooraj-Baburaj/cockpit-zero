@@ -165,9 +165,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
   return (
     <div className="max-w-2xl">
       <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="font-serif text-[30px] leading-none font-medium tracking-[-0.015em] text-fg">
-          AI
-        </h1>
+        <h1 className="text-[30px] leading-none font-semibold tracking-[-0.02em] text-fg">AI</h1>
         <ConnectionChip status={status} />
       </header>
 
@@ -405,8 +403,7 @@ function ManagedAutoCard({ account }: { account: AccountStatus | null }) {
       {usage?.ok && (
         <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1 border-t [border-color:var(--cz-line-faint)] pt-2.5 text-[12.5px] text-muted">
           <span>
-            Usage {usage.period}: <b className="font-semibold text-fg">{usage.requests}</b>{' '}
-            requests
+            Usage {usage.period}: <b className="font-semibold text-fg">{usage.requests}</b> requests
           </span>
           <span>
             <b className="font-semibold text-fg">{usage.inputTokens.toLocaleString()}</b> tokens in

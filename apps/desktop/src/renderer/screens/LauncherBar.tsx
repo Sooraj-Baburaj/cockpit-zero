@@ -333,6 +333,10 @@ export function LauncherBar() {
             isRunnable={isRunnable}
           />
         </div>
+      ) : view.kind === 'searching' ? (
+        <div className="border-t [border-color:var(--cz-line-faint)]">
+          <EmptyState title="Searching…" loading />
+        </div>
       ) : view.kind === 'empty' ? (
         <div className="border-t [border-color:var(--cz-line-faint)]">
           <EmptyState
