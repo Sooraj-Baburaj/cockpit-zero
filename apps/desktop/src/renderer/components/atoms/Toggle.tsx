@@ -16,7 +16,7 @@ export function Toggle({
 }) {
   return (
     <label className="inline-flex cursor-pointer items-center gap-2 select-none">
-      <span className="relative inline-block h-5 w-9">
+      <span className="relative inline-block h-[26px] w-11">
         <input
           type="checkbox"
           checked={checked}
@@ -28,14 +28,14 @@ export function Toggle({
           className={cn(
             'absolute inset-0 rounded-full border transition',
             checked
-              ? 'bg-accent [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-accent-soft)]'
-              : 'bg-[var(--cz-glass-3)] border-border',
+              ? 'bg-accent border-transparent'
+              : 'border-border bg-[var(--cz-line-strong)]',
           )}
         />
         <span
           className={cn(
-            'absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition [box-shadow:0_1px_3px_rgba(58,48,42,0.28)]',
-            checked && 'translate-x-4',
+            'absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-white transition [box-shadow:0_1px_3px_rgba(30,26,22,0.28)]',
+            checked && 'translate-x-[18px]',
           )}
         />
       </span>

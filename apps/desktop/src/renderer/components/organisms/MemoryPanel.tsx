@@ -24,7 +24,7 @@ import { Toggle } from '../atoms/Toggle.js';
  * documents (PDF/text) into the cloud knowledge base the assistant cites. When
  * `ai.memoryEnabled` is off the assistant stops reading/writing memory, but this
  * management surface stays usable so the user can still inspect and clear what's
- * stored. Reuses Sahara atoms; keyboard-first.
+ * stored. Reuses the Facet atoms; keyboard-first.
  */
 export function MemoryPanel({
   ai,
@@ -78,7 +78,7 @@ export function MemoryPanel({
   return (
     <div className="max-w-2xl">
       <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-[30px] leading-none font-semibold tracking-[-0.02em] text-fg">
+        <h1 className="text-[19px] leading-none font-semibold text-fg">
           Memory
         </h1>
         <StatsChip stats={stats} />
@@ -93,7 +93,7 @@ export function MemoryPanel({
       </p>
 
       {!memoryEnabled && (
-        <div className="mb-4 rounded-[var(--cz-radius-md)] border [border-color:var(--cz-warn)] [background:var(--cz-glass-1)] px-[18px] py-[13px] text-[13px] text-muted">
+        <div className="mb-4 rounded-[var(--cz-radius-md)] border [border-color:var(--cz-warn)] [background:var(--cz-surface)] px-[18px] py-[13px] text-[13px] text-muted">
           Memory is <b className="font-semibold text-fg">off</b> — the assistant isn’t reading or
           writing new memories. Turn it on in <b className="text-fg">Console → AI</b>. You can still
           review and clear what’s stored below.
@@ -202,7 +202,7 @@ function CloudSection({
 
   if (!signedIn) {
     return (
-      <section className="mt-7 rounded-[var(--cz-radius-md)] border border-dashed [border-color:var(--cz-line-strong)] [background:var(--cz-glass-1)] px-[18px] py-[14px] text-[13px] text-muted">
+      <section className="mt-7 rounded-[var(--cz-radius-md)] border border-dashed [border-color:var(--cz-line-strong)] [background:var(--cz-surface)] px-[18px] py-[14px] text-[13px] text-muted">
         <b className="font-semibold text-fg">Cloud memory is optional.</b> Sign in (Console →
         Account) to sync memory across devices and add documents the assistant can cite. Until then,
         everything stays on this device.
@@ -258,7 +258,7 @@ function CloudSection({
 
   return (
     <section className="mt-7 space-y-3">
-      <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-[15px] [box-shadow:var(--cz-shadow-sm)]">
+      <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-[18px] py-[15px] [box-shadow:var(--cz-shadow-sm)]">
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="text-[14.5px] font-semibold text-fg">Sync memory across devices</div>
@@ -276,7 +276,7 @@ function CloudSection({
         </div>
         {memorySync && (
           <div className="mt-3 flex items-center gap-3">
-            <Button variant="dark" onClick={() => void syncNow()} disabled={busy !== null}>
+            <Button variant="primary" onClick={() => void syncNow()} disabled={busy !== null}>
               {busy === 'sync' ? 'Syncing…' : 'Sync now'}
             </Button>
             {lastSyncedAt !== null && (
@@ -288,7 +288,7 @@ function CloudSection({
         )}
       </div>
 
-      <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-[15px] [box-shadow:var(--cz-shadow-sm)]">
+      <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-[18px] py-[15px] [box-shadow:var(--cz-shadow-sm)]">
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="text-[14.5px] font-semibold text-fg">Knowledge</div>
@@ -307,7 +307,7 @@ function CloudSection({
             {docs.map((doc) => (
               <li
                 key={doc.docId}
-                className="group flex items-center gap-3 rounded-[var(--cz-radius-sm)] border border-border [background:var(--cz-glass-2)] px-[12px] py-[8px]"
+                className="group flex items-center gap-3 rounded-[var(--cz-radius-sm)] border border-border [background:var(--cz-surface-inset)] px-[12px] py-[8px]"
               >
                 <div className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] text-fg">{doc.name}</span>
@@ -339,8 +339,8 @@ function CloudSection({
 /** One memory row: kind badge + text, with the timestamp and a forget control. */
 function MemoryRow({ entry, onForget }: { entry: MemoryRecord; onForget: () => void }) {
   return (
-    <li className="group flex items-start gap-3 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[16px] py-[12px] [box-shadow:var(--cz-shadow-sm)]">
-      <span className="mt-[2px] shrink-0 rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-2)] px-[9px] py-[2px] text-[11px] font-medium tracking-[0.02em] text-muted capitalize">
+    <li className="group flex items-start gap-3 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-[16px] py-[12px] [box-shadow:var(--cz-shadow-sm)]">
+      <span className="mt-[2px] shrink-0 rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface-inset)] px-[9px] py-[2px] text-[11px] font-medium tracking-[0.02em] text-muted capitalize">
         {entry.kind}
       </span>
       <div className="min-w-0 flex-1">
@@ -375,7 +375,7 @@ function StatsChip({ stats }: { stats: MemoryStats | null }) {
       ? 'Empty'
       : `${stats.count} ${stats.count === 1 ? 'memory' : 'memories'}`;
   return (
-    <span className="inline-flex items-center gap-2 rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-1)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
+    <span className="inline-flex items-center gap-2 rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
       <span className="size-[7px] rounded-full [background:var(--cz-accent)]" />
       {label}
       {stats && stats.updatedAt !== null && (
@@ -390,7 +390,7 @@ function StatsChip({ stats }: { stats: MemoryStats | null }) {
 
 function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-[var(--cz-radius-md)] border border-dashed [border-color:var(--cz-line-strong)] [background:var(--cz-glass-1)] px-[18px] py-10 text-center text-[13px] text-muted">
+    <div className="rounded-[var(--cz-radius-md)] border border-dashed [border-color:var(--cz-line-strong)] [background:var(--cz-surface)] px-[18px] py-10 text-center text-[13px] text-muted">
       {children}
     </div>
   );

@@ -59,7 +59,7 @@ export function LauncherBar() {
     reset();
   }, [query, reset]);
 
-  useAppearance(config?.settings.theme, config?.settings.glass);
+  useAppearance(config?.settings);
 
   const view = computeLauncherView({ query, resolved, settled, ai: config?.ai, phase });
   const aiMode =
@@ -271,7 +271,13 @@ export function LauncherBar() {
         onKeyDown={onKeyDown}
         glyph={aiMode ? 'spark' : 'search'}
         trailing={
-          view.kind === 'ai-offer' || view.kind === 'ai-pending' ? <AiModePill /> : undefined
+          view.kind === 'ai-offer' || view.kind === 'ai-pending' ? (
+            <AiModePill />
+          ) : view.kind === 'results' ? (
+            <span className="shrink-0 font-mono text-xs text-[var(--cz-fg-faint)]">
+              {count} {count === 1 ? 'result' : 'results'}
+            </span>
+          ) : undefined
         }
         listboxId={hasListbox ? LISTBOX_ID : undefined}
         expanded={hasListbox && count > 0}

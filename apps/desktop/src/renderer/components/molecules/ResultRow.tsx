@@ -1,6 +1,6 @@
 import { effectiveArguments, type LauncherItem } from '@cockpitzero/shared';
 import { cn } from '../../lib/cn.js';
-import { itemBadge, itemBadgeTone, itemSubtitle } from '../../lib/format.js';
+import { itemBadge, itemSubtitle } from '../../lib/format.js';
 import { Highlight } from '../../lib/highlight.js';
 import { modKey } from '../../lib/platform.js';
 import { Badge } from '../atoms/Badge.js';
@@ -40,15 +40,15 @@ export function ResultRow({
       onClick={onClick}
       aria-selected={selected}
       className={cn(
-        'group/row relative flex cursor-pointer items-center justify-between gap-3 px-5 py-2.5 transition-colors duration-110',
-        selected ? '[background:var(--cz-glass-selected)]' : 'hover:bg-[var(--cz-glass-3)]',
+        'group/row relative flex cursor-pointer items-center justify-between gap-3 rounded-[var(--cz-radius-lg)] px-3 py-[9px] transition-colors duration-110',
+        selected ? '[background:var(--cz-selected-wash)]' : 'hover:bg-[var(--cz-surface-hover)]',
       )}
     >
-      {/* glowing accent left rail on the selected row */}
+      {/* 3px accent left rail on the selected row */}
       <span
         aria-hidden="true"
         className={cn(
-          'absolute top-[9px] bottom-[9px] left-1.5 w-0.5 rounded-[2px] bg-accent transition-opacity duration-180 [box-shadow:var(--cz-rail-glow)]',
+          'absolute top-[9px] bottom-[9px] left-[3px] w-[3px] rounded-[2px] bg-[var(--cz-rail)] transition-opacity duration-180',
           selected ? 'opacity-100' : 'opacity-0',
         )}
       />
@@ -63,7 +63,7 @@ export function ResultRow({
           <div
             className={cn(
               'mt-0.5 truncate text-xs text-subtle',
-              item.kind === 'workflow' ? 'text-sm' : 'font-mono',
+              item.kind !== 'workflow' && 'font-mono',
             )}
           >
             {itemSubtitle(item)}
@@ -73,7 +73,7 @@ export function ResultRow({
       <div className="flex shrink-0 items-center gap-2">
         {argName ? (
           <span
-            className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-[var(--cz-accent-bright)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]"
+            className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium text-[var(--cz-accent-text)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]"
             title={`Press Enter or Tab to enter ${argName}`}
           >
             <span aria-hidden="true">↵</span>
@@ -91,7 +91,7 @@ export function ResultRow({
             />
           )
         )}
-        <Badge tone={itemBadgeTone(item)}>{itemBadge(item)}</Badge>
+        <Badge>{itemBadge(item)}</Badge>
       </div>
     </li>
   );

@@ -93,7 +93,7 @@ export function PathField({
               onMouseEnter={() => setActive(i)}
               className={cn(
                 'cursor-pointer truncate px-3 py-1.5 font-mono text-sm',
-                i === active ? '[background:var(--cz-glass-selected)] text-fg' : 'text-muted',
+                i === active ? '[background:var(--cz-accent-wash)] text-fg' : 'text-muted',
               )}
             >
               {suggestion}

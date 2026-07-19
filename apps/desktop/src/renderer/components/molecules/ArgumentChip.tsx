@@ -1,8 +1,8 @@
-/** The matched keyword rendered as a glowing accent pill while capturing an
+/** The matched keyword rendered as a lit accent chip while capturing an
  *  argument (L2) — the one accent moment of that view. */
 export function ArgumentChip({ keyword }: { keyword: string }) {
   return (
-    <span className="inline-flex items-center rounded-[var(--cz-radius-sm)] border px-[9px] py-1 font-mono text-base font-semibold text-[var(--cz-accent-bright)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-accent-soft)]">
+    <span className="inline-flex h-[30px] items-center rounded-[var(--cz-radius-chip)] px-[11px] font-mono text-sm font-semibold text-accent-fg [background:var(--cz-accent)] [box-shadow:var(--cz-glow-chip)]">
       {keyword}
     </span>
   );

@@ -146,8 +146,12 @@ export const SettingsSchema = z.object({
   /** Electron accelerator string, e.g. "CommandOrControl+J". */
   hotkey: z.string().min(1).default('CommandOrControl+J'),
   theme: z.enum(['system', 'light', 'dark']).default('system'),
-  /** Frosted-glass translucency for the launcher + settings windows (Appearance). */
+  /** Launcher translucency (Appearance) — every other window is an opaque facet slab. */
   glass: z.boolean().default(true),
+  /** Monochrome UI (Appearance) — greyscale accent; colour is reserved for content + OS icons. */
+  monochrome: z.boolean().default(true),
+  /** Restore the orange accent on the Console sidebar while monochrome is on. */
+  sidebarAccent: z.boolean().default(false),
   launchAtLogin: z.boolean().default(false),
   telemetryEnabled: z.boolean().default(false),
 });

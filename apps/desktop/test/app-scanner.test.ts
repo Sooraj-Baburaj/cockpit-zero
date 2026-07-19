@@ -15,7 +15,14 @@ describe('parseDesktopEntry', () => {
     const entry = parseDesktopEntry(
       ['[Desktop Entry]', 'Type=Application', 'Name=Firefox', 'Name[de]=Feuerfuchs', ''].join('\n'),
     );
-    expect(entry).toEqual({ name: 'Firefox', listed: true });
+    expect(entry).toEqual({ name: 'Firefox', icon: null, listed: true });
+  });
+
+  it('reads the Icon key (themed name or absolute path)', () => {
+    expect(parseDesktopEntry('[Desktop Entry]\nName=Firefox\nIcon=firefox').icon).toBe('firefox');
+    expect(parseDesktopEntry('[Desktop Entry]\nIcon=/opt/app/icon.png').icon).toBe(
+      '/opt/app/icon.png',
+    );
   });
 
   it('marks NoDisplay and Hidden entries unlisted', () => {
@@ -39,7 +46,7 @@ describe('parseDesktopEntry', () => {
         'NoDisplay=true',
       ].join('\n'),
     );
-    expect(entry).toEqual({ name: 'Terminal', listed: true });
+    expect(entry).toEqual({ name: 'Terminal', icon: null, listed: true });
   });
 
   it('returns a null name when the file declares none', () => {

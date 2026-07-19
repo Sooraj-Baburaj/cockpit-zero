@@ -1,7 +1,7 @@
 import { cn } from '../../lib/cn.js';
 
-/** A brief run-confirmation pill shown over the launcher footer. `error` turns
- *  it warm-coral; success is sienna. Purely presentational. */
+/** A brief run-confirmation card shown over the launcher footer — a small
+ *  facet slab with an accent (or coral, on error) glyph. Purely presentational. */
 export function Toast({ message, error = false }: { message: string; error?: boolean }) {
   return (
     <div
@@ -11,10 +11,8 @@ export function Toast({ message, error = false }: { message: string; error?: boo
     >
       <div
         className={cn(
-          'cz-appear flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium shadow-[var(--cz-shadow-md)]',
-          error
-            ? 'text-[var(--cz-danger)] [background:var(--cz-danger-soft)] border-transparent'
-            : 'text-[var(--cz-accent-bright)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]',
+          'cz-appear flex items-center gap-2 rounded-[var(--cz-radius-lg)] border border-border bg-surface px-4 py-[11px] text-[13.5px] text-fg [box-shadow:var(--cz-shadow-md)]',
+          error ? '[&>svg]:text-[var(--cz-danger)]' : '[&>svg]:text-[var(--cz-accent-text)]',
         )}
       >
         <svg

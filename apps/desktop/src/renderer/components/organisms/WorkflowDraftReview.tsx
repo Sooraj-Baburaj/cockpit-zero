@@ -42,7 +42,7 @@ export function WorkflowDraftReview({
   }, [onSave, onDiscard]);
 
   return (
-    <div className="max-w-2xl overflow-hidden rounded-[var(--cz-radius-lg)] border border-border [background:var(--cz-glass-1)] [box-shadow:var(--cz-shadow-md)]">
+    <div className="max-w-2xl overflow-hidden rounded-[var(--cz-radius-lg)] border border-border [background:var(--cz-surface)] [box-shadow:var(--cz-shadow-md)]">
       {/* The description that produced this draft. */}
       <div className="flex items-start gap-4 px-6 py-5">
         <Sparkle className="mt-0.5 size-6 shrink-0 text-accent" />
@@ -53,7 +53,7 @@ export function WorkflowDraftReview({
 
       {/* Draft header + name. */}
       <div className="border-t [border-color:var(--cz-line-faint)] px-6 pt-5 pb-1">
-        <div className="mb-4 inline-flex items-center gap-[7px] text-[11px] font-semibold tracking-[0.12em] uppercase [color:var(--cz-accent-bright)]">
+        <div className="mb-4 inline-flex items-center gap-[7px] text-[11px] font-semibold tracking-[0.12em] uppercase [color:var(--cz-accent-text)]">
           <svg
             viewBox="0 0 24 24"
             className="size-3.5"
@@ -72,7 +72,7 @@ export function WorkflowDraftReview({
         <div className="flex items-baseline gap-3">
           <h2 className="text-[28px] font-semibold tracking-[-0.02em] text-fg">{draft.name}</h2>
           {draft.keyword.trim() !== '' && (
-            <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] [background:var(--cz-glass-2)] px-[9px] py-1 font-mono text-[13px] font-medium text-muted">
+            <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] [background:var(--cz-surface-inset)] px-[9px] py-1 font-mono text-[13px] font-medium text-muted">
               {draft.keyword}
             </span>
           )}
@@ -86,10 +86,10 @@ export function WorkflowDraftReview({
             key={i}
             className="flex items-center gap-[15px] py-[13px] [&+li]:border-t [&+li]:[border-color:var(--cz-line-faint)]"
           >
-            <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border [background:var(--cz-glass-2)] font-mono text-[12px] font-semibold text-muted">
+            <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border [background:var(--cz-surface-inset)] font-mono text-[12px] font-semibold text-muted">
               {i + 1}
             </span>
-            <span className="grid size-9 shrink-0 place-items-center rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-2)] text-muted">
+            <span className="grid size-9 shrink-0 place-items-center rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface-inset)] text-muted">
               <StepGlyph kind={step.action?.type} />
             </span>
             <div className="min-w-0 flex-1">
@@ -135,7 +135,7 @@ export function WorkflowDraftReview({
           <Button variant="outline" onClick={onDiscard}>
             Discard
           </Button>
-          <Button variant="dark" onClick={onSave}>
+          <Button variant="primary" onClick={onSave}>
             <svg
               viewBox="0 0 24 24"
               className="size-[15px]"
@@ -167,7 +167,7 @@ export function WorkflowDraftReview({
 function Hint({ cap, children }: { cap: string; children: ReactNode }) {
   return (
     <span className="flex items-center gap-[7px]">
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] [background:var(--cz-glass-2)] px-1.5 font-mono text-[11px] font-medium text-muted">
+      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] [background:var(--cz-surface-inset)] px-1.5 font-mono text-[11px] font-medium text-muted">
         {cap}
       </span>
       {children}

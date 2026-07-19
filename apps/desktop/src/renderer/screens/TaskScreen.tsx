@@ -41,7 +41,7 @@ export function TaskScreen() {
     return unsubscribe;
   }, [taskId]);
 
-  useAppearance(config?.settings.theme, config?.settings.glass);
+  useAppearance(config?.settings);
 
   const active =
     run?.status === 'planning' || run?.status === 'working' || run?.status === 'review';

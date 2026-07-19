@@ -1,27 +1,22 @@
 /**
- * The Console window nav tabs, in display order. Kept in its own module (free of
+ * The Console window nav, grouped as in the Facet design (Commands /
+ * Intelligence / Connections / Preferences). Kept in its own module (free of
  * React / `electron`) so the ordering is a unit-testable invariant and so the
  * `INITIAL_CONSOLE_TAB` is provably a member. Only list tabs that exist in the
- * product: "Routines" arrives with Phase 5; "Scripts" is still out of scope, so
- * the mockup's full nav is intentionally not mirrored yet. "Config" is the
- * power-user YAML editor (Phase 6) — a hand-edit view over the same schemas the
- * other tabs edit via GUI.
+ * product — the design's "Import & Export" is intentionally not built ("Config"
+ * covers hand-editing; sync covers backup).
  */
-export const CONSOLE_TABS = [
-  'actions',
-  'ai',
-  'memory',
-  'workflows',
-  'routines',
-  'integrations',
-  'aliases',
-  'config',
-  'account',
-  'general',
-  'appearance',
+export const CONSOLE_NAV_GROUPS = [
+  { label: 'Commands', tabs: ['actions', 'workflows', 'routines', 'aliases'] },
+  { label: 'Intelligence', tabs: ['ai', 'memory'] },
+  { label: 'Connections', tabs: ['integrations'] },
+  { label: 'Preferences', tabs: ['general', 'appearance', 'config', 'account'] },
 ] as const;
 
-export type ConsoleTab = (typeof CONSOLE_TABS)[number];
+export type ConsoleTab = (typeof CONSOLE_NAV_GROUPS)[number]['tabs'][number];
+
+/** Flat display order (group order, then in-group order). */
+export const CONSOLE_TABS: readonly ConsoleTab[] = CONSOLE_NAV_GROUPS.flatMap((g) => [...g.tabs]);
 
 /** The tab the window opens on — must remain a member of `CONSOLE_TABS`. */
 export const INITIAL_CONSOLE_TAB: ConsoleTab = 'actions';

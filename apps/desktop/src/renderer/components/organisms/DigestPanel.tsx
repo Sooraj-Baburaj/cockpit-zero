@@ -55,7 +55,7 @@ export function DigestPanel({
             {digest.sourceCount === 1 ? '' : 's'} · {digest.surfaced} of {digest.total} surfaced
           </div>
         </div>
-        <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-[var(--cz-accent-bright)] uppercase">
+        <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-[var(--cz-accent-text)] uppercase">
           <span className="size-2 rounded-full [background:var(--cz-accent)] [box-shadow:var(--cz-glow-chip)] motion-safe:animate-pulse" />
           Routine
         </span>
@@ -81,7 +81,7 @@ export function DigestPanel({
         )}
 
         {groups.noiseCount > 0 && (
-          <div className="my-1.5 flex items-center gap-3 rounded-[var(--cz-radius-md)] border [border-color:var(--cz-line-faint)] px-3.5 py-3.5 [background:var(--cz-glass-2)]">
+          <div className="my-1.5 flex items-center gap-3 rounded-[var(--cz-radius-md)] border [border-color:var(--cz-line-faint)] px-3.5 py-3.5 [background:var(--cz-surface-inset)]">
             <svg
               viewBox="0 0 24 24"
               className="size-[18px] flex-none text-subtle"
@@ -128,17 +128,17 @@ function Group({
         <span
           className={cn(
             'text-[11px] font-semibold tracking-[0.14em] uppercase',
-            accent ? 'text-[var(--cz-accent-bright)]' : 'text-subtle',
+            accent ? 'text-[var(--cz-accent-text)]' : 'text-subtle',
           )}
         >
           {label}
         </span>
         <span
           className={cn(
-            'rounded-[var(--cz-radius-full)] border px-2 py-px font-mono text-[11px] font-semibold',
+            'rounded-[var(--cz-radius-pill)] border px-2 py-px font-mono text-[11px] font-semibold',
             accent
-              ? 'text-[var(--cz-accent-bright)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]'
-              : 'border-border text-muted [background:var(--cz-glass-2)]',
+              ? 'text-[var(--cz-accent-text)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]'
+              : 'border-border text-muted [background:var(--cz-surface-inset)]',
           )}
         >
           {count}

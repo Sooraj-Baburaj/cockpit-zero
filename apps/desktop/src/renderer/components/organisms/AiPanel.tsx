@@ -165,7 +165,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
   return (
     <div className="max-w-2xl">
       <header className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-[30px] leading-none font-semibold tracking-[-0.02em] text-fg">AI</h1>
+        <h1 className="text-[19px] leading-none font-semibold text-fg">AI</h1>
         <ConnectionChip status={status} />
       </header>
 
@@ -175,7 +175,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
           e.preventDefault();
           submit(prompt);
         }}
-        className="rounded-[var(--cz-radius-lg)] border [border-color:var(--cz-accent-line)] [background:var(--cz-glass-1)] px-[18px] py-4 [box-shadow:var(--cz-shadow-md),var(--cz-glow-accent-soft)]"
+        className="rounded-[var(--cz-radius-lg)] border [border-color:var(--cz-accent-line)] [background:var(--cz-surface)] px-[18px] py-4 [box-shadow:var(--cz-shadow-md),var(--cz-glow-chip)]"
       >
         <div className="flex items-center gap-3">
           <Sparkle className="size-[22px] shrink-0 text-accent" />
@@ -188,7 +188,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
           />
           <Button
             type="submit"
-            variant="dark"
+            variant="primary"
             disabled={prompt.trim() === '' || phase.status === 'pending'}
           >
             <svg
@@ -212,7 +212,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
               key={chip}
               type="button"
               onClick={() => submit(chip)}
-              className="rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-2)] px-[13px] py-[7px] text-[12.5px] font-medium text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)]"
+              className="rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface-inset)] px-[13px] py-[7px] text-[12.5px] font-medium text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)]"
             >
               {chip}
             </button>
@@ -222,7 +222,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
 
       {/* Answer preview — reuses the launcher's answer rendering (display-only). */}
       {phase.status !== 'idle' && (
-        <div className="mt-3 overflow-hidden rounded-[var(--cz-radius-lg)] border border-border [background:var(--cz-glass-1)] [box-shadow:var(--cz-shadow-sm)]">
+        <div className="mt-3 overflow-hidden rounded-[var(--cz-radius-lg)] border border-border [background:var(--cz-surface)] [box-shadow:var(--cz-shadow-sm)]">
           <AiAnswerPanel
             pending={phase.status === 'pending'}
             pendingText={phase.status === 'pending' ? phase.text : undefined}
@@ -238,7 +238,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
       )}
 
       <GroupLabel>Provider</GroupLabel>
-      <div className="space-y-4 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-4 [box-shadow:var(--cz-shadow-sm)]">
+      <div className="space-y-4 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-[18px] py-4 [box-shadow:var(--cz-shadow-sm)]">
         <Labeled
           label="Provider"
           description={
@@ -269,7 +269,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
                     key={preset.id}
                     type="button"
                     onClick={() => applyPreset(preset, setDraft)}
-                    className="rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-2)] px-[11px] py-[5px] text-[12px] font-medium text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)]"
+                    className="rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface-inset)] px-[11px] py-[5px] text-[12px] font-medium text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)]"
                   >
                     {preset.label}
                   </button>
@@ -355,7 +355,7 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
             ? 'Managed · usage is metered to your account — no key ever touches this device.'
             : 'Local-first · your key stays in the OS keychain, never synced.'}
         </span>
-        <Button variant="dark" disabled={!dirty} onClick={() => onSave(draft)}>
+        <Button variant="primary" disabled={!dirty} onClick={() => onSave(draft)}>
           Save changes
         </Button>
       </footer>
@@ -386,7 +386,7 @@ function ManagedAutoCard({ account }: { account: AccountStatus | null }) {
   const eligible = account?.signedIn === true && account.plan === 'pro';
 
   return (
-    <div className="rounded-[var(--cz-radius-md)] border [border-color:var(--cz-accent-line)] [background:var(--cz-glass-2)] px-4 py-3.5">
+    <div className="rounded-[var(--cz-radius-md)] border [border-color:var(--cz-accent-line)] [background:var(--cz-surface-inset)] px-4 py-3.5">
       <div className="flex items-center gap-2">
         <Sparkle className="size-4 shrink-0 text-accent" />
         <span className="text-sm font-semibold text-fg">
@@ -522,7 +522,7 @@ function ConnectionChip({ status }: { status: AiStatus | null }) {
         ? 'Connected'
         : 'Add a key to connect';
   return (
-    <span className="inline-flex items-center gap-2 rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-1)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
+    <span className="inline-flex items-center gap-2 rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
       <span
         className={cn(
           'size-[7px] rounded-full',
@@ -579,7 +579,7 @@ function Labeled({
 /** A settings option row (`.opt`): title + description on the left, control right. */
 function OptRow({ title, desc, children }: { title: string; desc: string; children: ReactNode }) {
   return (
-    <div className="mb-2 flex items-center justify-between gap-4 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-[13px] [box-shadow:var(--cz-shadow-sm)]">
+    <div className="mb-2 flex items-center justify-between gap-4 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-[18px] py-[13px] [box-shadow:var(--cz-shadow-sm)]">
       <div>
         <div className="text-[14.5px] font-semibold text-fg">{title}</div>
         <div className="mt-[3px] max-w-[52ch] text-[13px] text-muted">{desc}</div>

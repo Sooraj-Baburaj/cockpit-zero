@@ -87,7 +87,7 @@ export function AliasEditor({
                       spellCheck={false}
                       autoComplete="off"
                       aria-label="Alias keyword"
-                      className="w-24 rounded-[var(--cz-radius-sm)] border px-[11px] py-1 text-center font-mono text-[13px] font-medium text-[var(--cz-accent-bright)] outline-none [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)] placeholder:font-normal placeholder:text-subtle focus:[box-shadow:var(--cz-ring-focus)]"
+                      className="w-24 rounded-[var(--cz-radius-sm)] border px-[11px] py-1 text-center font-mono text-[13px] font-medium text-[var(--cz-accent-text)] outline-none [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)] placeholder:font-normal placeholder:text-subtle focus:[box-shadow:var(--cz-focus-ring)]"
                     />
                   </td>
                   <td className="px-3.5 py-3">

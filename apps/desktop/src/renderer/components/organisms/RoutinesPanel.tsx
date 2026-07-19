@@ -59,7 +59,7 @@ export function RoutinesPanel({
   return (
     <div className="max-w-2xl">
       <header className="mb-6">
-        <h1 className="text-[30px] leading-none font-semibold tracking-[-0.02em] text-fg">
+        <h1 className="text-[19px] leading-none font-semibold text-fg">
           Routines
         </h1>
         <p className="mt-2 max-w-[60ch] text-[13px] text-muted">
@@ -78,13 +78,13 @@ export function RoutinesPanel({
           {routines.map((routine) => (
             <div
               key={routine.id}
-              className="rounded-[var(--cz-radius-md)] border border-border px-[18px] py-3.5 [background:var(--cz-glass-1)] [box-shadow:var(--cz-shadow-sm)]"
+              className="rounded-[var(--cz-radius-md)] border border-border px-[18px] py-3.5 [background:var(--cz-surface)] [box-shadow:var(--cz-shadow-sm)]"
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5">
                     <span className="text-[14.5px] font-semibold text-fg">{routine.label}</span>
-                    <span className="rounded-[var(--cz-radius-xs)] border border-border px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.1em] text-muted uppercase [background:var(--cz-glass-2)]">
+                    <span className="rounded-[var(--cz-radius-xs)] border border-border px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.1em] text-muted uppercase [background:var(--cz-surface-inset)]">
                       {describeSchedule(routine)}
                     </span>
                   </div>
@@ -133,10 +133,10 @@ export function RoutinesPanel({
                       }
                       onClick={() => toggleSource(routine, source)}
                       className={cn(
-                        'rounded-[var(--cz-radius-full)] border px-[11px] py-1 text-[11.5px] font-medium transition',
+                        'rounded-[var(--cz-radius-pill)] border px-[11px] py-1 text-[11.5px] font-medium transition',
                         selected
-                          ? 'border-[var(--cz-accent-line)] text-fg [background:var(--cz-glass-selected)]'
-                          : 'border-border text-muted [background:var(--cz-glass-2)]',
+                          ? 'border-[var(--cz-accent-line)] text-fg [background:var(--cz-accent-wash)]'
+                          : 'border-border text-muted [background:var(--cz-surface-inset)]',
                         !selectable && 'cursor-not-allowed opacity-45',
                         selectable && !selected && 'hover:text-fg',
                       )}

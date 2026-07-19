@@ -5,7 +5,7 @@ import { Button } from '../atoms/Button.js';
 import { Field } from '../atoms/Field.js';
 import { Input } from '../atoms/Input.js';
 import { PathField } from '../molecules/PathField.js';
-import { Dropdown } from '../molecules/Dropdown.js';
+import { SegmentedControl } from '../molecules/SegmentedControl.js';
 import { Toggle } from '../atoms/Toggle.js';
 
 /**
@@ -99,6 +99,14 @@ function buildAction(d: Draft): Action {
 
 const TYPE_OPTIONS: ActionKind[] = ['open-url', 'open-app', 'run-command', 'snippet'];
 
+/** One-line explanation of the selected type, shown in the info box below it. */
+const TYPE_DESC: Record<ActionKind, string> = {
+  'open-url': 'Opens a web address in your browser. Declare arguments to drop in what you type.',
+  'open-app': 'Launches an application on your machine.',
+  'run-command': 'Runs a shell command in the background.',
+  snippet: 'Copies a saved piece of text to your clipboard — trigger it by keyword.',
+};
+
 export function ActionForm({
   initial,
   initialKeyword,
@@ -152,42 +160,76 @@ export function ActionForm({
       : undefined;
 
   return (
-    <div className="space-y-5">
-      <Field label="Title">
-        <Input
-          value={draft.title}
-          onChange={(e) => set('title', e.target.value)}
-          placeholder="Open GitHub"
-        />
-      </Field>
+    <div className="max-w-[620px] space-y-5">
+      {/* Header: back + title on the left, the small save/cancel actions on the
+          right — the form's one command row, so the fields below stay clean. */}
+      <div className="flex items-center gap-2.5">
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Back to actions"
+          className="grid size-[26px] shrink-0 place-items-center rounded-[7px] text-subtle transition hover:bg-[var(--cz-surface-inset)] hover:text-fg"
+        >
+          <svg
+            viewBox="0 0 16 16"
+            className="size-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.7}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 3 5 8l5 5" />
+          </svg>
+        </button>
+        <h2 className="text-[19px] font-semibold text-fg">
+          {initial ? 'Edit action' : 'New action'}
+        </h2>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button variant="primary" size="sm" onClick={submit}>
+            {initial ? 'Save changes' : 'Create action'}
+          </Button>
+        </div>
+      </div>
 
-      <Field
-        label="Keyword"
-        description={
-          draft.argEnabled && argNames.length > 0
-            ? `Type this in the launcher, then a space, then ${
-                argNames.length > 1 ? 'each value in order' : `the ${argNames[0]}`
-              } — e.g. “${draft.keyword || 'gh'} ${argNames.join(' ')}”.`
-            : 'Optional shortcut typed in the launcher to run this action.'
-        }
-      >
-        <Input
-          value={draft.keyword}
-          onChange={(e) => set('keyword', e.target.value)}
-          placeholder="gh"
-          className="max-w-48 font-mono"
-        />
-      </Field>
+      <div className="flex flex-wrap items-end gap-4">
+        <Field label="Title" className="min-w-56 flex-1">
+          <Input
+            value={draft.title}
+            onChange={(e) => set('title', e.target.value)}
+            placeholder="Open GitHub"
+          />
+        </Field>
+        <Field label="Type">
+          <SegmentedControl
+            ariaLabel="Action type"
+            value={draft.type}
+            options={TYPE_OPTIONS.map((t) => ({ value: t, label: actionTypeLabel[t] }))}
+            onChange={(v) => set('type', v)}
+          />
+        </Field>
+      </div>
 
-      <Field label="Type">
-        <Dropdown
-          ariaLabel="Action type"
-          value={draft.type}
-          options={TYPE_OPTIONS.map((t) => ({ value: t, label: actionTypeLabel[t] }))}
-          onChange={(v) => set('type', v as ActionKind)}
-          className="max-w-60"
-        />
-      </Field>
+      <div className="flex gap-2.5 rounded-[var(--cz-radius-md)] border border-border bg-[var(--cz-surface-inset)] px-[13px] py-[11px]">
+        <svg
+          viewBox="0 0 16 16"
+          className="mt-px size-4 shrink-0 text-subtle"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <circle cx="8" cy="8" r="6.4" />
+          <path d="M8 7.4v3.3" />
+          <circle cx="8" cy="4.9" r="0.9" fill="currentColor" stroke="none" />
+        </svg>
+        <span className="text-[12.5px] leading-normal text-muted">{TYPE_DESC[draft.type]}</span>
+      </div>
 
       {draft.type === 'open-url' && (
         <Field label="URL" description={tokenHint}>
@@ -241,6 +283,24 @@ export function ActionForm({
           />
         </Field>
       )}
+
+      <Field
+        label="Keyword"
+        description={
+          draft.argEnabled && argNames.length > 0
+            ? `Type this in the launcher, then a space, then ${
+                argNames.length > 1 ? 'each value in order' : `the ${argNames[0]}`
+              } — e.g. “${draft.keyword || 'gh'} ${argNames.join(' ')}”.`
+            : 'Optional shortcut typed in the launcher to run this action.'
+        }
+      >
+        <Input
+          value={draft.keyword}
+          onChange={(e) => set('keyword', e.target.value)}
+          placeholder="gh"
+          className="max-w-44 font-mono"
+        />
+      </Field>
 
       <div className="space-y-3 rounded-lg border border-border bg-surface-2 p-4">
         <Toggle
@@ -298,13 +358,6 @@ export function ActionForm({
           {error}
         </p>
       )}
-
-      <div className="flex gap-2">
-        <Button variant="primary" onClick={submit}>
-          {initial ? 'Save changes' : 'Create action'}
-        </Button>
-        <Button onClick={onCancel}>Cancel</Button>
-      </div>
     </div>
   );
 }

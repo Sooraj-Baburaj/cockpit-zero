@@ -19,15 +19,15 @@ export function EmptyState({
         role="status"
         aria-label={title}
       >
-        <span className="cz-shimmer block h-2.5 w-[46%] rounded-full bg-[var(--cz-glass-3)]" />
-        <span className="cz-shimmer block h-2.5 w-[30%] rounded-full bg-[var(--cz-glass-3)]" />
+        <span className="cz-shimmer block h-2.5 w-[46%] rounded-full bg-[var(--cz-surface-hover)]" />
+        <span className="cz-shimmer block h-2.5 w-[30%] rounded-full bg-[var(--cz-surface-hover)]" />
       </div>
     );
   }
   return (
-    <div className="px-5 py-8 text-center">
-      <p className="text-sm text-muted">{title}</p>
-      {hint && <p className="mt-1 text-xs text-subtle">{hint}</p>}
+    <div className="px-4 py-[26px] text-center">
+      <p className="text-base font-semibold text-fg">{title}</p>
+      {hint && <p className="mt-1 text-sm text-subtle">{hint}</p>}
     </div>
   );
 }

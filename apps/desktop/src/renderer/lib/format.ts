@@ -6,22 +6,12 @@ import type {
   Routine,
   RoutineSourceId,
 } from '@cockpitzero/shared';
-import type { BadgeTone } from '../components/atoms/Badge.js';
-
 /** Short, human label for each action kind (shown in badges). */
 export const actionTypeLabel: Record<ActionKind, string> = {
   'open-url': 'URL',
   'open-app': 'App',
   'run-command': 'Command',
   snippet: 'Snippet',
-};
-
-/** The design system's badge hue for each action kind. */
-export const actionTypeBadgeTone: Record<ActionKind, BadgeTone> = {
-  'open-url': 'url',
-  'open-app': 'app',
-  'run-command': 'command',
-  snippet: 'script',
 };
 
 /** A secondary line describing what an action does (its target/template). */
@@ -118,20 +108,3 @@ export function itemBadge(item: LauncherItem): string {
   }
 }
 
-/** The badge hue for any launcher result row, matching `itemBadge`'s label. */
-export function itemBadgeTone(item: LauncherItem): BadgeTone {
-  switch (item.kind) {
-    case 'action':
-      return actionTypeBadgeTone[item.action.type];
-    case 'workflow':
-      return 'workflow';
-    case 'app':
-      return 'app';
-    case 'file':
-      return 'file';
-    default: {
-      const _never: never = item;
-      return _never;
-    }
-  }
-}

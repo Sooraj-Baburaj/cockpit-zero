@@ -5,6 +5,12 @@ import { isMac } from '../../lib/platform.js';
 /** macOS only: the window has no title bar, so this element is the drag handle. */
 const DRAG: CSSProperties = { WebkitAppRegion: 'drag' } as CSSProperties;
 
+/** One labelled nav section (e.g. "Commands") and the tab ids inside it. */
+export interface ConsoleNavGroup {
+  label: string;
+  tabs: readonly string[];
+}
+
 /** Thin-line nav glyph per Console tab. */
 const NAV_GLYPH: Record<string, ReactNode> = {
   general: (
@@ -75,15 +81,30 @@ const NAV_LABEL: Record<string, string> = {
   ai: 'AI',
 };
 
-/** Frame for the Console window: a warm-white surface with a left nav rail and
- *  a scrolling content pane. */
+/** The CockpitZero mark — the rocket glyph from the design system. */
+function MarkGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} fill="currentColor" aria-hidden="true">
+      <path
+        fillRule="evenodd"
+        d="M16 3c-4 4-5.5 9-5.5 14v4h11v-4c0-5-1.5-10-5.5-14Zm0 5.9a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2Z"
+      />
+      <path d="M10.5 17 6.4 22.1l4.1-1zM21.5 17l4.1 5.1-4.1-1z" />
+      <path d="M13.4 21h5.2L16 27.6z" />
+    </svg>
+  );
+}
+
+/** Frame for the Console window: an opaque facet surface with a grouped left
+ *  nav rail (`.cz-console-nav`, the sidebar-accent scope) and a scrolling
+ *  content pane. */
 export function ConsoleLayout({
-  tabs,
+  groups,
   active,
   onSelect,
   children,
 }: {
-  tabs: readonly string[];
+  groups: readonly ConsoleNavGroup[];
   active: string;
   onSelect: (tab: string) => void;
   children: ReactNode;
@@ -92,7 +113,7 @@ export function ConsoleLayout({
     <div className="cz-window flex h-screen text-fg">
       <nav
         className={cn(
-          'relative flex w-[236px] shrink-0 flex-col overflow-y-auto border-r pb-[22px] [border-color:var(--cz-line-faint)] px-4',
+          'cz-console-nav relative flex w-[var(--cz-console-nav)] shrink-0 flex-col gap-4 overflow-y-auto border-r px-3.5 pb-[18px] [border-color:var(--cz-line-faint)]',
           // On macOS the native title bar is gone, so the traffic lights float
           // over this rail — reserve room for them above the brand.
           isMac ? 'pt-[52px]' : 'pt-[22px]',
@@ -104,78 +125,62 @@ export function ConsoleLayout({
           className={cn('absolute inset-x-0 top-0 h-[52px]', !isMac && 'hidden')}
           style={isMac ? DRAG : undefined}
         />
-        <div className="flex items-center gap-3 px-2 pb-[22px]">
-          <span className="grid size-[38px] shrink-0 place-items-center rounded-[var(--cz-radius-md)] text-white [background:var(--cz-accent-grad)] [box-shadow:var(--cz-glow-accent-soft),inset_0_1px_0_rgba(255,255,255,0.4)]">
-            <svg
-              viewBox="0 0 16 16"
-              className="size-[21px]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M8.5 1.5 3.5 9H7l-.5 5.5L12.5 7H9l-.5-5.5Z" />
-            </svg>
+        <div className="flex items-center gap-3 px-2 pb-1.5">
+          <span className="grid size-[38px] shrink-0 place-items-center rounded-[var(--cz-radius-md)] text-accent-fg [background:var(--cz-accent)] [box-shadow:var(--cz-glow-chip)]">
+            <MarkGlyph className="size-[24px]" />
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-[15px] font-semibold tracking-[-0.01em]">
-              CockpitZero
+            <span className="block truncate font-mono text-[15px] font-semibold">
+              Cockpit<span className="text-[var(--cz-accent-text)]">Zero</span>
             </span>
-            <span className="mt-px block font-mono text-[11px] text-subtle">Console · v1.0</span>
+            <span className="mt-px block font-mono text-[11px] text-subtle">Console</span>
           </span>
         </div>
 
-        <div className="flex flex-col gap-[3px]">
-          {tabs.map((tab) => {
-            const isActive = active === tab;
-            return (
-              <button
-                key={tab}
-                onClick={() => onSelect(tab)}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  'relative flex w-full items-center gap-3 rounded-[var(--cz-radius-md)] px-3 py-2.5 text-left text-sm font-medium capitalize transition-colors duration-110',
-                  isActive
-                    ? 'text-[var(--cz-accent-bright)] [background:var(--cz-accent-soft)]'
-                    : 'text-muted hover:bg-surface-2 hover:text-fg',
-                )}
-              >
-                {/* accent left rail on the active tab */}
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'absolute top-[9px] bottom-[9px] left-0 w-[3px] rounded-[3px] bg-accent transition-opacity duration-180',
-                    isActive ? 'opacity-100' : 'opacity-0',
-                  )}
-                />
-                <svg
-                  viewBox="0 0 16 16"
-                  className="size-[17px] shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.4}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  {NAV_GLYPH[tab]}
-                </svg>
-                {NAV_LABEL[tab] ?? tab}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-auto border-t pt-3 [border-color:var(--cz-line-faint)]">
-          <div className="px-2 font-mono text-[10px] tracking-[var(--cz-tracking-label)] text-subtle uppercase">
-            Cockpit Zero
+        {groups.map((group) => (
+          <div key={group.label}>
+            <div className="cz-label px-2 pb-1.5">{group.label}</div>
+            <div className="flex flex-col gap-0.5">
+              {group.tabs.map((tab) => {
+                const isActive = active === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => onSelect(tab)}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={cn(
+                      'relative flex w-full items-center gap-[11px] rounded-[9px] px-2.5 py-2 text-left text-[13.5px] font-medium capitalize transition-colors duration-110',
+                      isActive
+                        ? 'text-[var(--cz-accent-text)] [background:var(--cz-accent-wash)]'
+                        : 'text-muted hover:bg-[var(--cz-surface-hover)] hover:text-fg',
+                    )}
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      className="size-[17px] shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.4}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      {NAV_GLYPH[tab]}
+                    </svg>
+                    {NAV_LABEL[tab] ?? tab}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+        ))}
+
+        <div className="mt-auto px-2 pt-2 font-mono text-[11px] text-[var(--cz-fg-faint)]">
+          v1.0 · Facet
         </div>
       </nav>
 
-      <div className="min-w-0 flex-1 overflow-y-auto px-[30px] py-[26px]">{children}</div>
+      <div className="min-w-0 flex-1 overflow-y-auto px-[26px] py-[22px]">{children}</div>
     </div>
   );
 }

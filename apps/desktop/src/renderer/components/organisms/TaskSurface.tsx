@@ -51,7 +51,7 @@ export function TaskSurface({
           <span className="text-sm font-semibold text-fg">{taskStatusLabel(run)}</span>
         </div>
         {(run.usingMemory || run.toolCount > 0) && (
-          <span className="inline-flex items-center gap-[7px] rounded-[var(--cz-radius-full)] border [border-color:var(--cz-line)] px-2.5 py-[5px] text-xs font-medium text-muted [background:var(--cz-glass-2)]">
+          <span className="inline-flex items-center gap-[7px] rounded-[var(--cz-radius-pill)] border [border-color:var(--cz-line)] px-2.5 py-[5px] text-xs font-medium text-muted [background:var(--cz-surface-inset)]">
             <svg
               viewBox="0 0 24 24"
               className="size-3.5 text-accent"
@@ -84,7 +84,7 @@ export function TaskSurface({
           {run.result.previews.map((label, i) => (
             <div
               key={`${label}-${i}`}
-              className="grid aspect-[4/3] flex-1 place-items-center rounded-[var(--cz-radius-sm)] border [border-color:var(--cz-line)] [background:repeating-linear-gradient(135deg,var(--cz-bg-1),var(--cz-bg-1)_7px,#f3ebdf_7px,#f3ebdf_14px)]"
+              className="grid aspect-[4/3] flex-1 place-items-center rounded-[var(--cz-radius-sm)] border [border-color:var(--cz-line)] [background:repeating-linear-gradient(135deg,var(--cz-surface-2),var(--cz-surface-2)_7px,var(--cz-surface-inset)_7px,var(--cz-surface-inset)_14px)]"
             >
               <span className="font-mono text-[10px] tracking-[0.04em] text-subtle">{label}</span>
             </div>
@@ -106,7 +106,7 @@ export function TaskSurface({
           <Button variant="outline" onClick={onStop}>
             {active ? 'Stop' : 'Dismiss'}
           </Button>
-          <Button variant="dark" onClick={onPrimary} disabled={!ready}>
+          <Button variant="primary" onClick={onPrimary} disabled={!ready}>
             <svg
               viewBox="0 0 24 24"
               className="size-[15px]"
@@ -206,7 +206,7 @@ function StepRow({ step, first }: { step: TaskStep; first: boolean }) {
             {(step.tool || step.args) && (
               <div className="flex flex-wrap items-center gap-2">
                 {step.tool && (
-                  <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line)] px-[7px] py-px text-muted [background:var(--cz-glass-2)]">
+                  <span className="rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line)] px-[7px] py-px text-muted [background:var(--cz-surface-inset)]">
                     {step.tool}
                   </span>
                 )}
@@ -219,9 +219,9 @@ function StepRow({ step, first }: { step: TaskStep; first: boolean }) {
           </div>
         )}
         {step.state === 'running' && (
-          <div className="mt-2 h-1 overflow-hidden rounded-full [background:var(--cz-glass-2)]">
+          <div className="mt-2 h-1 overflow-hidden rounded-full [background:var(--cz-surface-inset)]">
             <span
-              className="block h-full rounded-full [background:var(--cz-accent-grad)] motion-safe:animate-pulse"
+              className="block h-full rounded-full [background:var(--cz-accent)] motion-safe:animate-pulse"
               style={{ width: `${Math.round((step.progress ?? 0.6) * 100)}%` }}
             />
           </div>
@@ -253,7 +253,7 @@ function Marker({ step }: { step: TaskStep }) {
   }
   if (step.state === 'running') {
     return (
-      <MarkerShell className="text-[var(--cz-accent-bright)] [border-color:var(--cz-accent-line)] [background:var(--cz-accent-soft)]">
+      <MarkerShell className="text-[var(--cz-accent-text)] [border-color:var(--cz-accent-line)] [background:var(--cz-accent-soft)]">
         <svg
           viewBox="0 0 24 24"
           className="size-3.5 motion-safe:animate-spin [animation-duration:2.4s]"
@@ -300,7 +300,7 @@ function MarkerShell({ className, children }: { className?: string; children: Re
   return (
     <span
       className={cn(
-        'grid size-[25px] flex-none place-items-center rounded-full border [border-color:var(--cz-line)] [background:var(--cz-glass-1)]',
+        'grid size-[25px] flex-none place-items-center rounded-full border [border-color:var(--cz-line)] [background:var(--cz-surface)]',
         className,
       )}
     >
@@ -313,7 +313,7 @@ function MarkerShell({ className, children }: { className?: string; children: Re
 function Hint({ cap, label }: { cap: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5 text-xs text-muted">
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] px-1.5 font-mono text-[11px] text-muted [background:var(--cz-glass-2)]">
+      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] px-1.5 font-mono text-[11px] text-muted [background:var(--cz-surface-inset)]">
         {cap}
       </span>
       {label}

@@ -46,7 +46,7 @@ export function DigestScreen() {
     rootRef.current?.focus();
   }, [routineId]);
 
-  useAppearance(config?.settings.theme, config?.settings.glass);
+  useAppearance(config?.settings);
 
   // Flatten the two groups into one navigable list (group headers are skipped).
   const items: DigestItem[] = digest ? [...digest.groups.now, ...digest.groups.wait] : [];
@@ -117,7 +117,7 @@ export function DigestScreen() {
             hint={loaded ? 'Run this routine to pull and summarize your notifications.' : ''}
           />
           {loaded && (
-            <Button variant="dark" onClick={runNow}>
+            <Button variant="primary" onClick={runNow}>
               Run now
             </Button>
           )}
@@ -144,7 +144,7 @@ export function DigestScreen() {
 function Hint({ cap, label }: { cap: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5 text-xs text-muted">
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] px-1.5 font-mono text-[11px] text-muted [background:var(--cz-glass-2)]">
+      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] px-1.5 font-mono text-[11px] text-muted [background:var(--cz-surface-inset)]">
         {cap}
       </span>
       {label}

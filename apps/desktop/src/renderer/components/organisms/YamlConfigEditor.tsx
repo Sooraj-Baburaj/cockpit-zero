@@ -87,7 +87,7 @@ function buildOutline(file: ConfigYamlFile, text: string): OutlineEntry[] {
 
 /**
  * The YAML config editor (Phase 6) — a power-user surface to edit the config by
- * hand. Rendered as a Console tab (no new window): a file tree, a warm-syntax
+ * hand. Rendered as a Console tab (no new window): a file tree, a token-themed syntax
  * YAML editor (a controlled textarea overlaid with a CSP-safe highlight layer),
  * live schema validation, and an outline/shortcuts side panel.
  *
@@ -192,7 +192,7 @@ export function YamlConfigEditor({
 
   return (
     <div
-      className="cz-yaml flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden rounded-[var(--cz-radius-lg)] border [border-color:var(--cz-line-faint)] [background:var(--cz-glass-1)]"
+      className="cz-yaml flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden rounded-[var(--cz-radius-lg)] border [border-color:var(--cz-line-faint)] [background:var(--cz-surface)]"
       onKeyDown={onKeyDown}
     >
       {/* Titlebar: active filename + unsaved dot, Format / Save. */}
@@ -223,7 +223,7 @@ export function YamlConfigEditor({
             Format
           </Button>
           <Button
-            variant="dark"
+            variant="primary"
             size="sm"
             onClick={save}
             disabled={hasError || !activeDirty}
@@ -264,8 +264,8 @@ export function YamlConfigEditor({
                 className={cn(
                   'mb-0.5 flex w-full items-center gap-2.5 rounded-[var(--cz-radius-sm)] px-2.5 py-2 font-mono text-[13px] transition',
                   isActive
-                    ? 'text-fg [background:var(--cz-glass-3)]'
-                    : 'text-muted hover:[background:var(--cz-glass-2)]',
+                    ? 'text-fg [background:var(--cz-surface-hover)]'
+                    : 'text-muted hover:[background:var(--cz-surface-inset)]',
                 )}
               >
                 <svg
@@ -466,7 +466,7 @@ function ValidationRow({ issue }: { issue: ValidationIssue }) {
       <span>
         {issue.code && (
           <>
-            <code className="font-mono text-[12px] text-[var(--cz-accent-bright)]">
+            <code className="font-mono text-[12px] text-[var(--cz-accent-text)]">
               {issue.code}
             </code>{' '}
           </>
@@ -486,7 +486,7 @@ function Shortcut({ label, keys }: { label: string; keys: string[] }) {
         {keys.map((k, i) => (
           <span
             key={i}
-            className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] px-1.5 font-mono text-[11px] font-medium text-muted [background:var(--cz-glass-2)]"
+            className="inline-flex h-5 min-w-5 items-center justify-center rounded-[var(--cz-radius-xs)] border [border-color:var(--cz-line-strong)] px-1.5 font-mono text-[11px] font-medium text-muted [background:var(--cz-surface-inset)]"
           >
             {k}
           </span>

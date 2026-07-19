@@ -38,7 +38,7 @@ function Check() {
       strokeWidth={1.8}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="shrink-0 text-[var(--cz-accent-bright)]"
+      className="shrink-0 text-[var(--cz-accent-text)]"
       aria-hidden="true"
     >
       <path d="m3.5 8.5 3 3 6-7" />
@@ -48,8 +48,8 @@ function Check() {
 
 /**
  * Custom single-choice dropdown — replaces the native `<select>` so the popup
- * matches the warm Sahara surfaces and themes (light/dark/glass) instead of the
- * OS-drawn menu. Implements the ARIA listbox pattern: a trigger button
+ * matches the Facet surfaces and themes (light/dark) instead of the OS-drawn
+ * menu. Implements the ARIA listbox pattern: a trigger button
  * (`aria-haspopup="listbox"`) over a `role="listbox"` of `role="option"`s, with
  * full keyboard support (arrows, Home/End, Enter/Space, Esc, type-ahead). Use
  * this everywhere a picker is needed — never a raw `<select>`.
@@ -199,7 +199,7 @@ export function Dropdown({
           aria-activedescendant={optionId(active)}
           tabIndex={-1}
           className={cn(
-            'cz-panel absolute z-50 max-h-60 w-full overflow-auto rounded-lg p-1',
+            'absolute z-50 max-h-60 w-full overflow-auto rounded-[var(--cz-radius-md)] border border-border bg-surface-2 p-1 [box-shadow:var(--cz-shadow-md)]',
             flip ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
           )}
         >
@@ -216,7 +216,7 @@ export function Dropdown({
                 onClick={() => choose(i)}
                 className={cn(
                   'flex cursor-pointer items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors',
-                  isActive ? 'text-fg [background:var(--cz-glass-selected)]' : 'text-muted',
+                  isActive ? 'text-fg [background:var(--cz-accent-wash)]' : 'text-muted',
                 )}
               >
                 <span className="truncate">{opt.label}</span>

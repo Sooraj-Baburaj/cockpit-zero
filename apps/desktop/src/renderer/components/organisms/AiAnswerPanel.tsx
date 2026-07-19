@@ -72,7 +72,7 @@ function SuggestionRow({
       className={cn(
         'flex cursor-pointer items-center justify-between gap-3.5 rounded-[var(--cz-radius-md)] border border-transparent p-3',
         selected &&
-          '[background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-ring-focus)]',
+          '[background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-focus-ring)]',
       )}
     >
       <div className="flex min-w-0 items-center gap-3.5">
@@ -80,7 +80,7 @@ function SuggestionRow({
           className={cn(
             'grid size-[34px] shrink-0 place-items-center rounded-[var(--cz-radius-md)] border transition-colors',
             selected
-              ? 'text-accent-fg [background:var(--cz-accent-grad)] [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-chip)]'
+              ? 'text-accent-fg [background:var(--cz-accent)] [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-chip)]'
               : 'bg-surface-2 border-border text-muted',
           )}
         >
@@ -116,7 +116,7 @@ function SuggestionRow({
         </div>
       </div>
       {selected && runnable && (
-        <span className="shrink-0 rounded-[var(--cz-radius-xs)] border px-[9px] py-1 font-mono text-xs font-medium text-[var(--cz-accent-bright)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]">
+        <span className="shrink-0 rounded-[var(--cz-radius-xs)] border px-[9px] py-1 font-mono text-xs font-medium text-[var(--cz-accent-text)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]">
           ↵ run
         </span>
       )}
@@ -163,7 +163,7 @@ export function AiAnswerPanel({
     <div>
       <div className="px-5 pt-[22px] pb-2">
         <div className="mb-3 flex items-center justify-between">
-          <span className="flex items-center gap-[7px] text-[11px] font-semibold tracking-[0.12em] text-[var(--cz-accent-bright)] uppercase">
+          <span className="flex items-center gap-[7px] text-[11px] font-semibold tracking-[0.12em] text-[var(--cz-accent-text)] uppercase">
             <Sparkle className="size-3.5" />
             Answer
           </span>

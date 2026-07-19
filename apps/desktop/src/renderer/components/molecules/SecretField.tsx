@@ -84,7 +84,7 @@ export function SecretField({
   };
 
   return (
-    <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-[13px] [box-shadow:var(--cz-shadow-sm)]">
+    <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-[18px] py-[13px] [box-shadow:var(--cz-shadow-sm)]">
       <div className="mb-2.5 flex items-center justify-between gap-4">
         <div>
           <div className="text-[14.5px] font-semibold text-fg">{label}</div>
@@ -113,7 +113,7 @@ export function SecretField({
           aria-label={label}
         />
         <Button
-          variant="dark"
+          variant="primary"
           onClick={() => void save()}
           disabled={value.trim() === '' || busy || unavailable}
         >
@@ -139,7 +139,7 @@ export function SecretField({
 function StatusPill({ present }: { present: boolean | null }) {
   const label = present === null ? 'Checking…' : present ? '••••• set' : 'Not set';
   return (
-    <span className="inline-flex shrink-0 items-center gap-2 rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-1)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
+    <span className="inline-flex shrink-0 items-center gap-2 rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
       <span
         className={cn(
           'size-[7px] rounded-full',

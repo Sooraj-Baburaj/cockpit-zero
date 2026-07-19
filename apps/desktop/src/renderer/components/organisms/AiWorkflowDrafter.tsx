@@ -139,7 +139,7 @@ export function AiWorkflowDrafter({
           e.preventDefault();
           generate(description);
         }}
-        className="rounded-[var(--cz-radius-lg)] border [border-color:var(--cz-accent-line)] [background:var(--cz-glass-1)] px-[18px] py-4 [box-shadow:var(--cz-shadow-md),var(--cz-glow-accent-soft)]"
+        className="rounded-[var(--cz-radius-lg)] border [border-color:var(--cz-accent-line)] [background:var(--cz-surface)] px-[18px] py-4 [box-shadow:var(--cz-shadow-md),var(--cz-glow-chip)]"
       >
         <div className="flex items-start gap-3">
           <Sparkle className="mt-1 size-[22px] shrink-0 text-accent" pair />
@@ -162,7 +162,7 @@ export function AiWorkflowDrafter({
           />
           <Button
             type="submit"
-            variant="dark"
+            variant="primary"
             disabled={description.trim() === '' || phase === 'drafting'}
           >
             {phase === 'drafting' ? 'Drafting…' : 'Draft'}
@@ -184,7 +184,7 @@ export function AiWorkflowDrafter({
             type="button"
             disabled={phase === 'drafting'}
             onClick={() => generate(example)}
-            className="block w-full rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-2)] px-[14px] py-3 text-left text-[13px] text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)] disabled:opacity-45"
+            className="block w-full rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface-inset)] px-[14px] py-3 text-left text-[13px] text-muted transition hover:text-fg hover:[border-color:var(--cz-accent-line)] disabled:opacity-45"
           >
             {example}
           </button>

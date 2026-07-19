@@ -54,7 +54,7 @@ export function AiOfferPanel({
         </div>
       </div>
 
-      <div className="px-5 pt-3.5 pb-1 text-[11px] font-semibold tracking-[0.14em] text-[var(--cz-accent-bright)] uppercase">
+      <div className="px-5 pt-3.5 pb-1 text-[11px] font-semibold tracking-[0.14em] text-[var(--cz-accent-text)] uppercase">
         Ask AI
       </div>
       <ul
@@ -71,7 +71,7 @@ export function AiOfferPanel({
           icon={<Sparkle className="size-[19px]" pair />}
           title={
             <>
-              Ask <span className="text-[var(--cz-accent-bright)] italic">“{query}”</span>
+              Ask <span className="text-[var(--cz-accent-text)] italic">“{query}”</span>
             </>
           }
           subtitle="CockpitZero AI · answers from your workspace and history"
@@ -136,7 +136,7 @@ function OfferRow({
       className={cn(
         'flex cursor-pointer items-center justify-between gap-3.5 rounded-[var(--cz-radius-md)] border p-3.5',
         selected
-          ? '[background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-ring-focus)]'
+          ? '[background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-focus-ring)]'
           : 'border-transparent',
       )}
     >
@@ -145,7 +145,7 @@ function OfferRow({
           className={cn(
             'grid size-9 shrink-0 place-items-center rounded-[var(--cz-radius-md)] transition-colors',
             selected
-              ? 'text-accent-fg [background:var(--cz-accent-grad)] [box-shadow:var(--cz-glow-chip)]'
+              ? 'text-accent-fg [background:var(--cz-accent)] [box-shadow:var(--cz-glow-chip)]'
               : 'bg-surface-2 border border-border text-muted',
           )}
         >
@@ -157,7 +157,7 @@ function OfferRow({
         </div>
       </div>
       {selected && (
-        <span className="shrink-0 rounded-[var(--cz-radius-xs)] border px-[9px] py-1 font-mono text-xs font-medium text-[var(--cz-accent-bright)] [background:var(--cz-glass-1)] [border-color:var(--cz-accent-line)]">
+        <span className="shrink-0 rounded-[var(--cz-radius-xs)] border px-[9px] py-1 font-mono text-xs font-medium text-[var(--cz-accent-text)] [background:var(--cz-surface)] [border-color:var(--cz-accent-line)]">
           {chip}
         </span>
       )}

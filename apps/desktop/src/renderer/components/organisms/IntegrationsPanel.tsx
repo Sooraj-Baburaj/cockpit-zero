@@ -63,7 +63,7 @@ export function IntegrationsPanel() {
   return (
     <div className="max-w-2xl">
       <header className="mb-6">
-        <h1 className="text-[30px] leading-none font-semibold tracking-[-0.02em] text-fg">
+        <h1 className="text-[19px] leading-none font-semibold text-fg">
           Integrations
         </h1>
         <p className="mt-2 max-w-[62ch] text-[13px] text-muted">
@@ -122,7 +122,7 @@ function SourceCard({
   };
 
   return (
-    <div className="rounded-[var(--cz-radius-md)] border border-border px-[18px] py-[14px] [background:var(--cz-glass-1)] [box-shadow:var(--cz-shadow-sm)]">
+    <div className="rounded-[var(--cz-radius-md)] border border-border px-[18px] py-[14px] [background:var(--cz-surface)] [box-shadow:var(--cz-shadow-sm)]">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
@@ -154,7 +154,7 @@ function SourceCard({
           ) : (
             caps.oauth && (
               <Button
-                variant="dark"
+                variant="primary"
                 size="sm"
                 disabled={busy || !status?.oauthReady}
                 title={
@@ -232,7 +232,7 @@ function formatDate(iso: string): string {
 function StatusPill({ connected }: { connected: boolean | null }) {
   const label = connected === null ? 'Checking…' : connected ? 'Connected' : 'Not connected';
   return (
-    <span className="inline-flex shrink-0 items-center gap-2 rounded-[var(--cz-radius-full)] border border-border px-[11px] py-1 text-[11px] font-medium text-muted [background:var(--cz-glass-1)]">
+    <span className="inline-flex shrink-0 items-center gap-2 rounded-[var(--cz-radius-pill)] border border-border px-[11px] py-1 text-[11px] font-medium text-muted [background:var(--cz-surface)]">
       <span
         className={cn(
           'size-[7px] rounded-full',

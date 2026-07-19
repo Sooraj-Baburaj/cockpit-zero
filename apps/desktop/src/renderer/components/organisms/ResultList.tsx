@@ -34,17 +34,14 @@ export function ResultList({
       id={listboxId}
       role="listbox"
       aria-label="Results"
-      className="max-h-80 overflow-y-auto pt-1 pb-1.5"
+      className="max-h-[var(--cz-results-max-h)] overflow-y-auto p-1.5"
     >
       {results.map((item, i) => {
         const startsSection = i === 0 || results[i - 1]?.kind !== item.kind;
         return (
           <Fragment key={item.id}>
             {startsSection && (
-              <li
-                role="presentation"
-                className="px-5 pt-3 pb-1 font-mono text-xs font-medium tracking-[var(--cz-tracking-label)] text-subtle uppercase"
-              >
+              <li role="presentation" className="cz-label px-3 pt-[11px] pb-1.5">
                 {SECTION_LABEL[item.kind]}
               </li>
             )}

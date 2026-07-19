@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Settings } from '@cockpitzero/shared';
 import { api } from '../../lib/api.js';
-import { Field } from '../atoms/Field.js';
+import { OptionCard } from '../molecules/OptionCard.js';
 import { Toggle } from '../atoms/Toggle.js';
 import { HotkeyRecorder } from '../molecules/HotkeyRecorder.js';
 
@@ -27,13 +27,19 @@ export function ConsolePanel({
   }, []);
 
   return (
-    <div className="max-w-md space-y-6">
-      <h2 className="text-lg font-semibold">General</h2>
+    <div className="max-w-[560px] space-y-3">
+      <h2 className="pb-2 text-[19px] font-semibold">General</h2>
 
-      <Field label="Global hotkey" description="Click and press the keys to summon CockpitZero.">
+      <div className="space-y-2 rounded-[var(--cz-radius-lg)] border border-border bg-surface-2 px-4 py-[13px]">
+        <div>
+          <div className="text-sm font-semibold text-fg">Global hotkey</div>
+          <div className="mt-0.5 text-[12.5px] text-subtle">
+            Summon CockpitZero from anywhere — click and press the keys.
+          </div>
+        </div>
         <HotkeyRecorder value={settings.hotkey} onChange={(v) => set('hotkey', v)} />
         {hotkeyIssue && (
-          <p className="mt-1.5 text-[12.5px] [color:var(--cz-warn)]">
+          <p className="text-[12.5px] [color:var(--cz-warn)]">
             {hotkeyIssue === 'wayland' ? (
               <>
                 Wayland doesn’t let apps register system-wide hotkeys. In your desktop’s keyboard
@@ -46,18 +52,25 @@ export function ConsolePanel({
             )}
           </p>
         )}
-      </Field>
+      </div>
 
-      <Toggle
-        checked={settings.launchAtLogin}
-        onChange={(v) => set('launchAtLogin', v)}
-        label="Launch at login"
-      />
-      <Toggle
-        checked={settings.telemetryEnabled}
-        onChange={(v) => set('telemetryEnabled', v)}
-        label="Share anonymous usage telemetry"
-      />
+      <OptionCard title="Launch at login">
+        <Toggle
+          checked={settings.launchAtLogin}
+          onChange={(v) => set('launchAtLogin', v)}
+          ariaLabel="Toggle launch at login"
+        />
+      </OptionCard>
+      <OptionCard
+        title="Share usage analytics"
+        description="Anonymous counts only — never your queries or content."
+      >
+        <Toggle
+          checked={settings.telemetryEnabled}
+          onChange={(v) => set('telemetryEnabled', v)}
+          ariaLabel="Toggle usage analytics"
+        />
+      </OptionCard>
     </div>
   );
 }

@@ -92,6 +92,8 @@ async function scanWindows(): Promise<AppEntry[]> {
 export interface DesktopEntry {
   /** The unlocalized `Name=`, or null if the file doesn't declare one. */
   name: string | null;
+  /** The `Icon=` value — a themed icon name or an absolute path — or null. */
+  icon: string | null;
   /** False when the entry asks not to be listed (`NoDisplay`/`Hidden`) or isn't
    *  a launchable application (`Type` other than `Application`). */
   listed: boolean;
@@ -105,6 +107,7 @@ export interface DesktopEntry {
 export function parseDesktopEntry(content: string): DesktopEntry {
   let inEntry = false;
   let name: string | null = null;
+  let icon: string | null = null;
   let listed = true;
   for (const raw of content.split('\n')) {
     const line = raw.trim();
@@ -122,10 +125,11 @@ export function parseDesktopEntry(content: string): DesktopEntry {
     const key = line.slice(0, eq).trim();
     const value = line.slice(eq + 1).trim();
     if (key === 'Name') name = value;
+    else if (key === 'Icon') icon = value;
     else if ((key === 'NoDisplay' || key === 'Hidden') && value === 'true') listed = false;
     else if (key === 'Type' && value !== 'Application') listed = false;
   }
-  return { name, listed };
+  return { name, icon, listed };
 }
 
 /** Read + parse one `.desktop` file, or null if it can't be read. */

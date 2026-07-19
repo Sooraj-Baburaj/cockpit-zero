@@ -1,6 +1,7 @@
 import { app } from 'electron';
 import { join } from 'node:path';
 import { resolveIconPath } from '../infra/icon-path.js';
+import { linuxAppIcon, linuxIconRoots } from '../infra/linux-app-icon.js';
 import { macAppIcon } from '../infra/mac-app-icon.js';
 
 /**
@@ -14,9 +15,11 @@ import { macAppIcon } from '../infra/mac-app-icon.js';
  * macOS `.app` bundles are a special case: `app.getFileIcon` returns a *generic
  * placeholder* for them (identical across apps), so we read the bundle's real
  * `.icns` instead (`macAppIcon`, which persists the converted PNG under
- * `userData/icon-cache`). Everything else — files, and all non-macOS paths —
- * uses `app.getFileIcon`, which gives the correct file-type/app icon; it's also
- * the fallback when a bundle's icon can't be read.
+ * `userData/icon-cache`). Linux `.desktop` entries are the other special case:
+ * `app.getFileIcon` yields the text-file-type icon, so the entry's `Icon=` is
+ * resolved to the real app icon (`linuxAppIcon`). Everything else — files, and
+ * Windows apps — uses `app.getFileIcon`, which gives the correct
+ * file-type/app icon; it's also the fallback when either special case fails.
  *
  * Two cache layers: a per-session in-memory map (below) short-circuits repeat
  * lookups, and `macAppIcon`'s on-disk cache survives restarts. `null` (no icon /
@@ -32,6 +35,11 @@ async function extract(path: string): Promise<string | null> {
     const icon = await macAppIcon(path, iconCacheDir());
     if (icon) return icon;
     // fall through to getFileIcon (generic, but better than nothing)
+  }
+  if (process.platform === 'linux' && path.endsWith('.desktop')) {
+    const icon = await linuxAppIcon(path, linuxIconRoots());
+    if (icon) return icon;
+    // fall through to getFileIcon (file-type icon, but better than nothing)
   }
   try {
     const image = await app.getFileIcon(path, { size: 'normal' });

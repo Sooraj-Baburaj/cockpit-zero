@@ -32,24 +32,13 @@ const STEP_GLYPH: Record<ActionKind, React.ReactNode> = {
   ),
 };
 
-/** Tile base colour per action kind — the design's colourful app-tile palette. */
-const STEP_COLOR: Record<ActionKind, string> = {
-  'open-url': 'var(--cz-kind-action)',
-  'open-app': 'var(--cz-kind-app)',
-  'run-command': 'var(--cz-kind-file)',
-  snippet: 'var(--cz-tertiary)',
-};
-
-/** One 38px gradient step tile in a workflow card's chain. */
+/** One 34px step chip in a workflow card's chain — a Facet inset chip with the
+ *  monochrome kind glyph (colour stays reserved for OS icons + the accent). */
 function StepTile({ action }: { action?: Action }) {
-  const color = action ? STEP_COLOR[action.type] : 'var(--cz-fg-faint)';
   return (
     <span
       title={action?.title ?? '(deleted action)'}
-      className="grid size-[38px] shrink-0 place-items-center rounded-[10px] text-white [box-shadow:var(--cz-shadow-sm),inset_0_1px_0_rgba(255,255,255,0.3)]"
-      style={{
-        background: `linear-gradient(150deg, color-mix(in srgb, ${color} 72%, white), ${color})`,
-      }}
+      className="grid size-[34px] shrink-0 place-items-center rounded-[var(--cz-radius-chip)] border border-border bg-[var(--cz-surface-inset)] text-muted"
     >
       <svg
         viewBox="0 0 24 24"
@@ -149,7 +138,7 @@ export function WorkflowEditor({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Workflows ({workflows.length})</h2>
+        <h2 className="text-[19px] font-semibold">Workflows ({workflows.length})</h2>
         <div className="flex items-center gap-2">
           {aiAvailable && (
             <Button variant="outline" onClick={() => setEditing('draft')}>
@@ -183,7 +172,7 @@ export function WorkflowEditor({
           {workflows.map((workflow) => (
             <li
               key={workflow.id}
-              className="group/wf rounded-[var(--cz-radius-lg)] border border-border bg-surface-2 px-[18px] pt-[18px] pb-5 transition-colors duration-110 hover:bg-[var(--cz-glass-3)]"
+              className="group/wf rounded-[var(--cz-radius-lg)] border border-border bg-surface-2 px-[18px] pt-[18px] pb-5 transition-colors duration-110 hover:bg-[var(--cz-surface-hover)]"
             >
               <div className="mb-4 flex items-start justify-between gap-2">
                 <div className="min-w-0">

@@ -18,8 +18,8 @@ export function ToolGrantCard({
   onChange: (granted: boolean) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-4 py-3.5 [box-shadow:var(--cz-shadow-sm)]">
-      <span className="grid size-[34px] shrink-0 place-items-center rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-2)] text-muted">
+    <div className="flex items-center gap-3 rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-4 py-3.5 [box-shadow:var(--cz-shadow-sm)]">
+      <span className="grid size-[34px] shrink-0 place-items-center rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface-inset)] text-muted">
         {icon}
       </span>
       <div className="min-w-0">

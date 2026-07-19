@@ -30,10 +30,10 @@ const glyphs: Record<LauncherItemKind, React.ReactNode> = {
 
 /**
  * Themed icon chip at the start of a launcher result row. Apps and files show
- * their real OS icon once it loads; configured actions/workflows (and any icon
- * that fails to load) fall back to the thin-line kind glyph. Default chip is a
- * quiet glass surface; `lit` (the selected row): accent-gradient fill, white
- * glyph and a soft glow — the row's one accent moment.
+ * their real OS icon once it loads — full-colour, never tinted or lit, so the
+ * native icon carries the colour. Configured actions/workflows (and any icon
+ * that fails to load) fall back to the thin-line kind glyph on an inset chip;
+ * `lit` (the selected row): flat accent fill — the row's one accent moment.
  */
 export function ResultIcon({ item, lit = false }: { item: LauncherItem; lit?: boolean }) {
   const kind: LauncherItemKind = item.kind;
@@ -41,8 +41,8 @@ export function ResultIcon({ item, lit = false }: { item: LauncherItem; lit?: bo
 
   if (nativeIcon) {
     return (
-      <span className="flex size-7 shrink-0 items-center justify-center">
-        <img src={nativeIcon} alt="" className="size-[22px] rounded-[5px] object-contain" />
+      <span className="flex size-[30px] shrink-0 items-center justify-center">
+        <img src={nativeIcon} alt="" className="size-6 rounded-[5px] object-contain" />
       </span>
     );
   }
@@ -50,10 +50,10 @@ export function ResultIcon({ item, lit = false }: { item: LauncherItem; lit?: bo
   return (
     <span
       className={cn(
-        'flex size-7 shrink-0 items-center justify-center rounded-[var(--cz-radius-md)] border transition-[background,box-shadow,color] duration-180',
+        'flex size-[30px] shrink-0 items-center justify-center rounded-[var(--cz-radius-chip)] border transition-[background,box-shadow,color] duration-180',
         lit
-          ? '[background:var(--cz-accent-grad)] text-accent-fg [border-color:var(--cz-accent-line)] [box-shadow:var(--cz-glow-chip)]'
-          : 'bg-surface-2 border-border text-muted',
+          ? 'border-transparent text-accent-fg [background:var(--cz-accent)] [box-shadow:var(--cz-glow-chip)]'
+          : 'border-border bg-[var(--cz-surface-inset)] text-muted',
       )}
     >
       <svg

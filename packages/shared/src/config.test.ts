@@ -10,6 +10,13 @@ describe('config', () => {
     expect(cfg.settings.hotkey).toBe('CommandOrControl+J');
   });
 
+  it('defaults appearance to monochrome with launcher translucency on', () => {
+    const cfg = defaultConfig();
+    expect(cfg.settings.monochrome).toBe(true);
+    expect(cfg.settings.sidebarAccent).toBe(false);
+    expect(cfg.settings.glass).toBe(true);
+  });
+
   it('rejects malformed config', () => {
     expect(safeValidateConfig({ version: 99 }).success).toBe(false);
   });

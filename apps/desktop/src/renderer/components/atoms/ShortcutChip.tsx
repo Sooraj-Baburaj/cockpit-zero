@@ -3,7 +3,7 @@ import { Kbd } from './Kbd.js';
 
 /**
  * A multi-key keyboard shortcut rendered as a row of keycaps (e.g. ⌘ 1, ⌘ ,).
- * `accent` lights the caps blue — the selected row's run hint.
+ * `accent` lights the caps — the selected row's run hint.
  */
 export function ShortcutChip({
   keys,
@@ -15,15 +15,9 @@ export function ShortcutChip({
   className?: string;
 }) {
   return (
-    <span className={cn('inline-flex shrink-0 items-center gap-[3px]', className)}>
+    <span className={cn('inline-flex shrink-0 items-center gap-1', className)}>
       {keys.map((k, i) => (
-        <Kbd
-          key={i}
-          className={cn(
-            accent &&
-              'text-[var(--cz-accent-bright)] [background:var(--cz-accent-soft)] [border-color:var(--cz-accent-line)]',
-          )}
-        >
+        <Kbd key={i} accent={accent}>
           {k}
         </Kbd>
       ))}

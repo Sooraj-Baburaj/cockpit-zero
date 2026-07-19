@@ -24,7 +24,7 @@ import { ActionForm } from '../components/organisms/ActionForm.js';
 import { AliasEditor } from '../components/organisms/AliasEditor.js';
 import { WorkflowEditor } from '../components/organisms/WorkflowEditor.js';
 import { Button } from '../components/atoms/Button.js';
-import { CONSOLE_TABS, INITIAL_CONSOLE_TAB } from './console-tabs.js';
+import { CONSOLE_NAV_GROUPS, INITIAL_CONSOLE_TAB } from './console-tabs.js';
 
 /**
  * The Console / config-editor window — thin composition over `useConfig`.
@@ -34,7 +34,7 @@ import { CONSOLE_TABS, INITIAL_CONSOLE_TAB } from './console-tabs.js';
  */
 export function Console() {
   const { config, setConfig, save } = useConfig();
-  useAppearance(config?.settings.theme, config?.settings.glass);
+  useAppearance(config?.settings);
 
   const [tab, setTab] = useState<string>(INITIAL_CONSOLE_TAB);
   const [editing, setEditing] = useState<Action | 'new' | null>(null);
@@ -96,7 +96,7 @@ export function Console() {
     });
 
   return (
-    <ConsoleLayout tabs={CONSOLE_TABS} active={tab} onSelect={setTab}>
+    <ConsoleLayout groups={CONSOLE_NAV_GROUPS} active={tab} onSelect={setTab}>
       {tab === 'general' && <ConsolePanel settings={config.settings} onChange={updateSettings} />}
 
       {tab === 'ai' && <AiPanel ai={config.ai} onSave={(ai) => persist({ ...config, ai })} />}
@@ -134,12 +134,19 @@ export function Console() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Actions ({config.actions.length})</h2>
-              <Button variant="primary" onClick={() => setEditing('new')}>
+              <h2 className="text-[19px] font-semibold">
+                Actions <span className="font-medium text-subtle">({config.actions.length})</span>
+              </h2>
+              <Button variant="primary" size="sm" onClick={() => setEditing('new')}>
                 New action
               </Button>
             </div>
-            <ActionList actions={config.actions} onEdit={setEditing} onDelete={deleteAction} />
+            <ActionList
+              actions={config.actions}
+              keywordOf={keywordOf}
+              onEdit={setEditing}
+              onDelete={deleteAction}
+            />
           </div>
         ))}
 

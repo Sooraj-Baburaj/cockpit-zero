@@ -12,7 +12,7 @@ export interface SegmentOption<T extends string> {
 
 /**
  * A single-choice segmented control: a pill track where the selected segment
- * carries the sienna accent. An ARIA `radiogroup` with roving focus and
+ * carries the accent fill. An ARIA `radiogroup` with roving focus and
  * arrow-key navigation (skipping disabled segments) — the themed alternative to
  * a row of radios, used for `ai.modelTier`. For longer option lists prefer the
  * `Dropdown` molecule; this is for 2–3 always-visible choices.
@@ -50,7 +50,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className="inline-flex shrink-0 gap-1 rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-2)] p-[3px]"
+      className="inline-flex shrink-0 gap-1 rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface-inset)] p-[3px]"
     >
       {options.map((opt, i) => {
         const selected = opt.value === value;
@@ -78,10 +78,10 @@ export function SegmentedControl<T extends string>({
               }
             }}
             className={cn(
-              'rounded-[var(--cz-radius-full)] px-[13px] py-1.5 text-[12.5px] font-medium whitespace-nowrap transition',
+              'rounded-[var(--cz-radius-pill)] px-[13px] py-1.5 text-[12.5px] font-medium whitespace-nowrap transition',
               opt.disabled && 'cursor-not-allowed opacity-45',
               selected
-                ? 'text-accent-fg [background:var(--cz-accent-grad)] [box-shadow:var(--cz-glow-accent)]'
+                ? 'text-accent-fg [background:var(--cz-accent)] [box-shadow:var(--cz-shadow-sm)]'
                 : !opt.disabled && 'text-muted hover:text-fg',
             )}
           >

@@ -103,7 +103,7 @@ export function AccountPanel({ onApplyConfig }: { onApplyConfig: (config: Config
   return (
     <div className="max-w-[560px] space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Account</h2>
+        <h2 className="text-[19px] font-semibold">Account</h2>
         <p className="mt-1 max-w-[52ch] text-[13px] leading-relaxed text-muted">
           <strong className="font-medium text-fg">Optional.</strong> CockpitZero is fully usable
           without an account — everything stays on this device. Sign in only if you want your
@@ -124,7 +124,7 @@ export function AccountPanel({ onApplyConfig }: { onApplyConfig: (config: Config
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Button variant="dark" onClick={() => void push()} disabled={busy !== null}>
+            <Button variant="primary" onClick={() => void push()} disabled={busy !== null}>
               {busy === 'push' ? 'Syncing…' : 'Sync now'}
             </Button>
             {confirmingPull ? (
@@ -209,7 +209,7 @@ export function AccountPanel({ onApplyConfig }: { onApplyConfig: (config: Config
             </Field>
             <div className="flex items-center gap-2">
               <Button
-                variant="dark"
+                variant="primary"
                 onClick={() => void signInPassword(false)}
                 disabled={!canSubmit}
               >
@@ -233,10 +233,10 @@ export function AccountPanel({ onApplyConfig }: { onApplyConfig: (config: Config
   );
 }
 
-/** The shared warm-surface card, matching SecretField's container. */
+/** The shared facet-surface card, matching SecretField's container. */
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-glass-1)] px-[18px] py-[15px] [box-shadow:var(--cz-shadow-sm)]">
+    <div className="rounded-[var(--cz-radius-md)] border border-border [background:var(--cz-surface)] px-[18px] py-[15px] [box-shadow:var(--cz-shadow-sm)]">
       {children}
     </div>
   );
@@ -245,7 +245,7 @@ function Card({ children }: { children: React.ReactNode }) {
 /** Plan badge — `free` stays quiet; `pro` gets the accent dot. */
 function PlanPill({ plan }: { plan: 'free' | 'pro' }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-2 rounded-[var(--cz-radius-full)] border border-border [background:var(--cz-glass-1)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
+    <span className="inline-flex shrink-0 items-center gap-2 rounded-[var(--cz-radius-pill)] border border-border [background:var(--cz-surface)] px-[13px] py-1.5 text-xs font-medium text-muted [box-shadow:var(--cz-shadow-sm)]">
       <span
         className={cn(
           'size-[7px] rounded-full',

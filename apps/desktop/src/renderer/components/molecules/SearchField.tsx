@@ -17,7 +17,7 @@ function SearchGlyph({ focused }: { focused: boolean }) {
       strokeLinejoin="round"
       className={cn(
         'shrink-0 transition-colors duration-110',
-        focused ? 'text-[var(--cz-accent-bright)]' : 'text-subtle',
+        focused ? 'text-[var(--cz-accent-text)]' : 'text-subtle',
       )}
       aria-hidden
     >

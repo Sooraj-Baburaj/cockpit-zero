@@ -322,12 +322,20 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
   always-auto-focused search input is excluded via `input:not(.cz-search-input):focus-visible`
   (browsers treat text inputs as perpetually focus-visible) — it has its own focus treatment, so
   don't drop the `cz-search-input` class or the ring will sit on the bar permanently.
-- **Translucency is one token.** Both the launcher panel (`.cz-panel`) and the settings window
-  (`.cz-window`) share `--cz-panel-bg`'s alpha (per theme); the "Frosted glass" toggle swaps both to
-  opaque via `.cz-no-glass`. Tune transparency on that token, not on components.
-- **Console nav order** is the `CONSOLE_TABS` array in `screens/console-tabs.ts` (actions → ai →
-  memory → workflows → routines → aliases → config → account → general → appearance); the initial
-  tab (`INITIAL_CONSOLE_TAB`) must be a member of it.
+- **Translucency is launcher-only ("Facet — solid glass").** Only the launcher panel (`.cz-panel`)
+  is translucent, via `--cz-panel-bg` + blur; the Appearance → "Launcher translucency" toggle swaps
+  it to the opaque facet surface via `.cz-no-glass`. Every other window (`.cz-window`: Console /
+  Task / Digest) is **always opaque** — the "glass" there is lighting (sheen + rim shadow), never
+  blur. Tune transparency on `--cz-panel-bg`, not on components.
+- **Theme + colour modes are attributes/classes on `<html>`.** Colour tokens are authored once with
+  `light-dark()` and switched by `color-scheme`: `useAppearance` sets `data-theme="light|dark"`
+  (removed for `system`), plus `cz-mono` (Monochrome UI — the default; remaps the accent family to
+  neutral) and `cz-sideacc` (restores the orange accent inside `.cz-console-nav`). Don't reintroduce
+  `.theme-dark` classes or per-theme token blocks.
+- **Console nav** is `CONSOLE_NAV_GROUPS` in `screens/console-tabs.ts` (Commands: actions →
+  workflows → routines → aliases · Intelligence: ai → memory · Connections: integrations ·
+  Preferences: general → appearance → config → account); `CONSOLE_TABS` is derived from it and the
+  initial tab (`INITIAL_CONSOLE_TAB`) must be a member.
 
 ## Code intelligence (codegraph)
 

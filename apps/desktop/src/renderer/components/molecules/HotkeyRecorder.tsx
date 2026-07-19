@@ -70,7 +70,7 @@ export function HotkeyRecorder({
         onKeyDown={onKeyDown}
         className={cn(
           'cz-input flex cursor-pointer items-center gap-1.5 text-left',
-          recording && '[box-shadow:var(--cz-ring-focus)] [&]:[border-color:var(--cz-accent)]',
+          recording && '[box-shadow:var(--cz-focus-ring)] [&]:[border-color:var(--cz-accent)]',
         )}
       >
         {recording ? (

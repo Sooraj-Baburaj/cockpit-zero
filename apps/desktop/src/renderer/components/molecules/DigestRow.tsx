@@ -75,11 +75,11 @@ export function DigestRow({
       className={cn(
         '-mx-1.5 flex cursor-pointer items-center gap-3.5 rounded-[var(--cz-radius-md)] border border-transparent px-3.5 py-3 transition',
         top &&
-          'border-[var(--cz-accent-line)] [background:var(--cz-glass-selected)] [box-shadow:inset_2px_0_0_var(--cz-accent)]',
-        selected && !top && '[background:var(--cz-glass-2)]',
+          'border-[var(--cz-accent-line)] [background:var(--cz-accent-wash)] [box-shadow:inset_2px_0_0_var(--cz-accent)]',
+        selected && !top && '[background:var(--cz-surface-inset)]',
       )}
     >
-      <span className="grid size-9 flex-none place-items-center rounded-[var(--cz-radius-md)] border border-border text-muted [background:var(--cz-glass-2)]">
+      <span className="grid size-9 flex-none place-items-center rounded-[var(--cz-radius-md)] border border-border text-muted [background:var(--cz-surface-inset)]">
         <svg
           viewBox="0 0 24 24"
           className="size-[18px]"
@@ -97,7 +97,7 @@ export function DigestRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2.5">
           <span className="text-sm font-semibold text-fg">{item.who}</span>
-          <span className="rounded-[var(--cz-radius-xs)] border border-border px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.1em] text-muted uppercase [background:var(--cz-glass-2)]">
+          <span className="rounded-[var(--cz-radius-xs)] border border-border px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.1em] text-muted uppercase [background:var(--cz-surface-inset)]">
             {routineSourceLabel[item.source]}
           </span>
         </div>

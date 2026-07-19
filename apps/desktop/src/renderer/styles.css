@@ -1,40 +1,51 @@
-/* Self-hosted UI fonts (Geist / Geist Mono). Bundled by Vite so they load from
-   'self' — the renderer's CSP locks out the Google Fonts CDN, so no
-   @import url(...). The design system's tokens/typography.css reaches for the
-   CDN; that is a specimen-only convenience and must not be copied here. */
-@import '@fontsource/geist-sans/400.css';
-@import '@fontsource/geist-sans/500.css';
-@import '@fontsource/geist-sans/600.css';
-@import '@fontsource/geist-sans/700.css';
-@import '@fontsource/geist-mono/400.css';
-@import '@fontsource/geist-mono/500.css';
-@import '@fontsource/geist-mono/600.css';
+/* Self-hosted UI fonts (Hanken Grotesk / IBM Plex Mono). Bundled by Vite so
+   they load from 'self' — the renderer's CSP locks out the Google Fonts CDN, so
+   no @import url(...). The design system's tokens/typography.css reaches for
+   the CDN; that is a specimen-only convenience and must not be copied here. */
+@import '@fontsource/hanken-grotesk/400.css';
+@import '@fontsource/hanken-grotesk/500.css';
+@import '@fontsource/hanken-grotesk/600.css';
+@import '@fontsource/hanken-grotesk/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
 
 @import 'tailwindcss';
 
 /*
- * CockpitZero — "Clarity, adaptive glass" design system.
- * Frosted translucent panels float over the desktop; cool neutrals carry the UI;
- * one vivid blue is the only accent. Geist for everything, Geist Mono for the
- * machine-literal (paths, commands, aliases, keycaps, the wordmark).
+ * CockpitZero — "Facet, solid glass" design system.
  *
- * The `--cz-*` custom properties are the source of truth (light = :root, dark
- * under `.theme-dark`). Token NAMES are identical across modes, so consumers get
- * both for free. They are surfaced to Tailwind via @theme, which generates the
- * `bg-surface`, `text-muted`, `text-accent`, … utilities the components use — so
- * the whole UI re-themes at runtime from these variables.
+ * A dimensional, specular, premium material rendered on 100% OPAQUE surfaces.
+ * The "glass" is lighting (rim highlights, sheen, layered depth), never blur —
+ * so every surface stays legible over any wallpaper on macOS/Windows/Linux.
+ * The ONE exception is the launcher panel, which keeps real translucency
+ * behind the Appearance → "Launcher translucency" toggle (see `.cz-panel`).
  *
- * The design system expresses dark via `@media (prefers-color-scheme: dark)`.
- * Here it stays a `.theme-dark` class because Appearance → Theme is a real
- * product setting (system / light / dark); `useAppearance` resolves `system`
- * through `matchMedia`, which yields the design's adaptive behaviour while
- * keeping the explicit overrides working.
+ * Colour: warm-neutral ink/off-white surfaces; Claude orange #d97757 is the
+ * single, rationed accent (selection, focus, primary, the lit chip). Kind
+ * badges are deliberately MONOCHROME — full-colour OS app icons carry the
+ * colour instead. Monochrome mode (`.cz-mono`, the default) remaps the accent
+ * family to neutral so the whole UI goes greyscale in one place;
+ * `.cz-sideacc` restores the orange on the Console sidebar only.
+ *
+ * THEME MODEL — light & dark are equal first-class citizens, exposed as a
+ * product control (system / light / dark). Colours are authored ONCE with the
+ * CSS light-dark() function and switched by `color-scheme`:
+ *   system → no [data-theme] on <html>: follows the OS.
+ *   light  → <html data-theme="light">
+ *   dark   → <html data-theme="dark">
+ * Composite tokens (shadows / gradients) can't use light-dark(), so they
+ * mirror the model with @media + [data-theme] blocks further down.
+ *
+ * The `--cz-*` custom properties are the source of truth. They are surfaced to
+ * Tailwind via @theme, which generates the `bg-surface`, `text-muted`,
+ * `text-accent`, … utilities the components use.
  */
 @theme {
-  /* Semantic colors (Tailwind utilities resolve to the warm tokens) */
-  --color-bg: var(--cz-bg-2);
-  --color-surface: var(--cz-glass-1);
-  --color-surface-2: var(--cz-glass-2);
+  /* Semantic colors (Tailwind utilities resolve to the Facet tokens) */
+  --color-bg: var(--cz-bg);
+  --color-surface: var(--cz-surface);
+  --color-surface-2: var(--cz-surface-2);
   --color-border: var(--cz-line);
   --color-fg: var(--cz-fg);
   --color-muted: var(--cz-fg-muted);
@@ -43,9 +54,9 @@
   --color-accent-fg: var(--cz-accent-fg);
   --color-danger: var(--cz-danger);
 
-  /* Type — Geist carries body, UI and headings; Geist Mono carries anything
-     machine-literal. Clarity has no serif: `--font-serif` is a back-compat alias
-     onto sans so the existing `font-serif` headings keep resolving. */
+  /* Type — Hanken Grotesk carries body, UI and headings; IBM Plex Mono carries
+     anything machine-literal. Facet has no serif: `--font-serif` is a
+     back-compat alias onto sans so existing `font-serif` headings resolve. */
   --font-sans: var(--cz-font-sans);
   --font-serif: var(--cz-font-serif);
   --font-mono: var(--cz-font-mono);
@@ -60,119 +71,101 @@
 }
 
 /* ============================================================
-   Tokens — light (Clarity). Default for every window.
+   Theme switch — `color-scheme` drives every light-dark() token.
    ============================================================ */
-:root,
-.theme-light {
-  /* Backdrop: the cool desktop, seen softly through the glass */
-  --cz-bg-0: #d6deea;
-  --cz-bg-1: #e6ecf4;
-  --cz-bg-2: #f1f4f9;
-  --cz-bg-grad: radial-gradient(120% 120% at 50% 0%, #f7f9fc 0%, #eaeff6 46%, #dbe3ee 100%);
+:root {
+  color-scheme: light dark; /* system default → resolves via the OS */
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
 
-  /* Soft wallpaper light-blooms behind the panels (decorative) */
-  --cz-wall-1: rgba(120, 165, 255, 0.28);
-  --cz-wall-2: rgba(180, 200, 235, 0.22);
+/* ============================================================
+   Tokens — authored once with light-dark(). NAMES are identical
+   across modes, so consumers get both for free.
+   ============================================================ */
+:root {
+  /* --- Desktop backdrop (behind the windows) --- */
+  --cz-bg: light-dark(#e9e8e4, #0d0e11);
+  --cz-bg-2: light-dark(#e0ded9, #0a0b0e);
 
-  /* Surfaces. NOTE the split, which the design system names differently:
-     `--cz-panel-bg` is the translucent frosted fill (the design's `--cz-glass-1`)
-     and `--cz-glass-1` is the OPAQUE fill (the design's `--cz-glass-solid`) that
-     `.cz-no-glass` swaps in. Keeping those roles is what makes the Appearance →
-     "Frosted glass" toggle work; don't collapse them. */
-  --cz-glass-1: #ffffff;
-  --cz-glass-solid: var(--cz-glass-1);
-  --cz-panel-bg: rgba(255, 255, 255, 0.72);
+  /* --- Surfaces: opaque facet slabs --- */
+  --cz-surface: light-dark(#fbfaf8, #1d2025); /* panel / window fill */
+  --cz-surface-2: light-dark(#ffffff, #2a2e35); /* raised: popovers, tiles */
+  --cz-surface-inset: light-dark(#efedea, #141619); /* wells: inputs, chips, kbd */
+  --cz-surface-hover: light-dark(rgba(20, 18, 16, 0.05), rgba(255, 255, 255, 0.06));
+  --cz-scrim: light-dark(rgba(30, 26, 22, 0.36), rgba(0, 0, 0, 0.6));
+
+  /* Launcher-only translucency: the frosted fill `.cz-panel` uses while the
+     Appearance → "Launcher translucency" toggle is on. Every other window is
+     an opaque facet slab. Tune transparency on this token, not on components. */
+  --cz-panel-bg: light-dark(rgba(251, 250, 248, 0.78), rgba(29, 32, 37, 0.72));
   --cz-blur-panel: 26px;
-  --cz-blur-chip: 10px;
-  --cz-glass-2: rgba(18, 26, 45, 0.04);
-  --cz-glass-3: rgba(18, 26, 45, 0.07);
-  --cz-glass-selected: rgba(47, 107, 255, 0.1);
-  --cz-scrim: rgba(16, 24, 44, 0.28);
 
-  /* Hairline borders (cool) + the bright frosted top edge */
-  --cz-line: rgba(20, 32, 60, 0.1);
-  --cz-line-strong: rgba(20, 32, 60, 0.16);
-  --cz-line-faint: rgba(20, 32, 60, 0.065);
-  --cz-rim-line: rgba(255, 255, 255, 0.75);
+  /* --- Foreground text (warm-neutral ink / off-white) --- */
+  --cz-fg: light-dark(#1b1c1f, #f3f2ef);
+  --cz-fg-muted: light-dark(rgba(27, 28, 31, 0.62), rgba(243, 242, 239, 0.62));
+  --cz-fg-subtle: light-dark(rgba(27, 28, 31, 0.45), rgba(243, 242, 239, 0.42));
+  --cz-fg-faint: light-dark(rgba(27, 28, 31, 0.3), rgba(243, 242, 239, 0.28));
+  --cz-fg-on-accent: #20100a; /* text/glyph ON the orange fill (AA on --cz-accent) */
 
-  /* Foreground text (cool near-black). Muted clears WCAG AA on the glass
-     surfaces; subtle is for placeholders/decorative only, never body copy. */
-  --cz-fg: #171b24;
-  --cz-fg-muted: rgba(23, 27, 36, 0.62);
-  --cz-fg-subtle: rgba(23, 27, 36, 0.45);
-  --cz-fg-faint: rgba(23, 27, 36, 0.3);
+  /* --- Hairlines + top-edge rim highlight (the "facet" bevel) --- */
+  --cz-line: light-dark(rgba(24, 22, 20, 0.1), rgba(255, 255, 255, 0.09));
+  --cz-line-strong: light-dark(rgba(24, 22, 20, 0.16), rgba(255, 255, 255, 0.15));
+  --cz-line-faint: light-dark(rgba(24, 22, 20, 0.06), rgba(255, 255, 255, 0.055));
+  --cz-rim: light-dark(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.11));
 
   /* Scrollbar thumb (rails stay transparent) */
-  --cz-scrollbar-thumb: rgba(23, 27, 36, 0.2);
-  --cz-scrollbar-thumb-hover: rgba(23, 27, 36, 0.36);
+  --cz-scrollbar-thumb: light-dark(rgba(27, 28, 31, 0.2), rgba(243, 242, 239, 0.2));
+  --cz-scrollbar-thumb-hover: light-dark(rgba(27, 28, 31, 0.36), rgba(243, 242, 239, 0.36));
 
-  /* Accent: vivid blue — the one accent */
-  --cz-accent: #2f6bff;
-  --cz-accent-bright: #1f56e0;
-  --cz-accent-deep: #1746b8;
-  --cz-accent-fg: #ffffff;
-  --cz-accent-grad: linear-gradient(180deg, #4079ff 0%, #2f6bff 100%);
-  --cz-accent-soft: rgba(47, 107, 255, 0.12);
-  --cz-accent-line: rgba(47, 107, 255, 0.42);
+  /* --- Accent: Claude orange (rationed — ONE accent moment per view) --- */
+  --cz-accent: #d97757;
+  --cz-accent-hover: #e0895f;
+  --cz-accent-press: #c2643f;
+  --cz-accent-text: light-dark(#a8543a, #eb9a78); /* accent AS TEXT (AA on surface) */
+  --cz-accent-fg: #20100a; /* text/glyph on accent fill */
+  --cz-accent-soft: light-dark(rgba(217, 119, 87, 0.1), rgba(217, 119, 87, 0.12));
+  --cz-accent-wash: light-dark(rgba(217, 119, 87, 0.12), rgba(217, 119, 87, 0.16));
+  --cz-accent-line: light-dark(rgba(217, 119, 87, 0.45), rgba(217, 119, 87, 0.5));
 
-  /* Tertiary: violet (sparse secondary emphasis) */
-  --cz-tertiary: #6a4fe0;
-  --cz-tertiary-soft: rgba(106, 79, 224, 0.12);
-  --cz-tertiary-line: rgba(106, 79, 224, 0.38);
+  /* Selection aliases (one coherent focus/selection model) */
+  --cz-selected-wash: var(--cz-accent-wash);
+  --cz-rail: var(--cz-accent); /* 3px left rail on the selected row */
 
-  /* Bright cool top sheen on raised glass + a whisper of accent bloom */
-  --cz-rim: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(255, 255, 255, 0.28) 20%,
-    rgba(255, 255, 255, 0) 46%
-  );
-  --cz-bloom: rgba(47, 107, 255, 0.1);
+  /* --- Semantic status (warm-shifted, muted, rare) --- */
+  --cz-danger: light-dark(#c14a42, #f0857c);
+  --cz-danger-soft: light-dark(rgba(193, 74, 66, 0.12), rgba(240, 133, 124, 0.16));
+  --cz-success: light-dark(#3f9d6b, #55c58f);
+  --cz-success-soft: light-dark(rgba(63, 157, 107, 0.14), rgba(85, 197, 143, 0.16));
+  --cz-warn: light-dark(#b9822a, #e0a94b);
+  --cz-warn-soft: light-dark(rgba(185, 130, 42, 0.14), rgba(224, 169, 75, 0.16));
 
-  /* Semantic status (cool-shifted, rare) */
-  --cz-danger: #e04b52;
-  --cz-danger-soft: rgba(224, 75, 82, 0.12);
-  --cz-warn: #d38a1f;
-  --cz-warn-soft: rgba(211, 138, 31, 0.14);
-  --cz-success: #2f9e6b;
-  --cz-success-soft: rgba(47, 158, 107, 0.14);
+  /* --- Type / kind badges — intentionally MONOCHROME: the kind is carried by
+     the label + the row glyph, so badges never add colour that would fight
+     full-colour OS app icons. --- */
+  --cz-badge-fg: var(--cz-fg-muted);
+  --cz-badge-bg: light-dark(rgba(24, 22, 20, 0.05), rgba(255, 255, 255, 0.06));
+  --cz-badge-line: var(--cz-line);
 
-  /* Result-kind icon-tile base colours (colourful app tiles) */
-  --cz-kind-action: #2f6bff;
-  --cz-kind-workflow: #d38a1f;
-  --cz-kind-app: #17b283;
-  --cz-kind-file: #5b6472;
+  /* --- Own iconography is monochrome (inherits currentColor); it lights to
+     --cz-accent-fg on the accent chip and --cz-accent-text when active. --- */
+  --cz-icon: var(--cz-fg-muted);
+  --cz-icon-active: var(--cz-accent-text);
 
-  /* Type-badge palette (URL / APP / WORKFLOW / SCRIPT / COMMAND / FILE) */
-  --cz-badge-url-fg: #1f56e0;
-  --cz-badge-url-bg: rgba(47, 107, 255, 0.12);
-  --cz-badge-url-line: rgba(47, 107, 255, 0.34);
-  --cz-badge-app-fg: #0e8a63;
-  --cz-badge-app-bg: rgba(23, 178, 131, 0.14);
-  --cz-badge-app-line: rgba(23, 178, 131, 0.36);
-  --cz-badge-workflow-fg: #b0741b;
-  --cz-badge-workflow-bg: rgba(211, 138, 31, 0.15);
-  --cz-badge-workflow-line: rgba(211, 138, 31, 0.4);
-  --cz-badge-script-fg: #6247cf;
-  --cz-badge-script-bg: rgba(106, 79, 224, 0.14);
-  --cz-badge-script-line: rgba(106, 79, 224, 0.36);
-  --cz-badge-command-fg: rgba(23, 27, 36, 0.6);
-  --cz-badge-command-bg: rgba(18, 26, 45, 0.05);
-  --cz-badge-command-line: rgba(20, 32, 60, 0.16);
-  --cz-badge-file-fg: #566072;
-  --cz-badge-file-bg: rgba(90, 100, 120, 0.12);
-  --cz-badge-file-line: rgba(90, 100, 120, 0.3);
-
-  /* Typography families & scale. Geist for everything; Geist Mono for anything
-     machine-literal (paths, commands, aliases, keycaps, the wordmark). Clarity
-     has no serif — `--cz-font-serif` stays as a back-compat alias onto sans so
-     existing `font-serif` headings resolve to Geist instead of breaking. */
+  /* --- Typography families & scale. Hanken Grotesk for everything the user
+     reads; IBM Plex Mono for anything machine-literal (paths, commands,
+     aliases, keycaps, counts, the wordmark). No serif — `--cz-font-serif`
+     stays as a back-compat alias onto sans. --- */
   --cz-font-sans:
-    'Geist Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
-    sans-serif;
+    'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
   --cz-font-mono:
-    'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Segoe UI Symbol',
-    'Noto Sans Symbols2', 'Apple Symbols', monospace;
+    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    'Segoe UI Symbol', 'Noto Sans Symbols2', 'Apple Symbols', monospace;
   --cz-font-heading: var(--cz-font-sans);
   --cz-font-serif: var(--cz-font-sans);
   --cz-text-xs: 12px;
@@ -180,9 +173,9 @@
   --cz-text-base: 15px;
   --cz-text-lg: 18px;
   --cz-text-xl: 22px;
-  --cz-text-query: 27px;
+  --cz-text-query: 24px;
   --cz-text-2xl: 30px;
-  --cz-text-display: 44px;
+  --cz-text-display: 46px;
   --cz-leading-tight: 1.1;
   --cz-leading-snug: 1.25;
   --cz-leading-normal: 1.5;
@@ -191,154 +184,152 @@
   --cz-weight-semibold: 600;
   --cz-weight-bold: 700;
   --cz-tracking-label: 0.12em;
-  --cz-tracking-wide: 0.24em;
+  --cz-tracking-wide: 0.2em;
   --cz-tracking-tight: -0.02em;
   --cz-tracking-normal: 0;
 
-  /* Spacing & radii (4-pt grid; restrained radii) */
+  /* --- Spacing (4-pt grid) & radii --- */
   --cz-space-1: 4px;
   --cz-space-2: 8px;
   --cz-space-3: 12px;
   --cz-space-4: 16px;
   --cz-space-5: 20px;
   --cz-space-6: 24px;
-  --cz-space-8: 32px;
-  --cz-space-10: 40px;
-  --cz-space-12: 48px;
-  /* Radii — 5 / 7 / 10 / 14 / 18 / 22 (+ full for pills) */
-  --cz-radius-xs: 5px;
-  --cz-radius-sm: 7px;
-  --cz-radius-md: 10px;
-  --cz-radius-lg: 14px;
-  --cz-radius-xl: 18px;
-  --cz-radius-2xl: 22px;
-  --cz-radius-full: 999px;
+  --cz-space-7: 32px;
+  --cz-space-8: 40px;
+  --cz-space-9: 48px;
+  --cz-space-10: 64px;
+  --cz-space-11: 80px;
+  --cz-space-12: 96px;
+  /* Radii — chips/inputs 6, buttons/icon-chips/badges 8, cards 12,
+     panels/windows 16, big tiles 20; pills fully round. */
+  --cz-radius-xs: 4px;
+  --cz-radius-sm: 6px;
+  --cz-radius-md: 8px;
+  --cz-radius-lg: 12px;
+  --cz-radius-xl: 16px;
+  --cz-radius-2xl: 20px;
+  --cz-radius-pill: 999px;
+  /* Component-scoped radii */
+  --cz-radius-launcher: 16px;
+  --cz-radius-window: 14px;
+  --cz-radius-chip: 8px;
+  --cz-radius-input: 8px;
+  --cz-radius-kbd: 6px;
+  /* Border widths */
+  --cz-border: 1px;
+  --cz-border-strong: 1.5px;
   --cz-hairline: 1px;
 
-  /* Elevation — cool and soft, so the glass lifts off the desktop */
-  --cz-shadow-sm: 0 1px 2px rgba(16, 24, 44, 0.08);
-  --cz-shadow-md: 0 4px 18px rgba(16, 24, 44, 0.1);
-  --cz-shadow-panel:
-    0 2px 8px rgba(16, 24, 44, 0.06), 0 28px 64px -24px rgba(16, 24, 44, 0.32),
-    0 0 60px -30px var(--cz-bloom);
+  /* --- Layout — window sizes --- */
+  --cz-launcher-w: 640px;
+  --cz-launcher-max: 720px;
+  --cz-results-max-h: 380px;
+  --cz-console-w: 1040px;
+  --cz-console-h: 764px;
+  --cz-console-nav: 216px; /* Console sidebar width (per the Console mock) */
+  --cz-traffic-inset: 52px;
+  --cz-digest-w: 460px;
+  --cz-task-w: 560px;
 
-  /* Accent emphasis */
-  --cz-glow-accent: 0 1px 2px rgba(16, 24, 44, 0.12);
-  --cz-glow-accent-soft: 0 2px 10px rgba(47, 107, 255, 0.28);
-  --cz-glow-accent-strong: 0 4px 16px -2px rgba(47, 107, 255, 0.42);
-  --cz-ring-focus: 0 0 0 1px var(--cz-accent), 0 0 0 4px var(--cz-accent-soft);
-  --cz-glow-chip: 0 2px 8px rgba(47, 107, 255, 0.32);
-
-  /* Surface sheen + selected-row rail */
-  --cz-rim-inset: inset 0 1px 0 0 var(--cz-rim-line);
-  --cz-rail-glow: 0 0 8px rgba(47, 107, 255, 0.4);
-
-  /* Motion */
-  --cz-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* --- Motion — fast & restrained --- */
+  --cz-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --cz-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --cz-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --cz-dur-fast: 110ms;
-  --cz-dur-base: 180ms;
+  --cz-dur-base: 170ms;
   --cz-dur-slow: 260ms;
+  --cz-rise: 4px;
 }
 
 /* ============================================================
-   Tokens — dark. A deep navy desktop, dark frosted panels, a
-   brighter blue. Only values change; every token NAME above is
-   redeclared here, so consumers get both modes for free.
+   Composite tokens (gradients / multi-layer shadows) — can't use
+   light-dark(), so they mirror the theme model:
+     :root                                 → light (system default)
+     @media (prefers-color-scheme: dark)   → dark  (system, OS dark)
+     :root[data-theme='light' | 'dark']    → forced overrides
+
+   ELEVATION PHILOSOPHY — "solid glass": a raised surface reads as a
+   lit slab: (1) a bright top rim highlight (inset) — the bevel
+   catching light, (2) the surface gradient, (3) a soft ambient drop.
    ============================================================ */
-.theme-dark {
-  --cz-bg-0: #05070c;
-  --cz-bg-1: #0a0e15;
-  --cz-bg-2: #0c1017;
-  --cz-bg-grad: radial-gradient(120% 120% at 50% 0%, #141b28 0%, #0d121b 50%, #06090f 100%);
-
-  --cz-wall-1: rgba(59, 130, 255, 0.22);
-  --cz-wall-2: rgba(90, 120, 200, 0.16);
-
-  --cz-glass-1: #161b24;
-  --cz-glass-solid: var(--cz-glass-1);
-  --cz-panel-bg: rgba(28, 34, 46, 0.66);
-  --cz-glass-2: rgba(255, 255, 255, 0.05);
-  --cz-glass-3: rgba(255, 255, 255, 0.09);
-  --cz-glass-selected: rgba(59, 130, 255, 0.16);
-  --cz-scrim: rgba(0, 0, 0, 0.55);
-
-  --cz-line: rgba(255, 255, 255, 0.1);
-  --cz-line-strong: rgba(255, 255, 255, 0.17);
-  --cz-line-faint: rgba(255, 255, 255, 0.06);
-  --cz-rim-line: rgba(255, 255, 255, 0.14);
-
-  --cz-fg: #eceef4;
-  --cz-fg-muted: rgba(236, 238, 244, 0.62);
-  --cz-fg-subtle: rgba(236, 238, 244, 0.42);
-  --cz-fg-faint: rgba(236, 238, 244, 0.28);
-
-  --cz-scrollbar-thumb: rgba(236, 238, 244, 0.2);
-  --cz-scrollbar-thumb-hover: rgba(236, 238, 244, 0.36);
-
-  --cz-accent: #3b82ff;
-  --cz-accent-bright: #7aa8ff;
-  --cz-accent-deep: #2f6bff;
-  --cz-accent-fg: #ffffff;
-  --cz-accent-grad: linear-gradient(180deg, #4a8bff 0%, #2f6bff 100%);
-  --cz-accent-soft: rgba(59, 130, 255, 0.18);
-  --cz-accent-line: rgba(59, 130, 255, 0.5);
-
-  --cz-tertiary: #9d86ff;
-  --cz-tertiary-soft: rgba(157, 134, 255, 0.16);
-  --cz-tertiary-line: rgba(157, 134, 255, 0.42);
-
-  --cz-rim: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.16) 0%,
-    rgba(255, 255, 255, 0.05) 22%,
-    rgba(255, 255, 255, 0) 48%
-  );
-  --cz-bloom: rgba(59, 130, 255, 0.24);
-
-  --cz-danger: #ff6b70;
-  --cz-danger-soft: rgba(255, 107, 112, 0.16);
-  --cz-warn: #e6a63a;
-  --cz-warn-soft: rgba(230, 166, 58, 0.16);
-  --cz-success: #3fca8c;
-  --cz-success-soft: rgba(63, 202, 140, 0.16);
-
-  --cz-kind-action: #3b82ff;
-  --cz-kind-workflow: #e6a63a;
-  --cz-kind-app: #2bcf9c;
-  --cz-kind-file: #8892a4;
-
-  --cz-badge-url-fg: #7aa8ff;
-  --cz-badge-url-bg: rgba(59, 130, 255, 0.18);
-  --cz-badge-url-line: rgba(59, 130, 255, 0.4);
-  --cz-badge-app-fg: #47d6a3;
-  --cz-badge-app-bg: rgba(43, 207, 156, 0.16);
-  --cz-badge-app-line: rgba(43, 207, 156, 0.4);
-  --cz-badge-workflow-fg: #e9b256;
-  --cz-badge-workflow-bg: rgba(230, 166, 58, 0.18);
-  --cz-badge-workflow-line: rgba(230, 166, 58, 0.42);
-  --cz-badge-script-fg: #b3a0ff;
-  --cz-badge-script-bg: rgba(157, 134, 255, 0.18);
-  --cz-badge-script-line: rgba(157, 134, 255, 0.42);
-  --cz-badge-command-fg: rgba(236, 238, 244, 0.6);
-  --cz-badge-command-bg: rgba(255, 255, 255, 0.06);
-  --cz-badge-command-line: rgba(255, 255, 255, 0.18);
-  --cz-badge-file-fg: #9aa4b6;
-  --cz-badge-file-bg: rgba(150, 165, 190, 0.14);
-  --cz-badge-file-line: rgba(150, 165, 190, 0.3);
-
-  --cz-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --cz-shadow-md: 0 4px 18px rgba(0, 0, 0, 0.45);
+:root {
+  --cz-surface-grad: linear-gradient(180deg, #ffffff 0%, #f3f2ef 100%);
+  --cz-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 64px);
+  --cz-shadow-sm: 0 1px 2px rgba(40, 30, 20, 0.08), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  --cz-shadow-md: 0 6px 20px -6px rgba(40, 30, 22, 0.18), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
   --cz-shadow-panel:
-    0 2px 8px rgba(0, 0, 0, 0.4), 0 30px 70px -24px rgba(0, 0, 0, 0.7),
-    0 0 70px -30px var(--cz-bloom);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 28px 56px -26px rgba(40, 30, 22, 0.32),
+    0 3px 10px rgba(40, 30, 22, 0.1);
+  --cz-focus-ring: 0 0 0 3px var(--cz-accent-line);
+  --cz-glow-chip: 0 2px 12px var(--cz-accent-wash);
+  --cz-glow-btn: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 6px 18px -6px rgba(217, 119, 87, 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cz-surface-grad: linear-gradient(180deg, #262a31 0%, #191b20 100%);
+    --cz-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70px);
+    --cz-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+    --cz-shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
+    --cz-shadow-panel:
+      0 1px 0 rgba(255, 255, 255, 0.11) inset, 0 30px 70px -24px rgba(0, 0, 0, 0.75),
+      0 4px 14px rgba(0, 0, 0, 0.45);
+    --cz-glow-btn:
+      0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 6px 20px -6px rgba(217, 119, 87, 0.55);
+  }
+}
+:root[data-theme='light'] {
+  --cz-surface-grad: linear-gradient(180deg, #ffffff 0%, #f3f2ef 100%);
+  --cz-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 64px);
+  --cz-shadow-sm: 0 1px 2px rgba(40, 30, 20, 0.08), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  --cz-shadow-md: 0 6px 20px -6px rgba(40, 30, 22, 0.18), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  --cz-shadow-panel:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 28px 56px -26px rgba(40, 30, 22, 0.32),
+    0 3px 10px rgba(40, 30, 22, 0.1);
+  --cz-glow-btn: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 6px 18px -6px rgba(217, 119, 87, 0.5);
+}
+:root[data-theme='dark'] {
+  --cz-surface-grad: linear-gradient(180deg, #262a31 0%, #191b20 100%);
+  --cz-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70px);
+  --cz-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  --cz-shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
+  --cz-shadow-panel:
+    0 1px 0 rgba(255, 255, 255, 0.11) inset, 0 30px 70px -24px rgba(0, 0, 0, 0.75),
+    0 4px 14px rgba(0, 0, 0, 0.45);
+  --cz-glow-btn: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 6px 20px -6px rgba(217, 119, 87, 0.55);
+}
 
-  --cz-glow-accent: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --cz-glow-accent-soft: 0 2px 12px rgba(59, 130, 255, 0.4);
-  --cz-glow-accent-strong: 0 4px 20px -2px rgba(59, 130, 255, 0.55);
-  --cz-glow-chip: 0 2px 10px rgba(59, 130, 255, 0.45);
+/* ============================================================
+   Monochrome mode (`.cz-mono` on <html>, the DEFAULT) — remaps the
+   accent token family to neutral so the whole UI goes greyscale in
+   one place. Colour is reserved for content and OS app icons.
+   ============================================================ */
+.cz-mono {
+  --cz-accent: light-dark(#33333a, #e6e6e9);
+  --cz-accent-hover: light-dark(#44444c, #d4d4d8);
+  --cz-accent-press: light-dark(#26262c, #c2c2c7);
+  --cz-accent-text: var(--cz-fg-muted);
+  --cz-accent-fg: light-dark(#ffffff, #18181b);
+  --cz-accent-soft: var(--cz-surface-inset);
+  --cz-accent-line: var(--cz-line-strong);
+  --cz-accent-wash: var(--cz-surface-inset);
+  --cz-glow-chip: none;
+  --cz-glow-btn: none;
+}
 
-  --cz-rim-inset: inset 0 1px 0 0 var(--cz-rim-line);
+/* "Accent on sidebar" (`.cz-sideacc` on <html>) — restores Claude orange on
+   the Console sidebar (`.cz-console-nav`) so the active nav item keeps one
+   warm indicator lamp even in monochrome mode. */
+.cz-sideacc .cz-console-nav {
+  --cz-accent: #d97757;
+  --cz-accent-hover: #e08a63;
+  --cz-accent-press: #c2643f;
+  --cz-accent-text: light-dark(#a8543a, #eb9a78);
+  --cz-accent-fg: #20100a;
+  --cz-accent-soft: light-dark(rgba(217, 119, 87, 0.1), rgba(217, 119, 87, 0.12));
+  --cz-accent-line: light-dark(rgba(217, 119, 87, 0.45), rgba(217, 119, 87, 0.5));
+  --cz-accent-wash: light-dark(rgba(217, 119, 87, 0.12), rgba(217, 119, 87, 0.16));
+  --cz-glow-chip: 0 2px 12px var(--cz-accent-wash);
 }
 
 /* ============================================================
@@ -351,8 +342,8 @@ body,
   margin: 0;
 }
 
-/* Transparent so the frameless launcher floats over the desktop; the settings
-   window paints its own warm background via SettingsLayout. */
+/* Transparent so the frameless launcher floats over the desktop; the Console
+   and other windows paint their own opaque facet surface via `.cz-window`. */
 body {
   background: transparent;
   color: var(--cz-fg);
@@ -377,7 +368,7 @@ body {
   background-color: var(--cz-scrollbar-thumb);
   border: 2px solid transparent;
   background-clip: padding-box;
-  border-radius: var(--cz-radius-full);
+  border-radius: var(--cz-radius-pill);
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--cz-scrollbar-thumb-hover);
@@ -405,64 +396,73 @@ input:not(.cz-search-input):focus-visible {
 }
 
 /* ============================================================
-   Helpers (the warm-surface recipe, kept DRY)
+   Helpers (the facet-surface recipe, kept DRY)
    ============================================================ */
 
-/* The floating command panel.
- *
- * NOTE — no border and no `--cz-rim-inset` here, deliberately. Stacking a
- * uniform 1px `--cz-line` border with a top-only bright inset highlight drew a
- * DOUBLED edge along the top and a plain one down the sides, and the inset
- * shadow doesn't track the border-radius the way the border does — which read as
- * an uneven line ringing the panel. Elevation comes from the shadow alone.
- */
+/* The floating command panel — the ONE translucent surface. The sheen paints
+   as a background layer (not a ::before) so it can never sit above content.
+   Elevation comes from the border + the panel shadow's inset top rim. */
 .cz-panel {
-  background: var(--cz-panel-bg);
-  -webkit-backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.6);
-  backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.6);
+  background: var(--cz-sheen), var(--cz-panel-bg);
+  border: var(--cz-border) solid var(--cz-line);
+  -webkit-backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.4);
+  backdrop-filter: blur(var(--cz-blur-panel)) saturate(1.4);
   box-shadow: var(--cz-shadow-panel);
 }
 
-/* AI mode: the launcher panel grows a soft accent edge + glow. The edge is a
-   spread box-shadow rather than a border so it tracks the panel's border-radius
-   exactly (a border would reintroduce the uneven-edge artifact above). */
+/* AI mode: the launcher grows a 2px accent top rail (painted by the layout);
+   the panel edge itself just firms up to the accent hairline. */
 .cz-panel-ai {
-  box-shadow:
-    0 0 0 1px var(--cz-accent-line),
-    var(--cz-shadow-panel),
-    var(--cz-glow-accent-soft);
+  border-color: var(--cz-accent-line);
 }
 
-/* The settings window surface. Translucent so the OS frosted-glass effect
-   (macOS vibrancy / Windows acrylic, applied to the window itself) shows
-   through; opaque when frosted glass is turned off in Appearance. */
+/* Every non-launcher window (Console / Task / Digest): an OPAQUE facet slab —
+   surface gradient + top sheen, bright rim via the panel shadow, no blur. */
 .cz-window {
-  background: var(--cz-panel-bg);
+  background: var(--cz-sheen), var(--cz-surface-grad);
+  background-color: var(--cz-surface);
 }
 
-/* Frosted glass disabled (Appearance toggle) → solid surfaces, no blur. */
-.cz-no-glass .cz-panel,
-.cz-no-glass .cz-window {
-  background: var(--cz-glass-1);
+/* Launcher translucency disabled (Appearance toggle) → the panel goes opaque
+   facet too. `.cz-window` is always opaque, so only the panel changes. */
+.cz-no-glass .cz-panel {
+  background: var(--cz-sheen), var(--cz-surface-grad);
+  background-color: var(--cz-surface);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
-/* The cool desktop page backdrop */
+/* The warm desktop page backdrop (specimen/empty surfaces). */
 .cz-backdrop {
-  background: var(--cz-bg-grad);
-  background-color: var(--cz-bg-2);
+  background: radial-gradient(
+      120% 90% at 50% -10%,
+      color-mix(in oklab, var(--cz-bg) 78%, var(--cz-surface)) 0%,
+      var(--cz-bg) 60%
+    ),
+    var(--cz-bg);
+  background-color: var(--cz-bg);
 }
 
-/* Shared text-control surface: opaque field, cool border, blue focus ring.
-   Backs Input, Select, the run-command/snippet textareas and the hotkey field. */
+/* UPPERCASE micro-label (section labels, group headers). */
+.cz-label {
+  font-family: var(--cz-font-mono);
+  font-size: 11px;
+  font-weight: var(--cz-weight-medium);
+  letter-spacing: var(--cz-tracking-label);
+  text-transform: uppercase;
+  color: var(--cz-fg-subtle);
+}
+
+/* Shared text-control surface: inset well, hairline border, accent focus ring.
+   Backs Input, Dropdown, the run-command/snippet textareas and the hotkey
+   field. */
 .cz-input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--cz-glass-solid);
+  background: var(--cz-surface-inset);
   color: var(--cz-fg);
-  border: 1px solid var(--cz-line-strong);
-  border-radius: var(--cz-radius-sm);
+  border: var(--cz-border) solid var(--cz-line);
+  border-radius: var(--cz-radius-input);
   padding: 9px 12px;
   font-family: var(--cz-font-sans);
   font-size: var(--cz-text-sm);
@@ -475,28 +475,25 @@ input:not(.cz-search-input):focus-visible {
   color: var(--cz-fg-subtle);
 }
 .cz-input:focus {
-  border-color: var(--cz-accent);
-  box-shadow: var(--cz-ring-focus);
-}
-.theme-dark .cz-input {
-  background: var(--cz-glass-2);
+  border-color: var(--cz-accent-line);
+  box-shadow: var(--cz-focus-ring);
 }
 
 /* ============================================================
-   YAML config editor (Phase 6)
+   YAML config editor
    ============================================================ */
 
 /* Syntax-highlight token colours, scoped so the short class names can't leak.
-   Keys carry the accent; strings are the one green moment, reserved strictly for
-   YAML scalars; numbers the violet tertiary; comments faint italic. */
+   Keys carry the accent-as-text; strings are the one green moment, reserved
+   strictly for YAML scalars; numbers go warm; comments faint italic. */
 .cz-yaml .k {
-  color: var(--cz-accent-bright);
+  color: var(--cz-accent-text);
 }
 .cz-yaml .s {
   color: var(--cz-success);
 }
 .cz-yaml .num {
-  color: var(--cz-tertiary);
+  color: var(--cz-warn);
 }
 .cz-yaml .cm {
   color: var(--cz-fg-faint);
@@ -509,14 +506,14 @@ input:not(.cz-search-input):focus-visible {
   color: var(--cz-fg-subtle);
 }
 
-/* The active (caret) line: a soft accent wash + a 2px accent left rail, mirrored
-   on the gutter so the line number lights up in accent-bright. */
+/* The active (caret) line: a soft accent wash + a 2px accent left rail,
+   mirrored on the gutter so the line number lights up. */
 .cz-yaml-line.act {
   background: var(--cz-accent-soft);
   box-shadow: inset 2px 0 0 var(--cz-accent);
 }
 .cz-yaml-gutter-num.act {
-  color: var(--cz-accent-bright);
+  color: var(--cz-accent-text);
 }
 
 /* ============================================================
@@ -525,7 +522,7 @@ input:not(.cz-search-input):focus-visible {
 @keyframes czAppear {
   from {
     opacity: 0;
-    transform: translateY(4px) scale(0.98);
+    transform: translateY(var(--cz-rise)) scale(0.985);
   }
   to {
     opacity: 1;
@@ -533,7 +530,7 @@ input:not(.cz-search-input):focus-visible {
   }
 }
 .cz-appear {
-  animation: czAppear var(--cz-dur-slow) var(--cz-ease);
+  animation: czAppear var(--cz-dur-slow) var(--cz-ease-out);
 }
 
 @keyframes czCaret {
@@ -564,5 +561,11 @@ input:not(.cz-search-input):focus-visible {
   .cz-caret,
   .cz-shimmer {
     animation: none;
+  }
+  :root {
+    --cz-dur-fast: 0ms;
+    --cz-dur-base: 0ms;
+    --cz-dur-slow: 0ms;
+    --cz-rise: 0px;
   }
 }
