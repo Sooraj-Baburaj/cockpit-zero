@@ -85,6 +85,29 @@ const TOOLS: { id: AiToolId; name: string; scope: string; icon: ReactNode }[] = 
       </Glyph>
     ),
   },
+  {
+    id: 'actions',
+    name: 'Actions & Workflows',
+    scope: 'Run your commands',
+    icon: (
+      <Glyph>
+        <path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5Z" />
+      </Glyph>
+    ),
+  },
+  {
+    id: 'apps',
+    name: 'Apps & Files',
+    scope: 'Search & open',
+    icon: (
+      <Glyph>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </Glyph>
+    ),
+  },
 ];
 
 type AiStatus = Awaited<ReturnType<typeof api.aiStatus>>;
@@ -166,7 +189,12 @@ export function AiPanel({ ai, onSave }: { ai: AiSettings; onSave: (ai: AiSetting
     <div className="max-w-2xl">
       <header className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-[19px] leading-none font-semibold text-fg">AI</h1>
-        <ConnectionChip status={status} />
+        <div className="flex items-center gap-2.5">
+          <ConnectionChip status={status} />
+          <Button size="sm" onClick={() => void api.openAiChat()}>
+            Open chat window
+          </Button>
+        </div>
       </header>
 
       {/* Inline composer — ask from inside the cockpit. */}

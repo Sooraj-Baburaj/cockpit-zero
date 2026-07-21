@@ -74,6 +74,8 @@ const GRANT_LABEL: Record<AiToolId, string> = {
   calendar: 'Calendar',
   slack: 'Slack',
   'slides-sheets': 'Slides & Sheets',
+  actions: 'Actions & Workflows',
+  apps: 'Apps & Files',
 };
 
 /** The hint shown when a tool is blocked by a missing grant / memory toggle. */

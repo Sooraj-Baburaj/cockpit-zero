@@ -23,6 +23,11 @@ export const AGENT_TOOL_IDS = [
   'memory.write',
   'slack.send',
   'calendar.create-event',
+  'actions.list',
+  'actions.run',
+  'workflows.run',
+  'apps.search',
+  'apps.open',
 ] as const;
 
 /** A tool the agent loop can call. */
@@ -39,6 +44,13 @@ export const TASK_TOOL_GRANT: Record<AgentToolId, AiToolId | 'memory'> = {
   'memory.write': 'memory',
   'slack.send': 'slack',
   'calendar.create-event': 'calendar',
+  // Launcher parity: the agent can do what the user can from the bar — list/run
+  // configured actions + workflows ('actions'), search/open apps + files ('apps').
+  'actions.list': 'actions',
+  'actions.run': 'actions',
+  'workflows.run': 'actions',
+  'apps.search': 'apps',
+  'apps.open': 'apps',
 };
 
 /** The subset of `ai` settings a grant check needs (so callers can pass a slice). */

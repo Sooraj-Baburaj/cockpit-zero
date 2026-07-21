@@ -16,6 +16,7 @@ export * from './memory-fusion.js';
 export * from './memory-sync.js';
 export * from './account.js';
 export * from './task.js';
+export * from './chat.js';
 export * from './config-yaml.js';
 export * from './ipc.js';
 export * from './utils.js';

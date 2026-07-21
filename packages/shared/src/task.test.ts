@@ -10,7 +10,7 @@ import type { AgentToolId } from './task.js';
 import type { TaskRun, TaskStep } from './types.js';
 
 const ALL_GRANTED = {
-  tools: ['files', 'calendar', 'slack', 'slides-sheets'] as const,
+  tools: ['files', 'calendar', 'slack', 'slides-sheets', 'actions', 'apps'] as const,
   memoryEnabled: true,
 };
 
@@ -40,6 +40,20 @@ describe('tool catalog + grants', () => {
     expect(isToolAllowed('files.read', ALL_GRANTED)).toBe(true);
     expect(isToolAllowed('files.read', { ...ALL_GRANTED, tools: ['calendar'] })).toBe(false);
     expect(isToolAllowed('slides.create', { ...ALL_GRANTED, tools: ['files'] })).toBe(false);
+  });
+
+  it('gates the launcher-parity tools by their actions/apps grants', () => {
+    // One grant covers list + run for actions AND workflows; one covers apps + files.
+    for (const id of ['actions.list', 'actions.run', 'workflows.run'] as const) {
+      expect(TASK_TOOL_GRANT[id]).toBe('actions');
+      expect(isToolAllowed(id, { tools: ['actions'], memoryEnabled: false })).toBe(true);
+      expect(isToolAllowed(id, { tools: ['files', 'apps'], memoryEnabled: true })).toBe(false);
+    }
+    for (const id of ['apps.search', 'apps.open'] as const) {
+      expect(TASK_TOOL_GRANT[id]).toBe('apps');
+      expect(isToolAllowed(id, { tools: ['apps'], memoryEnabled: false })).toBe(true);
+      expect(isToolAllowed(id, { tools: ['actions'], memoryEnabled: true })).toBe(false);
+    }
   });
 
   it('gates memory tools by memoryEnabled, not a per-tool grant', () => {

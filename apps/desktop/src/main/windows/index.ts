@@ -3,3 +3,4 @@ export { getLauncherWindow, toggleLauncher, hideLauncher } from './launcher-wind
 export { openConsole, applyConsoleAppearance } from './console-window.js';
 export { openDigestWindow } from './digest-window.js';
 export { openTaskWindow, sendTaskUpdate } from './task-window.js';
+export { openAiChatWindow } from './ai-window.js';

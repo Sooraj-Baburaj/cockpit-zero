@@ -1,6 +1,11 @@
 import { app } from 'electron';
 import { registerIpcHandlers } from '../ipc/index.js';
-import { getLauncherWindow, toggleLauncher } from '../windows/index.js';
+import {
+  getLauncherWindow,
+  openAiChatWindow,
+  openConsole,
+  toggleLauncher,
+} from '../windows/index.js';
 import { getConfig } from '../services/config-service.js';
 import { startRoutineScheduler, stopRoutineScheduler } from '../services/routines/index.js';
 import { initMemory } from '../services/memory/index.js';
@@ -15,15 +20,39 @@ export function bootstrap(): void {
   // macOS: keep running with no visible windows (launcher is a background agent).
   if (process.platform === 'darwin') app.dock?.hide();
 
-  // Single-instance lock — a second launch just toggles the launcher. This is
-  // also the Wayland hotkey fallback: `cockpitzero --toggle` bound to a system
-  // shortcut lands here as a second instance and summons the bar.
+  // Single-instance lock — a second launch opens the user's configured surface
+  // (Settings → General → "App icon opens"). `cockpitzero --toggle` is exempt:
+  // it's the Wayland hotkey fallback bound to a system shortcut, so it always
+  // summons the bar regardless of that preference.
   if (app.isPackaged && !app.requestSingleInstanceLock()) {
     app.quit();
     return;
   }
 
-  app.on('second-instance', () => toggleLauncher());
+  /** Open the screen the user chose for app-icon launches. */
+  const openConfiguredScreen = () => {
+    switch (getConfig().settings.appIconOpens) {
+      case 'console':
+        openConsole();
+        return;
+      case 'ai':
+        openAiChatWindow();
+        return;
+      default:
+        toggleLauncher();
+    }
+  };
+
+  app.on('second-instance', (_e, argv) => {
+    if (argv.includes('--toggle')) toggleLauncher();
+    else openConfiguredScreen();
+  });
+
+  // macOS: clicking the Dock icon (visible while a window is open) re-activates
+  // with no windows shown — honor the same preference there.
+  app.on('activate', (_e, hasVisibleWindows) => {
+    if (!hasVisibleWindows) openConfiguredScreen();
+  });
 
   void app.whenReady().then(() => {
     registerIpcHandlers();

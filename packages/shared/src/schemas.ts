@@ -145,6 +145,10 @@ export const WorkflowDraftSchema = z.object({
 export const SettingsSchema = z.object({
   /** Electron accelerator string, e.g. "CommandOrControl+J". */
   hotkey: z.string().min(1).default('CommandOrControl+J'),
+  /** Which surface opens when the user launches the app by its icon (Dock /
+   *  Finder / Start menu) while it's already running in the background. The
+   *  hotkey always summons the launcher regardless. Additive default. */
+  appIconOpens: z.enum(['launcher', 'console', 'ai']).default('launcher'),
   theme: z.enum(['system', 'light', 'dark']).default('system'),
   /** Launcher translucency (Appearance) — every other window is an opaque facet slab. */
   glass: z.boolean().default(true),
@@ -186,8 +190,17 @@ export const AiProviderIdSchema = z.enum([
  */
 export const AiModelTierSchema = z.enum(['mini', 'pro', 'byo']);
 
-/** Tools the assistant may call. Starts as a small catalog; Phase 7 executes them. */
-export const AiToolIdSchema = z.enum(['files', 'calendar', 'slack', 'slides-sheets']);
+/** Tools the assistant may call. `actions` covers the user's configured actions +
+ *  workflows; `apps` covers installed-app/file search + open — together they give
+ *  the agent the same reach as the launcher itself. */
+export const AiToolIdSchema = z.enum([
+  'files',
+  'calendar',
+  'slack',
+  'slides-sheets',
+  'actions',
+  'apps',
+]);
 
 /** The `ai` config block — every AI feature reads its provider/model/toggles here. */
 export const AiSettingsSchema = z.object({
@@ -222,7 +235,7 @@ export const AiSettingsSchema = z.object({
    *  the device. Additive default so `version` stays 1. */
   memorySync: z.boolean().default(false),
   /** Per-tool grants for the assistant (Phase 7 enforces). */
-  tools: z.array(AiToolIdSchema).default(['files', 'calendar', 'slack']),
+  tools: z.array(AiToolIdSchema).default(['files', 'calendar', 'slack', 'actions', 'apps']),
   /** Bounded-cost knobs for the real agent loop (production phase 6). Hard caps so a
    *  model-driven run can never spin unbounded: `maxSteps` bounds the model's
    *  tool-use iterations, `maxToolCalls` the total tools executed, `maxTokens` the

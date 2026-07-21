@@ -39,6 +39,13 @@ const api: IpcApi = {
   taskGet: (taskId) => ipcRenderer.invoke(IpcChannels.taskGet, taskId),
   taskStop: (taskId) => ipcRenderer.invoke(IpcChannels.taskStop, taskId),
   taskApprove: (taskId) => ipcRenderer.invoke(IpcChannels.taskApprove, taskId),
+  // AI chat window: session CRUD + the streamed ask (replies ride the same
+  // AI_STREAM_CHANNEL push as `askAIStream`).
+  chatList: () => ipcRenderer.invoke(IpcChannels.chatList),
+  chatGet: (sessionId) => ipcRenderer.invoke(IpcChannels.chatGet, sessionId),
+  chatCreate: () => ipcRenderer.invoke(IpcChannels.chatCreate),
+  chatDelete: (sessionId) => ipcRenderer.invoke(IpcChannels.chatDelete, sessionId),
+  chatAsk: (sessionId, text) => ipcRenderer.invoke(IpcChannels.chatAsk, sessionId, text),
   memoryStats: () => ipcRenderer.invoke(IpcChannels.memoryStats),
   memorySearch: (query) => ipcRenderer.invoke(IpcChannels.memorySearch, query),
   memoryForget: (id) => ipcRenderer.invoke(IpcChannels.memoryForget, id),
@@ -80,6 +87,7 @@ const api: IpcApi = {
   syncPush: () => ipcRenderer.invoke(IpcChannels.syncPush),
   syncPull: () => ipcRenderer.invoke(IpcChannels.syncPull),
   openConsole: () => ipcRenderer.invoke(IpcChannels.openConsole),
+  openAiChat: () => ipcRenderer.invoke(IpcChannels.openAiChat),
   hideLauncher: () => ipcRenderer.invoke(IpcChannels.hideLauncher),
   platform: process.platform,
 };

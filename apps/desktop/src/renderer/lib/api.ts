@@ -1,7 +1,8 @@
-import { INTEGRATION_SOURCE_IDS, resolveQuery } from '@cockpitzero/shared';
+import { INTEGRATION_SOURCE_IDS, chatTitleFrom, resolveQuery } from '@cockpitzero/shared';
 import type {
   IpcApi,
   AiStreamEvent,
+  ChatSession,
   Config,
   Digest,
   MemoryRecord,
@@ -13,6 +14,7 @@ const MOCK_CONFIG: Config = {
   version: 1,
   settings: {
     hotkey: 'CommandOrControl+J',
+    appIconOpens: 'launcher',
     theme: 'system',
     glass: true,
     monochrome: true,
@@ -45,7 +47,7 @@ const MOCK_CONFIG: Config = {
     memoryEnabled: true,
     embeddingSource: 'local',
     memorySync: false,
-    tools: ['files', 'calendar', 'slack'],
+    tools: ['files', 'calendar', 'slack', 'actions', 'apps'],
     maxSteps: 12,
     maxToolCalls: 16,
     maxTokens: 120_000,
@@ -190,6 +192,10 @@ let mockMemories: MemoryRecord[] = [
 const aiStreamListeners = new Set<(e: AiStreamEvent) => void>();
 const aiStreamCancels = new Map<string, () => void>();
 
+/** In-memory chat sessions for the dev/browser bridge (no main process, no
+ *  chats.json) — enough to exercise the AI window's sidebar + streaming. */
+const mockChats: ChatSession[] = [];
+
 /**
  * A no-op bridge used ONLY in a browser/dev context where the preload script
  * isn't present — it keeps the UI rendering without a real main process.
@@ -330,6 +336,54 @@ const mockApi: IpcApi = {
   taskStop: async () => ({ ok: true }),
   taskApprove: async () => ({ ok: true }),
   onTaskUpdate: () => () => {},
+  // AI chat (dev bridge): sessions live in memory; replies reuse the mock
+  // streaming path so the chat pane animates in a browser tab.
+  chatList: async () =>
+    mockChats
+      .map((s) => ({
+        id: s.id,
+        title: s.title,
+        updatedAt: s.updatedAt,
+        messageCount: s.messages.length,
+      }))
+      .sort((a, b) => b.updatedAt - a.updatedAt),
+  chatGet: async (sessionId) => mockChats.find((s) => s.id === sessionId) ?? null,
+  chatCreate: async () => {
+    const empty = mockChats.find((s) => s.messages.length === 0);
+    if (empty) return empty;
+    const session: ChatSession = {
+      id: `chat_${Math.random().toString(36).slice(2)}`,
+      title: 'New chat',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      messages: [],
+    };
+    mockChats.push(session);
+    return session;
+  },
+  chatDelete: async (sessionId) => {
+    const i = mockChats.findIndex((s) => s.id === sessionId);
+    if (i !== -1) mockChats.splice(i, 1);
+    return { ok: true };
+  },
+  chatAsk: async (sessionId, text) => {
+    const session = mockChats.find((s) => s.id === sessionId);
+    if (!session) return { error: 'This chat no longer exists.' };
+    if (session.messages.length === 0) session.title = chatTitleFrom(text);
+    session.messages.push({ id: `msg_${Date.now()}`, role: 'user', text, at: Date.now() });
+    // Store the full reply up front (the real main process persists it when the
+    // stream settles — here there's no main process to do that after the fact),
+    // then stream the same text for the animation.
+    const answer = await mockApi.askAI(text);
+    session.messages.push({
+      id: `msg_${Date.now() + 1}`,
+      role: 'assistant',
+      text: answer.text,
+      at: Date.now(),
+    });
+    session.updatedAt = Date.now();
+    return mockApi.askAIStream(text);
+  },
   setSecret: async (name, value) => {
     if (value.trim() === '') return { ok: false };
     mockSecrets.add(name);
@@ -393,6 +447,7 @@ const mockApi: IpcApi = {
   knowledgeList: async () => ({ ok: true, docs: [] }),
   knowledgeRemove: async () => ({ ok: false }),
   openConsole: async () => {},
+  openAiChat: async () => {},
   hideLauncher: async () => {},
   platform: 'darwin',
 };

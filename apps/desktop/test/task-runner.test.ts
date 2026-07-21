@@ -81,6 +81,13 @@ function harness(config: Config, loop: AgentLoop) {
         detail: `“${title}” created`,
       }),
     },
+    // Fake launcher port (launcher-parity tools) — no electron, no OS search.
+    launcher: {
+      runAction: async () => ({ ok: true }),
+      runWorkflow: async () => ({ ok: true }),
+      openPath: async () => ({ ok: true }),
+      searchSystem: async () => [],
+    },
   };
   const emits: TaskRun[] = [];
 

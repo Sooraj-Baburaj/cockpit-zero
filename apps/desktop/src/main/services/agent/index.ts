@@ -7,6 +7,9 @@ import { openTaskWindow, sendTaskUpdate } from '../../windows/index.js';
 import { integrationActions } from '../integrations/index.js';
 import { secretsService } from '../secrets/index.js';
 import { memoryService } from '../memory/index.js';
+import { searchSystem } from '../search-service.js';
+import { openPathById, runActionById, runWorkflowById } from '../launcher-exec.js';
+import type { LauncherPort } from './tools/ports.js';
 import { createToolRegistry } from './tools/registry.js';
 import { createAgentLoop, type ResolvedModel } from './agent-loop.js';
 import { createTaskRunner } from './task-runner.js';
@@ -28,7 +31,21 @@ import { createTaskRunner } from './task-runner.js';
  * "connect a provider" note instead of faking a run (CLAUDE.md: no mocks in production).
  */
 
-const ports = { files: fileReader, integrations: integrationActions };
+/** Launcher parity for the agent — the same execution/search paths the bar uses
+ *  (`launcher-exec` / `search-service`), mapped to the tool port shape. */
+const launcherPort: LauncherPort = {
+  runAction: runActionById,
+  runWorkflow: runWorkflowById,
+  openPath: openPathById,
+  async searchSystem(query) {
+    const items = await searchSystem(query);
+    return items
+      .filter((i) => i.kind === 'app' || i.kind === 'file')
+      .map((i) => ({ kind: i.kind, name: i.title, path: i.path }));
+  },
+};
+
+const ports = { files: fileReader, integrations: integrationActions, launcher: launcherPort };
 
 const getKey = (provider: AiProviderId) => secretsService.get(SecretName.providerKey(provider));
 

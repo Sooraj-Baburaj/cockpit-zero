@@ -1,13 +1,7 @@
 import { ipcMain } from 'electron';
-import {
-  AI_STREAM_CHANNEL,
-  IpcChannels,
-  applyArguments,
-  createId,
-  effectiveArguments,
-  valuesToRecord,
-} from '@cockpitzero/shared';
+import { AI_STREAM_CHANNEL, IpcChannels, createId } from '@cockpitzero/shared';
 import type {
+  AiAnswer,
   AiStreamEvent,
   IntegrationSourceId,
   PasswordCredentials,
@@ -15,12 +9,11 @@ import type {
 } from '@cockpitzero/shared';
 import { getConfig, updateConfig } from '../services/config-service.js';
 import { resolveLauncherQuery, searchSystem } from '../services/search-service.js';
-import { runAction } from '../services/action-runner/index.js';
-import { runWorkflow } from '../services/workflow-runner.js';
+import { openPathById, runActionById, runWorkflowById } from '../services/launcher-exec.js';
 import { getFileIcon } from '../services/icon-service.js';
 import { getFavicon } from '../services/favicon-service.js';
 import { completePath } from '../services/path-complete.js';
-import { aiService, fetchAiUsage } from '../services/ai/index.js';
+import { aiService, chatService, fetchAiUsage } from '../services/ai/index.js';
 import { getDigest, listRoutines, runRoutine } from '../services/routines/index.js';
 import { approveTask, getTask, startTask, stopTask } from '../services/agent/index.js';
 import { integrationService } from '../services/integrations/index.js';
@@ -29,14 +22,77 @@ import { secretsService } from '../services/secrets/index.js';
 import { authService } from '../services/auth/index.js';
 import { memorySyncService, syncService } from '../services/sync/index.js';
 import { knowledgeService } from '../services/knowledge/index.js';
-import { recordUse } from '../services/usage-service.js';
 import { hotkeyStatus, isHotkeyAvailable } from '../app/hotkey.js';
-import { electronPorts } from '../infra/electron-ports.js';
-import { hideLauncher, openConsole } from '../windows/index.js';
+import { hideLauncher, openAiChatWindow, openConsole } from '../windows/index.js';
 
 /** In-flight AI streams, keyed by `streamId`, so `cancelAiStream` can abort the
  *  provider request (Escape / closing the bar). Cleared when the stream settles. */
 const aiStreams = new Map<string, AbortController>();
+
+/**
+ * Run a streamed answer and push its `AiStreamEvent`s back to the asking window
+ * over AI_STREAM_CHANNEL — the shared plumbing behind `askAIStream` and
+ * `chatAsk`. Token deltas are coalesced on a ~30ms timer so the bridge sees a
+ * handful of messages instead of one per token (phase-4 backpressure note); the
+ * stream is registered in `aiStreams` so `cancelAiStream` can abort it.
+ */
+function streamToSender(
+  sender: Electron.WebContents,
+  run: (onDelta: (text: string) => void, signal: AbortSignal) => Promise<AiAnswer>,
+): { streamId: string } {
+  const streamId = createId('aistream');
+  const controller = new AbortController();
+  aiStreams.set(streamId, controller);
+
+  const send = (e: AiStreamEvent) => {
+    if (!sender.isDestroyed()) sender.send(AI_STREAM_CHANNEL, e);
+  };
+
+  let buffer = '';
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const flush = () => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    if (buffer) {
+      send({ streamId, type: 'delta', text: buffer });
+      buffer = '';
+    }
+  };
+  const dropBuffered = () => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    buffer = '';
+  };
+  const onDelta = (text: string) => {
+    buffer += text;
+    if (!timer) timer = setTimeout(flush, 30);
+  };
+
+  void run(onDelta, controller.signal)
+    .then((answer) => {
+      flush();
+      send({ streamId, type: 'done', answer });
+    })
+    .catch((err: unknown) => {
+      // A user-initiated cancel aborts the request — stop silently (the renderer
+      // already moved on, and dropped any buffered delta). Only a genuine failure
+      // surfaces an error event.
+      dropBuffered();
+      if (controller.signal.aborted) return;
+      send({
+        streamId,
+        type: 'error',
+        message: err instanceof Error ? err.message : String(err),
+      });
+    })
+    .finally(() => aiStreams.delete(streamId));
+
+  return { streamId };
+}
 
 /**
  * Registers every IPC handler. Each handler maps 1:1 to an IpcChannels constant
@@ -53,53 +109,17 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IpcChannels.searchSystem, (_e, input: string) => searchSystem(input));
 
-  ipcMain.handle(IpcChannels.runAction, async (_e, actionId: string, values?: string[]) => {
-    const action = getConfig().actions.find((a) => a.id === actionId);
-    if (!action) return { ok: false, error: `Unknown action: ${actionId}` };
+  // Execution by id is shared with the agent tools (`services/launcher-exec.ts`)
+  // so the user's Enter and the model's `actions.run` walk the same path.
+  ipcMain.handle(IpcChannels.runAction, (_e, actionId: string, values?: string[]) =>
+    runActionById(actionId, values),
+  );
 
-    const args = effectiveArguments(action);
-    const vals = args.map((_, i) => values?.[i]?.trim() ?? '');
-    const missing = args.find((arg, i) => arg.required && vals[i] === '');
-    if (missing) {
-      return { ok: false, error: `This action requires “${missing.name}”.` };
-    }
+  ipcMain.handle(IpcChannels.runWorkflow, (_e, workflowId: string) =>
+    runWorkflowById(workflowId),
+  );
 
-    try {
-      const resolved =
-        args.length > 0 ? applyArguments(action, valuesToRecord(args, vals)) : action;
-      await runAction(resolved, electronPorts);
-      recordUse(action.id);
-      // The renderer hides the launcher after showing run feedback.
-      return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  });
-
-  ipcMain.handle(IpcChannels.runWorkflow, async (_e, workflowId: string) => {
-    const config = getConfig();
-    const workflow = config.workflows.find((w) => w.id === workflowId);
-    if (!workflow) return { ok: false, error: `Unknown workflow: ${workflowId}` };
-
-    const byId = new Map(config.actions.map((a) => [a.id, a]));
-    try {
-      await runWorkflow(workflow, (id) => byId.get(id), electronPorts);
-      recordUse(workflow.id);
-      return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  });
-
-  ipcMain.handle(IpcChannels.openPath, async (_e, path: string) => {
-    try {
-      await electronPorts.openPath(path);
-      recordUse(path);
-      return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  });
+  ipcMain.handle(IpcChannels.openPath, (_e, path: string) => openPathById(path));
 
   ipcMain.handle(IpcChannels.getFileIcon, (_e, path: string) => getFileIcon(path));
 
@@ -121,63 +141,11 @@ export function registerIpcHandlers(): void {
   // Streamed ask (production phase 4). Returns a `streamId` immediately, then pushes
   // `AiStreamEvent`s back to the asking window over AI_STREAM_CHANNEL: token `delta`s
   // (coalesced ~30ms to spare the bridge), then a final `done` with the full answer.
-  ipcMain.handle(IpcChannels.askAIStream, (event, prompt: string) => {
-    const streamId = createId('aistream');
-    const controller = new AbortController();
-    aiStreams.set(streamId, controller);
-
-    const send = (e: AiStreamEvent) => {
-      if (!event.sender.isDestroyed()) event.sender.send(AI_STREAM_CHANNEL, e);
-    };
-
-    // Coalesce token deltas: buffer and flush on a ~30ms timer so we send a handful
-    // of IPC messages instead of one per token (phase-4 backpressure note).
-    let buffer = '';
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const flush = () => {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-      if (buffer) {
-        send({ streamId, type: 'delta', text: buffer });
-        buffer = '';
-      }
-    };
-    const dropBuffered = () => {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-      buffer = '';
-    };
-    const onDelta = (text: string) => {
-      buffer += text;
-      if (!timer) timer = setTimeout(flush, 30);
-    };
-
-    void aiService
-      .askStream(prompt, onDelta, controller.signal)
-      .then((answer) => {
-        flush();
-        send({ streamId, type: 'done', answer });
-      })
-      .catch((err: unknown) => {
-        // A user-initiated cancel aborts the request — stop silently (the renderer
-        // already moved on, and dropped any buffered delta). Only a genuine failure
-        // surfaces an error event.
-        dropBuffered();
-        if (controller.signal.aborted) return;
-        send({
-          streamId,
-          type: 'error',
-          message: err instanceof Error ? err.message : String(err),
-        });
-      })
-      .finally(() => aiStreams.delete(streamId));
-
-    return { streamId };
-  });
+  ipcMain.handle(IpcChannels.askAIStream, (event, prompt: string) =>
+    streamToSender(event.sender, (onDelta, signal) =>
+      aiService.askStream(prompt, onDelta, signal),
+    ),
+  );
 
   ipcMain.handle(IpcChannels.cancelAiStream, (_e, streamId: string) => {
     aiStreams.get(streamId)?.abort();
@@ -214,6 +182,31 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannels.taskStop, (_e, taskId: string) => stopTask(taskId));
 
   ipcMain.handle(IpcChannels.taskApprove, (_e, taskId: string) => approveTask(taskId));
+
+  // AI chat window. Session CRUD is plain request/response; `chatAsk` streams the
+  // reply over the same AI_STREAM_CHANNEL as the bar (the chat service persists
+  // both turns in the main process, so a closed window never loses an exchange).
+  ipcMain.handle(IpcChannels.chatList, () => chatService.list());
+
+  ipcMain.handle(IpcChannels.chatGet, (_e, sessionId: string) => chatService.get(sessionId));
+
+  ipcMain.handle(IpcChannels.chatCreate, () => chatService.create());
+
+  ipcMain.handle(IpcChannels.chatDelete, (_e, sessionId: string) =>
+    chatService.remove(sessionId),
+  );
+
+  ipcMain.handle(IpcChannels.chatAsk, (event, sessionId: string, text: string) => {
+    // Reject a bad turn up front (unknown session / blank text) so the renderer
+    // gets `{ error }` instead of a stream that instantly errors.
+    if (text.trim() === '') return { error: 'Nothing to send.' };
+    if (!chatService.get(sessionId)) return { error: 'This chat no longer exists.' };
+    return streamToSender(event.sender, (onDelta, signal) =>
+      chatService
+        .ask(sessionId, text, onDelta, signal)
+        .then((reply): AiAnswer => ({ text: reply.text, meta: '', suggestions: [] })),
+    );
+  });
 
   // Local memory engine (production phase 5). The read/manage controls for the
   // Console memory view — `recall`/`write` stay internal to the agent/ask path
@@ -288,6 +281,10 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IpcChannels.openConsole, () => {
     openConsole();
+  });
+
+  ipcMain.handle(IpcChannels.openAiChat, () => {
+    openAiChatWindow();
   });
 
   ipcMain.handle(IpcChannels.hideLauncher, () => {

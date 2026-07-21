@@ -303,8 +303,12 @@
    Monochrome mode (`.cz-mono` on <html>, the DEFAULT) — remaps the
    accent token family to neutral so the whole UI goes greyscale in
    one place. Colour is reserved for content and OS app icons.
+   `:root.cz-mono` (not just `.cz-mono`) so it out-specifies the
+   `:root[data-theme=…]` blocks above, which re-declare the accent
+   glow composites — otherwise forced light/dark leaks the orange
+   glow back onto buttons in monochrome.
    ============================================================ */
-.cz-mono {
+:root.cz-mono {
   --cz-accent: light-dark(#33333a, #e6e6e9);
   --cz-accent-hover: light-dark(#44444c, #d4d4d8);
   --cz-accent-press: light-dark(#26262c, #c2c2c7);
@@ -317,10 +321,10 @@
   --cz-glow-btn: none;
 }
 
-/* "Accent on sidebar" (`.cz-sideacc` on <html>) — restores Claude orange on
-   the Console sidebar (`.cz-console-nav`) so the active nav item keeps one
+/* "Accent on sidebar" (`.cz-sideacc` on <html>) — restores the orange accent
+   on the Console sidebar (`.cz-console-nav`) so the active nav item keeps one
    warm indicator lamp even in monochrome mode. */
-.cz-sideacc .cz-console-nav {
+:root.cz-sideacc .cz-console-nav {
   --cz-accent: #d97757;
   --cz-accent-hover: #e08a63;
   --cz-accent-press: #c2643f;

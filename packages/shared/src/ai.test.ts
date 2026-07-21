@@ -15,7 +15,7 @@ describe('AiSettingsSchema', () => {
       embeddingSource: 'local',
       // Cloud memory sync (production phase 8) is opt-in — off by default.
       memorySync: false,
-      tools: ['files', 'calendar', 'slack'],
+      tools: ['files', 'calendar', 'slack', 'actions', 'apps'],
       // Bounded-cost knobs for the real agent loop (production phase 6).
       maxSteps: 12,
       maxToolCalls: 16,

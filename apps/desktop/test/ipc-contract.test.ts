@@ -38,6 +38,11 @@ describe('IPC contract', () => {
       'taskGet',
       'taskStop',
       'taskApprove',
+      'chatList',
+      'chatGet',
+      'chatCreate',
+      'chatDelete',
+      'chatAsk',
       'memoryStats',
       'memorySearch',
       'memoryForget',
@@ -59,6 +64,7 @@ describe('IPC contract', () => {
       'syncPush',
       'syncPull',
       'openConsole',
+      'openAiChat',
       'hideLauncher',
     ];
     expect(Object.keys(IpcChannels).sort()).toEqual([...channelMethods].sort());

@@ -14,12 +14,12 @@ export const secureWebPreferences = {
   sandbox: true,
 } as const;
 
-/** Load a named renderer entry (launcher | console | digest | task) in dev or
- *  prod. An optional `hash` is appended to the URL — the digest/task surfaces read
- *  their id from it (e.g. `digest.html#morning_digest`, `task.html#task_abc`). */
+/** Load a named renderer entry (launcher | console | digest | task | ai) in dev
+ *  or prod. An optional `hash` is appended to the URL — the digest/task surfaces
+ *  read their id from it (e.g. `digest.html#morning_digest`, `task.html#task_abc`). */
 export function loadEntry(
   win: BrowserWindow,
-  entry: 'launcher' | 'console' | 'digest' | 'task',
+  entry: 'launcher' | 'console' | 'digest' | 'task' | 'ai',
   hash?: string,
 ) {
   const frag = hash ? `#${encodeURIComponent(hash)}` : '';

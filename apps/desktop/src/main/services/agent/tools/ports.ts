@@ -34,8 +34,28 @@ export interface IntegrationActionsPort {
   }): Promise<{ ok: boolean; detail?: string; error?: string; link?: string }>;
 }
 
+/**
+ * Launcher parity: what the user can do from the bar, exposed to the agent as a
+ * port. Execution goes through the exact same code path as the user pressing
+ * Enter (`services/launcher-exec.ts` / `search-service`), so the agent can never
+ * run something the launcher couldn't.
+ */
+export interface LauncherPort {
+  /** Run a configured action by id; `values` fill its `{token}`s positionally. */
+  runAction(actionId: string, values?: string[]): Promise<{ ok: boolean; error?: string }>;
+  /** Run a configured workflow's steps in sequence. */
+  runWorkflow(workflowId: string): Promise<{ ok: boolean; error?: string }>;
+  /** Open an app/file by absolute path (from an `apps.search` result). */
+  openPath(path: string): Promise<{ ok: boolean; error?: string }>;
+  /** System search (installed apps + files), same providers as the bar. */
+  searchSystem(
+    query: string,
+  ): Promise<Array<{ kind: 'app' | 'file'; name: string; path: string }>>;
+}
+
 /** The OS/network-touching ports a tool registry is built over. */
 export interface ToolPorts {
   files: FileReadPort;
   integrations: IntegrationActionsPort;
+  launcher: LauncherPort;
 }

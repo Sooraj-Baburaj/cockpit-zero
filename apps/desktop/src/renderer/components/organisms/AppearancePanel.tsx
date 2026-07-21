@@ -66,7 +66,7 @@ export function AppearancePanel({
           </OptionCard>
           <OptionCard
             title="Accent on sidebar"
-            description="Bring Claude-orange back to the Console's active nav item."
+            description="Keep the accent color on the Console's active nav item."
           >
             <Toggle
               checked={settings.sidebarAccent}
@@ -74,15 +74,6 @@ export function AppearancePanel({
               ariaLabel="Toggle sidebar accent"
             />
           </OptionCard>
-          <div className="flex items-center gap-2.5 px-0.5 py-1.5">
-            <span
-              aria-hidden="true"
-              className="h-[26px] w-[26px] shrink-0 rounded-[7px] bg-[#d97757]"
-            />
-            <span className="font-mono text-sm text-muted">
-              #d97757 · Claude orange — reserved accent
-            </span>
-          </div>
         </div>
       </div>
     </div>

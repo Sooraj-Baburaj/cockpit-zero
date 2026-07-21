@@ -3,7 +3,7 @@ import { AI_TOOL_IDS, setAiToolGrant } from './ai-settings.js';
 
 describe('AI_TOOL_IDS', () => {
   it('is the full tool catalog in canonical order', () => {
-    expect(AI_TOOL_IDS).toEqual(['files', 'calendar', 'slack', 'slides-sheets']);
+    expect(AI_TOOL_IDS).toEqual(['files', 'calendar', 'slack', 'slides-sheets', 'actions', 'apps']);
   });
 });
 

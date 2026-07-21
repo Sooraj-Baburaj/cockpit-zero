@@ -1,4 +1,5 @@
 import type { AccountStatus, PasswordCredentials, SignInMethod } from './account.js';
+import type { ChatSession, ChatSummary } from './chat.js';
 import type { AiUsageSummary } from './inference.js';
 import type { ConnectionStatus } from './integrations.js';
 import type { KnowledgeDoc, MemorySyncResult } from './memory-sync.js';
@@ -51,6 +52,11 @@ export const IpcChannels = {
   taskGet: 'task:get',
   taskStop: 'task:stop',
   taskApprove: 'task:approve',
+  chatList: 'chat:list',
+  chatGet: 'chat:get',
+  chatCreate: 'chat:create',
+  chatDelete: 'chat:delete',
+  chatAsk: 'chat:ask',
   memoryStats: 'memory:stats',
   memorySearch: 'memory:search',
   memoryForget: 'memory:forget',
@@ -72,6 +78,7 @@ export const IpcChannels = {
   syncPush: 'sync:push',
   syncPull: 'sync:pull',
   openConsole: 'window:open-console',
+  openAiChat: 'window:open-ai-chat',
   hideLauncher: 'window:hide-launcher',
 } as const;
 
@@ -167,6 +174,20 @@ export interface IpcApi {
   /** Approve a run paused at `review`, committing its side-effecting result and
    *  letting the remaining steps run. Nothing commits to the library without it. */
   taskApprove(taskId: string): Promise<{ ok: boolean }>;
+  /** The AI window's session sidebar — summaries only, newest first. */
+  chatList(): Promise<ChatSummary[]>;
+  /** One session's full transcript, or null if the id is unknown. */
+  chatGet(sessionId: string): Promise<ChatSession | null>;
+  /** Start (or reuse the newest empty) chat session. */
+  chatCreate(): Promise<ChatSession>;
+  /** Delete a session and its transcript. Idempotent. */
+  chatDelete(sessionId: string): Promise<{ ok: boolean }>;
+  /** Send a chat message: the user turn persists immediately, the assistant's
+   *  reply streams back over `onAiStream` (same `AiStreamEvent`s as the bar)
+   *  and persists in the main process when it completes — so a closed window
+   *  never loses the exchange. Resolves `{ error }` with no streamId when the
+   *  session is unknown or the text is blank. */
+  chatAsk(sessionId: string, text: string): Promise<{ streamId?: string; error?: string }>;
   /** Local memory engine (production phase 5). Count + last-updated + the active
    *  embedding source, for the Console memory header. `recall`/`write` stay internal
    *  to the agent/ask path — only these read/manage controls cross the bridge. */
@@ -242,6 +263,8 @@ export interface IpcApi {
    *  renderer decides whether to apply it (via `setConfig`). */
   syncPull(): Promise<{ ok: boolean; config: Config | null; error?: string }>;
   openConsole(): Promise<void>;
+  /** Open (or focus) the dedicated AI chat window. */
+  openAiChat(): Promise<void>;
   hideLauncher(): Promise<void>;
   /** The host platform, so the renderer can render OS-correct shortcut glyphs. */
   platform: Platform;

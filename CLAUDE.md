@@ -291,8 +291,16 @@ browser-only logic in a `'use client'` component under `apps/web/src/components/
 - **Tailwind v4** has no `tailwind.config.js`. The desktop/renderer uses the `@tailwindcss/vite`
   plugin; the web app uses `@tailwindcss/postcss`. Styles start with `@import "tailwindcss";`.
 - **electron-vite multi-entry.** The renderer has multiple HTML entries (`launcher.html`,
-  `console.html`, `digest.html`, `task.html`); add new windows by adding an entry in
+  `console.html`, `digest.html`, `task.html`, `ai.html`); add new windows by adding an entry in
   `electron.vite.config.ts`.
+- **Chat transcripts are content, not config.** The AI window's sessions persist to
+  `userData/chats.json` (`infra/chat-store.ts`, validated by `ChatStoreSchema`) — never
+  `config.json`, which syncs. Multi-turn context rides the single-prompt `askStream` path via
+  `chatPrompt` (shared), so every provider gets history without a per-provider messages API.
+- **Agent tools have launcher parity.** `actions.list` / `actions.run` / `workflows.run` /
+  `apps.search` / `apps.open` let the agent do what the user can from the bar, gated by the
+  `actions` / `apps` grants. They execute through `services/launcher-exec.ts` — the SAME path as
+  the IPC handlers — so never fork a second run-action/run-workflow code path.
 - **Secrets never touch `config.json` or the renderer.** API keys (BYOP), the backend session token,
   and OAuth tokens live in the OS-keychain-backed **secrets vault** (Electron `safeStorage`, main
   process). The renderer learns only _status_ (set/unset) over IPC — there is no plaintext read path.

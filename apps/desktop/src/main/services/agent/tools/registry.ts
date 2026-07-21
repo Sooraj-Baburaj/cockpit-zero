@@ -2,11 +2,16 @@ import type { z } from 'zod';
 import type { AgentToolId, AiToolId, Config } from '@cockpitzero/shared';
 import type { MemoryService } from '../memory-service.js';
 import type { ToolPorts } from './ports.js';
+import { actionsList } from './actions-list.js';
+import { actionsRun } from './actions-run.js';
+import { appsOpen } from './apps-open.js';
+import { appsSearch } from './apps-search.js';
 import { calendarCreateEvent } from './calendar-create-event.js';
 import { filesRead } from './files-read.js';
 import { memoryRecall } from './memory-recall.js';
 import { memoryWrite } from './memory-write.js';
 import { slackSend } from './slack-send.js';
+import { workflowsRun } from './workflows-run.js';
 
 /**
  * The agent tool registry (Phase 7), mirroring the action-runner registry: a
@@ -75,6 +80,11 @@ export const TOOL_REGISTRY: ToolRegistry = {
   'memory.write': memoryWrite,
   'slack.send': slackSend,
   'calendar.create-event': calendarCreateEvent,
+  'actions.list': actionsList,
+  'actions.run': actionsRun,
+  'workflows.run': workflowsRun,
+  'apps.search': appsSearch,
+  'apps.open': appsOpen,
 };
 
 /** Build the registry. Pure: no `electron`, no globals. */

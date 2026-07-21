@@ -3,7 +3,15 @@ import type { Settings } from '@cockpitzero/shared';
 import { api } from '../../lib/api.js';
 import { OptionCard } from '../molecules/OptionCard.js';
 import { Toggle } from '../atoms/Toggle.js';
+import { Dropdown } from '../molecules/Dropdown.js';
 import { HotkeyRecorder } from '../molecules/HotkeyRecorder.js';
+
+/** Where launching the app by its icon lands (the hotkey always opens the bar). */
+const APP_ICON_OPTIONS: { value: Settings['appIconOpens']; label: string }[] = [
+  { value: 'launcher', label: 'Launcher bar' },
+  { value: 'console', label: 'Console' },
+  { value: 'ai', label: 'AI chat' },
+];
 
 /** General settings: global hotkey and launch/telemetry toggles. */
 export function ConsolePanel({
@@ -53,6 +61,18 @@ export function ConsolePanel({
           </p>
         )}
       </div>
+
+      <OptionCard
+        title="App icon opens"
+        description="Which screen appears when you launch CockpitZero from the Dock, Finder, or Start menu."
+      >
+        <Dropdown
+          ariaLabel="App icon opens"
+          value={settings.appIconOpens}
+          options={APP_ICON_OPTIONS}
+          onChange={(v) => set('appIconOpens', v as Settings['appIconOpens'])}
+        />
+      </OptionCard>
 
       <OptionCard title="Launch at login">
         <Toggle

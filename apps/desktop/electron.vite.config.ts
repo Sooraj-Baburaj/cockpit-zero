@@ -35,6 +35,7 @@ export default defineConfig({
           console: resolve(__dirname, 'src/renderer/console.html'),
           digest: resolve(__dirname, 'src/renderer/digest.html'),
           task: resolve(__dirname, 'src/renderer/task.html'),
+          ai: resolve(__dirname, 'src/renderer/ai.html'),
         },
       },
     },

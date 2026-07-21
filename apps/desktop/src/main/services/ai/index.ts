@@ -7,7 +7,9 @@ import { createSdkProvider } from '../../infra/ai/sdk-provider.js';
 import { secretsService } from '../secrets/index.js';
 import { memoryService } from '../memory/index.js';
 import { authService, backendClient } from '../auth/index.js';
+import { createChatStore } from '../../infra/chat-store.js';
 import { createAiService } from './ai-service.js';
+import { createChatService } from './chat-service.js';
 
 /**
  * The wired AI service singleton the IPC layer calls. This is the one place that
@@ -48,6 +50,13 @@ export const aiService = createAiService({
   // (both gated by `ai.memoryEnabled`). The shared singleton so the agent loop,
   // the launcher, and the Console all read/write one memory.
   memory: memoryService,
+});
+
+/** The AI chat window's session service — persists to `userData/chats.json` and
+ *  answers over the same streamed ask (provider + memory) the launcher uses. */
+export const chatService = createChatService({
+  store: createChatStore(),
+  ask: (prompt, onDelta, signal) => aiService.askStream(prompt, onDelta, signal),
 });
 
 /** Managed-usage read for the Console (`aiUsage` IPC): the backend's per-user
