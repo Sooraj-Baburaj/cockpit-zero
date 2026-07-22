@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NAV_LINKS } from '@/lib/content';
-import { DownloadArrow } from '@/components/ui';
-import { LogoMark } from '@/components/LogoMark';
+import { DownloadArrow } from '@/components/atoms/DownloadArrow';
+import { LogoMark } from '@/components/atoms/LogoMark';
 
 function applyTheme(dark: boolean) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
@@ -68,7 +68,9 @@ export function SiteHeader() {
             >
               <span
                 className="h-[15px] w-[15px] rounded-full border-[1.6px] border-[var(--text)]"
-                style={{ background: 'linear-gradient(90deg,var(--text) 0 50%,transparent 50% 100%)' }}
+                style={{
+                  background: 'linear-gradient(90deg,var(--text) 0 50%,transparent 50% 100%)',
+                }}
               />
             </button>
             <Link

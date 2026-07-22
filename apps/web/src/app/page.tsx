@@ -1,10 +1,16 @@
-import { ParticleField } from '@/components/ParticleField';
-import { CursorTrail } from '@/components/CursorTrail';
-import { LauncherDemo } from '@/components/LauncherDemo';
-import { StickyFeatures } from '@/components/StickyFeatures';
-import { DemoCarousel } from '@/components/DemoCarousel';
-import { DownloadCta } from '@/components/DownloadCta';
-import { DownloadArrow, Eyebrow, MediaPlaceholder, PrimaryCta, TonalCta } from '@/components/ui';
+import { ParticleField } from '@/components/molecules/ParticleField';
+import { CursorTrail } from '@/components/molecules/CursorTrail';
+import { LauncherDemo } from '@/components/organisms/LauncherDemo';
+import { StickyFeatures } from '@/components/organisms/StickyFeatures';
+import { DemoCarousel } from '@/components/organisms/DemoCarousel';
+import { DownloadCta } from '@/components/organisms/DownloadCta';
+import { DownloadArrow } from '@/components/atoms/DownloadArrow';
+import { Eyebrow } from '@/components/atoms/Eyebrow';
+import { PrimaryCta, TonalCta } from '@/components/atoms/CtaButtons';
+import { ExpandOnScroll, SearchEverythingDemo } from '@/components/organisms/demos';
+
+/** Flip to bring the hidden "Tiny demos" carousel back. */
+const SHOW_TINY_DEMOS = false as boolean;
 
 const ARG_EXAMPLES: [string, string][] = [
   ['email', 'john'],
@@ -47,24 +53,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why it exists */}
-      <section className="px-4 py-12 sm:px-10 md:py-[100px]">
-        <div className="mx-auto max-w-[1120px]">
-          <div data-reveal className="mx-auto mb-[42px] max-w-[730px] text-center">
-            <Eyebrow>Why it exists</Eyebrow>
-            <h2 className="mt-3.5 mb-3 text-[clamp(28px,4.2vw,44px)] leading-[1.08] font-semibold tracking-[-0.02em]">
-              Your computer already knows where everything is
-            </h2>
-            <p className="m-0 text-[clamp(16px,1.8vw,19px)] leading-[1.55] text-muted">
-              You just don&apos;t remember what menu it&apos;s hiding under. Apps, files, shell
-              scripts, folders, URLs, commands, snippets — CockpitZero throws them into one search
-              bar and lets fuzzy search sort out the rest. Three wrong letters are usually enough.
-            </p>
-          </div>
-          <div
-            data-reveal
-            className="mx-auto max-w-[980px] overflow-hidden rounded-[clamp(16px,2vw,28px)] border border-line bg-surface"
-          >
+      {/* Why it exists — the demo grows to ~80% viewport as you scroll, then pins */}
+      <section className="px-4 pt-12 sm:px-10 md:pt-[100px]">
+        <div data-reveal className="mx-auto max-w-[730px] text-center">
+          <Eyebrow>Why it exists</Eyebrow>
+          <h2 className="mt-3.5 mb-3 text-[clamp(28px,4.2vw,44px)] leading-[1.08] font-semibold tracking-[-0.02em]">
+            Your computer already knows where everything is
+          </h2>
+          <p className="m-0 text-[clamp(16px,1.8vw,19px)] leading-[1.55] text-muted">
+            You just don&apos;t remember what menu it&apos;s hiding under. Apps, files, shell
+            scripts, folders, URLs, commands, snippets — CockpitZero throws them into one search bar
+            and lets fuzzy search sort out the rest. Three wrong letters are usually enough.
+          </p>
+        </div>
+        <ExpandOnScroll>
+          <div className="overflow-hidden rounded-[clamp(16px,2vw,28px)] border border-line bg-surface">
             <div className="flex h-[42px] items-center gap-3.5 border-b border-line-soft px-4">
               <span className="inline-flex gap-[7px]">
                 <span className="h-[11px] w-[11px] rounded-full bg-surface-3" />
@@ -75,9 +78,9 @@ export default function HomePage() {
                 CockpitZero — command bar
               </span>
             </div>
-            <MediaPlaceholder label="product demo — launcher in action" aspect="16/9" />
+            <SearchEverythingDemo size="large" frameless />
           </div>
-        </div>
+        </ExpandOnScroll>
       </section>
 
       <StickyFeatures />
@@ -111,20 +114,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Tiny demos */}
-      <section className="px-4 py-12 sm:px-10 md:py-[100px]">
-        <div className="mx-auto max-w-[1200px]">
-          <div data-reveal className="mb-[34px] flex flex-wrap items-end justify-between gap-5">
-            <h2 className="m-0 max-w-[12ch] text-[clamp(28px,3.6vw,44px)] leading-[1.08] font-semibold tracking-[-0.02em]">
-              Tiny demos
-            </h2>
-            <p className="m-0 max-w-[40ch] text-base leading-[1.55] text-muted">
-              Because watching software work beats reading about it.
-            </p>
+      {/* Tiny demos — hidden for now (the stepper above already plays the demos). */}
+      {SHOW_TINY_DEMOS && (
+        <section className="px-4 py-12 sm:px-10 md:py-[100px]">
+          <div className="mx-auto max-w-[1200px]">
+            <div data-reveal className="mb-[34px] flex flex-wrap items-end justify-between gap-5">
+              <h2 className="m-0 max-w-[12ch] text-[clamp(28px,3.6vw,44px)] leading-[1.08] font-semibold tracking-[-0.02em]">
+                Tiny demos
+              </h2>
+              <p className="m-0 max-w-[40ch] text-base leading-[1.55] text-muted">
+                Because watching software work beats reading about it.
+              </p>
+            </div>
+            <DemoCarousel />
           </div>
-          <DemoCarousel />
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Free / Teams */}
       <section className="px-4 py-12 sm:px-10 md:py-[100px]">

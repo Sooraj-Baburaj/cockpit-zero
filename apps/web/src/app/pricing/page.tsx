@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PLANS } from '@/lib/content';
-import { ParticleField } from '@/components/ParticleField';
-import { FaqAccordion } from '@/components/FaqAccordion';
-import { Eyebrow } from '@/components/ui';
+import { ParticleField } from '@/components/molecules/ParticleField';
+import { FaqAccordion } from '@/components/molecules/FaqAccordion';
+import { Eyebrow } from '@/components/atoms/Eyebrow';
 
 export const metadata: Metadata = {
   title: 'Pricing — CockpitZero',
@@ -61,7 +61,9 @@ export default function PricingPage() {
                 </span>
                 <span className="font-mono text-[13.5px] leading-none text-muted">{plan.unit}</span>
               </div>
-              <p className="mt-0 mb-5 min-h-[4.2em] text-sm leading-[1.5] text-muted">{plan.blurb}</p>
+              <p className="mt-0 mb-5 min-h-[4.2em] text-sm leading-[1.5] text-muted">
+                {plan.blurb}
+              </p>
               <Link
                 href={ctaHref(plan.cta)}
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--btn-primary-bg)] px-5 py-3 text-[15px] leading-none font-medium text-[var(--btn-primary-text)] transition-colors hover:bg-[var(--btn-primary-hover)]"
@@ -82,7 +84,10 @@ export default function PricingPage() {
               </span>
               <ul className="m-0 mt-3.5 flex list-none flex-col gap-[11px] p-0">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5 text-sm leading-[1.4] text-ink">
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2.5 text-sm leading-[1.4] text-ink"
+                  >
                     <svg
                       width="15"
                       height="15"

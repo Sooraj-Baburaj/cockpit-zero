@@ -21,7 +21,9 @@ export function FaqAccordion() {
             </span>
           </button>
           {open === i && (
-            <p className="m-0 max-w-[62ch] px-1 pb-[22px] text-[15.5px] leading-[1.6] text-muted">{f.a}</p>
+            <p className="m-0 max-w-[62ch] px-1 pb-[22px] text-[15.5px] leading-[1.6] text-muted">
+              {f.a}
+            </p>
           )}
         </div>
       ))}

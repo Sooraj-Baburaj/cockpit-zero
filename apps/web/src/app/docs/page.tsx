@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Eyebrow } from '@/components/ui';
+import { Eyebrow } from '@/components/atoms/Eyebrow';
 
 export const metadata: Metadata = {
   title: 'Docs — CockpitZero',

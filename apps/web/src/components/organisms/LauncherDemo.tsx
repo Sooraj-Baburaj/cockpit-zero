@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { HERO_QUERIES, type HeroQuery } from '@/lib/content';
-import { Kbd, SearchIcon } from '@/components/ui';
+import { Kbd } from '@/components/atoms/Kbd';
+import { SearchIcon } from '@/components/atoms/SearchIcon';
 
 const FALLBACK_QUERY: HeroQuery = HERO_QUERIES[0] ?? { q: '', results: [] };
 

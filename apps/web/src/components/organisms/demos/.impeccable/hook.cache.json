@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "sessions": {
+    "28a7ea70-a67a-4ba6-b007-ef2545659aeb": {
+      "updatedAt": 1784740805660,
+      "files": {
+        "/Users/sooraj/projects/personal/cockpitzero/apps/web/src/components/DemoCarousel.tsx": {
+          "editCount": 2,
+          "findings": []
+        },
+        "/Users/sooraj/projects/personal/cockpitzero/apps/web/src/app/page.tsx": {
+          "editCount": 2,
+          "findings": []
+        },
+        "/Users/sooraj/projects/personal/cockpitzero/apps/web/src/components/demos/index.ts": {
+          "editCount": 2,
+          "findings": []
+        },
+        "/Users/sooraj/projects/personal/cockpitzero/apps/web/src/lib/content.ts": {
+          "editCount": 1,
+          "findings": []
+        }
+      }
+    }
+  }
+}

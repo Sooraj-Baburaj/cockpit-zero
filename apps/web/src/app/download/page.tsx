@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { DownloadButton } from '@/components/DownloadButton';
-import { ParticleField } from '@/components/ParticleField';
-import { Eyebrow } from '@/components/ui';
+import { DownloadButton } from '@/components/molecules/DownloadButton';
+import { ParticleField } from '@/components/molecules/ParticleField';
+import { Eyebrow } from '@/components/atoms/Eyebrow';
 
 export const metadata: Metadata = {
   title: 'Download — CockpitZero',

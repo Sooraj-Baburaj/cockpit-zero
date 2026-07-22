@@ -244,6 +244,23 @@ App Router: create `apps/web/src/app/<segment>/page.tsx` (server component by de
 browser-only logic in a `'use client'` component under `apps/web/src/components/`. Reuse
 `@cockpitzero/shared` for shared constants/types.
 
+### Web component structure (atomic design)
+
+`apps/web/src/components/` follows the same atomic taxonomy as the desktop renderer — place new
+components at the right level, never loose in the folder root:
+
+- **`atoms/`** — single-purpose primitives, one component per file (`Kbd`, `Eyebrow`,
+  `SearchIcon`, `DownloadArrow`, `LogoMark`, `CtaButtons` = `PrimaryCta`/`TonalCta`).
+- **`molecules/`** — small compositions and self-contained effects (`MediaPlaceholder`,
+  `DownloadButton`, `FaqAccordion`, and the canvas effects `ParticleField`, `CursorTrail`,
+  `PointerArrow`).
+- **`organisms/`** — page sections (`SiteHeader`, `SiteFooter`, `DownloadCta`, `StickyFeatures`,
+  `DemoCarousel`, `LauncherDemo`) and the live-demo system under **`organisms/demos/`**
+  (scripted launcher recreations — see its `README.md` for the scene engine, coverage, and
+  drop-in usage; it reuses the real `fuzzyRank` from `@cockpitzero/shared`).
+- Pages under `app/` act as templates/screens: they compose organisms and pass content from
+  `src/lib/content.ts`. There is no separate `templates/` folder.
+
 ### Design context (apps/web)
 
 The marketing site's strategic + visual specs live in `apps/web/PRODUCT.md` (register: brand;

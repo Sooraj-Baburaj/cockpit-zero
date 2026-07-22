@@ -6,10 +6,22 @@ export interface HeroQuery {
 }
 
 export const HERO_QUERIES: HeroQuery[] = [
-  { q: 'git', results: [{ icon: '↗', title: 'Open GitHub Repository', sub: 'Action · git', kind: 'action' }] },
-  { q: 'shot reg', results: [{ icon: '▣', title: 'Capture Region', sub: 'Action · screenshot', kind: 'action' }] },
-  { q: 'inv 4821', results: [{ icon: '#', title: 'Open Invoice #4821', sub: 'Action · billing', kind: 'action' }] },
-  { q: 'standup', results: [{ icon: '⧉', title: 'Join Daily Standup', sub: 'Workflow · calendar', kind: 'flow' }] },
+  {
+    q: 'git',
+    results: [{ icon: '↗', title: 'Open GitHub Repository', sub: 'Action · git', kind: 'action' }],
+  },
+  {
+    q: 'shot reg',
+    results: [{ icon: '▣', title: 'Capture Region', sub: 'Action · screenshot', kind: 'action' }],
+  },
+  {
+    q: 'inv 4821',
+    results: [{ icon: '#', title: 'Open Invoice #4821', sub: 'Action · billing', kind: 'action' }],
+  },
+  {
+    q: 'standup',
+    results: [{ icon: '⧉', title: 'Join Daily Standup', sub: 'Workflow · calendar', kind: 'flow' }],
+  },
 ];
 
 export interface Step {
@@ -49,19 +61,6 @@ export const STEPS: Step[] = [
     body: 'AI Cockpit remembers your projects, preferences, and recurring tasks — say "continue what I was doing yesterday" and it knows. Bring your own key and stay local, or sign in and let it route to the right model.',
     media: 'memory + your own AI',
   },
-];
-
-export interface UseCase {
-  tag: string;
-  dur: string;
-  title: string;
-}
-
-export const USE_CASES: UseCase[] = [
-  { tag: 'Search', dur: '0:24', title: 'Find literally anything.' },
-  { tag: 'Actions', dur: '0:31', title: 'Commands with arguments.' },
-  { tag: 'Workflows', dur: '0:38', title: 'One Enter. Six things happen.' },
-  { tag: 'AI Cockpit', dur: '0:29', title: 'Memory included.' },
 ];
 
 export interface Plan {
