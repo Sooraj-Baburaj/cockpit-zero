@@ -39,7 +39,7 @@ export function ParticleField({
     const rnd = (a: number, b: number) => a + Math.random() * (b - a);
     let ps: Particle[] = [];
     let raf = 0;
-    const col = { t: '#b8b3a8', ac: '#d97757' };
+    const col = { t: '#b8b3a8', ac: '#0031ff' };
 
     const resize = () => {
       const r = canvas.getBoundingClientRect();
@@ -101,7 +101,10 @@ export function ParticleField({
     };
     window.addEventListener('resize', onResize);
     const observer = new MutationObserver(recolor);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
 
     return () => {
       cancelAnimationFrame(raf);
@@ -111,6 +114,9 @@ export function ParticleField({
   }, [count, dir]);
 
   return (
-    <canvas ref={canvasRef} className={`pointer-events-none absolute inset-0 h-full w-full ${className}`} />
+    <canvas
+      ref={canvasRef}
+      className={`pointer-events-none absolute inset-0 h-full w-full ${className}`}
+    />
   );
 }

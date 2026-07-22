@@ -87,15 +87,21 @@ export function LauncherDemo() {
           <Kbd>Space</Kbd>
         </span>
       </div>
-      <div data-results className="min-h-14 p-2">
+      {/* Fixed height reserves exactly one result row so the bar never changes
+          size as results reveal/clear — otherwise the whole page reflows. */}
+      <div data-results className="flex h-[72px] flex-col justify-center px-2">
         {results.map((r) => (
           <div key={r.title} className="flex items-center gap-3 rounded-[10px] px-3 py-2.5">
             <span className="inline-flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[9px] bg-surface-3 font-mono text-[15px] leading-none font-medium text-ink">
               {r.icon}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[15px] leading-tight font-medium text-ink">{r.title}</span>
-              <span className="block font-mono text-[12.5px] leading-[1.3] text-muted">{r.sub}</span>
+              <span className="block text-[15px] leading-tight font-medium text-ink">
+                {r.title}
+              </span>
+              <span className="block font-mono text-[12.5px] leading-[1.3] text-muted">
+                {r.sub}
+              </span>
             </span>
             <span className="rounded-md border border-line-soft px-[7px] py-1 font-mono text-[10px] leading-none font-medium tracking-[0.08em] uppercase text-muted">
               {r.kind}

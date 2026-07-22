@@ -1,4 +1,5 @@
 import { ParticleField } from '@/components/ParticleField';
+import { CursorTrail } from '@/components/CursorTrail';
 import { LauncherDemo } from '@/components/LauncherDemo';
 import { StickyFeatures } from '@/components/StickyFeatures';
 import { DemoCarousel } from '@/components/DemoCarousel';
@@ -17,9 +18,10 @@ const ARG_EXAMPLES: [string, string][] = [
 export default function HomePage() {
   return (
     <main>
-      {/* Hero */}
-      <section className="relative overflow-hidden px-4 pt-[clamp(104px,14vh,160px)] pb-[clamp(36px,6vh,80px)] sm:px-10">
+      {/* Hero — full-height fold; content vertically centered, cleared below the 56px fixed header */}
+      <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 pt-[88px] pb-[clamp(48px,8vh,96px)] sm:px-10">
         <ParticleField count={60} className="opacity-80" />
+        <CursorTrail />
         <div className="relative mx-auto flex max-w-[960px] flex-col items-center gap-[22px] text-center">
           <h1 className="m-0 max-w-[15ch] text-[clamp(42px,7.6vw,86px)] leading-[1.02] font-medium tracking-[-0.032em] text-balance">
             Your mouse had a good run.

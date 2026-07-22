@@ -244,6 +244,13 @@ App Router: create `apps/web/src/app/<segment>/page.tsx` (server component by de
 browser-only logic in a `'use client'` component under `apps/web/src/components/`. Reuse
 `@cockpitzero/shared` for shared constants/types.
 
+### Design context (apps/web)
+
+The marketing site's strategic + visual specs live in `apps/web/PRODUCT.md` (register: brand;
+audience, voice, anti-references) and `apps/web/DESIGN.md` (tokens, "The Convergence Point" system:
+Ion cyan→blue gradient accent — the orange accent is retired on the web surface). Read both before
+web design work; keep them updated when the system evolves.
+
 ## Code style rules
 
 - **No raw IPC in components.** Only `src/preload/index.ts` may use `ipcRenderer`. Components
