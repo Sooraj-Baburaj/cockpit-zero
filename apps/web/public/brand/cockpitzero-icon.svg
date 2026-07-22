@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Grain lives inside the filter chain (feBlend, not CSS mix-blend-mode) so
+       non-browser rasterizers keep the blend, and feComposite clips it to the
+       rounded shape — SourceGraphic here is the gradient rect itself. -->
+  <defs>
+    <linearGradient id="g" x1="0.281" y1="-0.103" x2="0.719" y2="1.103">
+      <stop offset="0" stop-color="#00e1ff"/>
+      <stop offset="0.62" stop-color="#0031ff"/>
+      <stop offset="1" stop-color="#0000f0"/>
+    </linearGradient>
+    <filter id="gn" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.7" intercept="0"/></feComponentTransfer>
+      <feBlend mode="overlay" in2="SourceGraphic"/>
+      <feComposite operator="in" in2="SourceAlpha"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="115" fill="url(#g)" filter="url(#gn)"/>
+  <g transform="translate(96 96) scale(6.6667)">
+    <path d="M24 17V7 M28.6 19.4l4.95-4.95 M30 24h3.5 M37 24h5 M28.95 28.95l6.36 6.36 M24 31v8 M19.4 28.6l-6.36 6.36 M18 24H6 M19.05 19.05l-6.36-6.36" fill="none" stroke="#ffffff" stroke-width="4.4" stroke-linecap="round"/>
+  </g>
+</svg>

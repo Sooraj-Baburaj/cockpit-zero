@@ -1,20 +1,198 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #fafafa;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f5f3ef;
+  --surface-3: #ece8e1;
+  --text: #1a1916;
+  --text-muted: #6f6a60;
+  --particle: #b8b3a8;
+  --border: rgba(26, 25, 22, 0.12);
+  --border-soft: rgba(26, 25, 22, 0.06);
+  --accent: #d97757;
+  --accent-hover: #c26140;
+  --accent-soft: rgba(217, 119, 87, 0.13);
+  --btn-primary-bg: #1a1916;
+  --btn-primary-text: #fbfaf8;
+  --btn-primary-hover: #38352d;
+  --btn-tonal-bg: rgba(111, 106, 96, 0.1);
+  --btn-tonal-hover: #ece8e1;
+  --inverse-bg: #161512;
+  --inverse-surface: #211f1a;
+  --inverse-text: #f6f4ef;
+  --inverse-muted: #a49e92;
+  --inverse-border: rgba(246, 244, 239, 0.13);
+  --bar-bg: rgba(255, 255, 255, 0.72);
+  --bar-border: rgba(26, 25, 22, 0.1);
+  --bar-shadow:
+    0 34px 74px -26px rgba(26, 25, 22, 0.34), 0 2px 10px rgba(26, 25, 22, 0.06);
+  --nav-bg: rgba(255, 255, 255, 0.8);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #111110;
+  --surface: #1a1916;
+  --surface-2: #201e1a;
+  --surface-3: #2b2823;
+  --text: #f6f4ef;
+  --text-muted: #a8a294;
+  --particle: #726c61;
+  --border: rgba(246, 244, 239, 0.14);
+  --border-soft: rgba(246, 244, 239, 0.07);
+  --accent: #e6975f;
+  --accent-hover: #f2a878;
+  --accent-soft: rgba(230, 151, 95, 0.16);
+  --btn-primary-bg: #f6f4ef;
+  --btn-primary-text: #161512;
+  --btn-primary-hover: #e4e0d7;
+  --btn-tonal-bg: rgba(246, 244, 239, 0.08);
+  --btn-tonal-hover: rgba(246, 244, 239, 0.14);
+  --inverse-bg: #0b0a09;
+  --inverse-surface: #161512;
+  --inverse-text: #f6f4ef;
+  --inverse-muted: #a49e92;
+  --inverse-border: rgba(246, 244, 239, 0.1);
+  --bar-bg: rgba(30, 28, 24, 0.66);
+  --bar-border: rgba(246, 244, 239, 0.12);
+  --bar-shadow: 0 34px 74px -26px rgba(0, 0, 0, 0.62), 0 2px 10px rgba(0, 0, 0, 0.4);
+  --nav-bg: rgba(17, 17, 16, 0.72);
+  color-scheme: dark;
+}
+
+@theme {
+  --breakpoint-desk: 860px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--text);
+  --color-muted: var(--text-muted);
+  --color-line: var(--border);
+  --color-line-soft: var(--border-soft);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-inverse-bg: var(--inverse-bg);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-text: var(--inverse-text);
+  --color-inverse-muted: var(--inverse-muted);
+  --color-inverse-border: var(--inverse-border);
+  --font-sans: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+/* Brand gradient + film grain, both dependency-free: the grain is an inline
+   SVG feTurbulence tile, blended over the gradient. Matches the approved
+   noisy #00e1ff → #0000ff asset. */
+:root {
+  --cz-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.72'/%3E%3C/svg%3E");
+  --cz-brand-gradient: linear-gradient(160deg, #00e1ff 0%, #0031ff 62%, #0000f0 100%);
+}
+
+.cz-brand-grad {
+  background-image: var(--cz-noise), var(--cz-brand-gradient);
+  background-size:
+    180px 180px,
+    cover;
+  background-blend-mode: overlay, normal;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-hanken), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@keyframes czblink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes czfloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes czrise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  [data-reveal] {
+    animation: czrise 0.75s cubic-bezier(0.16, 0.84, 0.44, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 24%;
+  }
+}
+
+/* First launcher result row is highlighted as "selected". */
+[data-results] > div:first-child {
+  background: var(--accent-soft);
+}
+
+/* Highlighted pricing plan. */
+[data-accent='true'] {
+  border-color: var(--accent) !important;
+}
+[data-accent='true'] [data-badge] {
+  color: var(--accent);
+}
+
+/* Alternate feature bands: media leads on even rows. */
+[data-band]:nth-child(even) [data-bandmedia] {
+  order: -1;
+}
+
+[aria-current='page'] {
+  color: var(--text) !important;
+}
+
+/* Horizontal demo track hides its scrollbar (buttons drive it). */
+.cz-scroll {
+  scrollbar-width: none;
+}
+.cz-scroll::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  .cz-float,
+  .cz-blink {
+    animation: none !important;
+  }
 }
