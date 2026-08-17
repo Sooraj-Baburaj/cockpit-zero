@@ -124,7 +124,7 @@ aiUsage(): Promise<{ period: string; requests: number; inputTokens: number; outp
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-9-managed-inference-router.md` and `CLAUDE.md`, then implement
+> Read `docs/roadmap/phase-9-managed-inference-router.md` and `CLAUDE.md`, then implement
 > the **managed** (paid) inference tier: a backend `/inference` endpoint (auth + plan gated) that
 > holds **our** provider keys, runs a **complexity router** to pick the model automatically
 > (cheap→frontier), calls the provider via the AI SDK, **streams** back, and writes a **usage** record

@@ -46,8 +46,9 @@ export default function HomePage() {
               See it in action
             </TonalCta>
           </div>
-          <p className="-mt-1 mb-0 font-mono text-[13px] leading-none text-muted">
-            No account. No credit card. No “start your 14-day trial.”
+          <p className="-mt-1 mb-0 font-mono text-[13px] leading-[1.5] text-muted">
+            No account. No credit card.{' '}
+            <span className="whitespace-nowrap">No “start your 14-day trial.”</span>
           </p>
           <LauncherDemo />
         </div>

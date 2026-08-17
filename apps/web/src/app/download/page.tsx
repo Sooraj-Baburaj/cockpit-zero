@@ -21,7 +21,7 @@ export default function DownloadPage() {
           We detected your platform automatically. Free forever — no account, no credit card.
         </p>
         <DownloadButton />
-        <p className="m-0 font-mono text-xs leading-none text-muted">
+        <p className="m-0 font-mono text-xs leading-[1.5] text-muted">
           macOS • Windows • Linux · free forever · no account
         </p>
       </div>

@@ -176,7 +176,7 @@ memoryClear(): Promise<{ ok: boolean }>;
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-5-local-memory-engine.md` and `CLAUDE.md`, then implement the
+> Read `docs/roadmap/phase-5-local-memory-engine.md` and `CLAUDE.md`, then implement the
 > local memory engine. Replace the JSON keyword store with a **native TS pipeline**: durable-fact
 > **extraction** (AI-SDK `generateObject`, keyless heuristic fallback), on-device **embeddings**
 > (`@huggingface/transformers` ONNX, no key/offline; AI-SDK embeddings when a key is set), a

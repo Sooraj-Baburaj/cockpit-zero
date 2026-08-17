@@ -4,26 +4,15 @@
     {
       "name": "desktop-dev",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@cockpitzero/desktop",
-        "dev"
-      ],
+      "runtimeArgs": ["--filter", "@cockpitzero/desktop", "dev"],
       "port": 5173
     },
     {
       "name": "web-dev",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@cockpitzero/web",
-        "exec",
-        "next",
-        "dev",
-        "--port",
-        "3100"
-      ],
-      "port": 3100
+      "runtimeArgs": ["--filter", "@cockpitzero/web", "exec", "next", "dev"],
+      "port": 3100,
+      "autoPort": true
     }
   ]
 }

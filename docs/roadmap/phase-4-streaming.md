@@ -3,8 +3,8 @@
 > **Status:** 🔜 Next · **Depends on:** P3 (real providers) · **Blocks:** nothing (polish, but high
 > perceived value). **Risk:** medium — adds a push IPC path + renderer incremental rendering.
 
-Phase 1 (v1) deliberately chose **resolve-once** for `askAI`. With real providers (P3) the mockups'
-typing-caret reveal should be real token streaming. The task surface (v1 Phase 7) already streams
+Phase 1 (v1) deliberately chose **resolve-once** for `askAI`. With real providers (P3) the original
+design's typing-caret reveal should be real token streaming. The task surface (v1 Phase 7) already streams
 snapshots over a push channel (`task:update` / `onTaskUpdate`) — reuse that exact pattern for `ask`.
 
 ## Goal
@@ -112,7 +112,7 @@ exposes `onAiStream`. **Don't** add ad-hoc `ipcRenderer.on` elsewhere (CLAUDE.md
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-4-streaming.md` and `CLAUDE.md`, then implement token streaming
+> Read `docs/roadmap/phase-4-streaming.md` and `CLAUDE.md`, then implement token streaming
 > for `askAI`. Use the Vercel AI SDK `streamText` in `sdk-provider.ts`, and the **push IPC pattern**
 > already used by `onTaskUpdate` (one new `ipcRenderer.on` in preload — `onAiStream`). Add
 > `askAIStream`/`cancelAiStream` channels + an `AI_STREAM_CHANNEL`, stream deltas, finalize with the

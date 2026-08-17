@@ -190,7 +190,7 @@ listModels: 'ai:list-models',   // returns MODEL_CATALOG (or live-fetched for op
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-3-universal-providers.md` and `CLAUDE.md`, then implement it.
+> Read `docs/roadmap/phase-3-universal-providers.md` and `CLAUDE.md`, then implement it.
 > Replace the mock/throwing AI providers with a **real universal layer using the Vercel AI SDK**
 > (`ai` + `@ai-sdk/anthropic`/`openai`/`google`/`xai`/`openai-compatible`). BYOP: the user picks a
 > provider + model and pastes their own key — read it from the **P2 secrets vault**, never

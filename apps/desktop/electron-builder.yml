@@ -25,10 +25,11 @@ win:
 linux:
   target: AppImage
   category: Utility
-# NOTE: switch owner/repo to the public mirror before launch — auto-update
-# checks must hit a repo users can reach unauthenticated.
+# Auto-update checks hit this repo unauthenticated, so it must stay the PUBLIC
+# one. `release.yml` publishes here with the workflow's own GITHUB_TOKEN, which
+# is scoped to the repo it runs in — owner must match that repo's owner.
 publish:
   provider: github
-  owner: TheBloomin
+  owner: Sooraj-Baburaj
   repo: cockpit-zero
   releaseType: draft

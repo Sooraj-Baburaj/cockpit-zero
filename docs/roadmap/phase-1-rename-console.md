@@ -99,7 +99,7 @@ and the `LauncherBar` caller.
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-1-rename-console.md` and `CLAUDE.md`, then implement it. This
+> Read `docs/roadmap/phase-1-rename-console.md` and `CLAUDE.md`, then implement it. This
 > is a pure terminology rename of the "Settings" window/screen/navigation to **"Console"** — no
 > behavior change. Crucially, do **not** rename the `config.settings` domain object / `SettingsSchema`
 > (only the window/screen/nav concept). Rename files, component exports, the `openSettings` IPC

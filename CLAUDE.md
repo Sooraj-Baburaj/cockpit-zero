@@ -14,10 +14,9 @@ backend syncs config across devices.
 
 ## Product tiers & AI architecture (production direction)
 
-The AI Cockpit shipped first as **mocks** (see `docs/roadmap/phase-1..7`). It is now being taken to
-**production**, planned phase-by-phase under [`docs/roadmap/production/`](./docs/roadmap/production/)
-(read its `README.md` for the locked decisions + dependency graph before building any AI/memory/
-backend feature). Two tiers:
+The AI Cockpit was built mocks-first, then taken to **production** phase-by-phase under
+[`docs/roadmap/`](./docs/roadmap/) (read its `README.md` for the locked decisions + dependency graph
+before building any AI/memory/backend feature). Two tiers:
 
 - **Free / BYOP / local-first / no login.** The user pastes their **own** provider key and everything
   (memory, history, knowledge) stays on-device. No account is ever required — this is the default.
@@ -394,11 +393,11 @@ absent, run `codegraph init .`. It's an authoring aid only — nothing at runtim
 
 ## Non-goals / follow-ups
 
-- **Production roadmap.** The path from mocks → production is planned in
-  [`docs/roadmap/production/`](./docs/roadmap/production/) — Console rename, secrets vault, universal
+- **Production roadmap.** The path from mocks → production is recorded in
+  [`docs/roadmap/`](./docs/roadmap/) — Console rename, secrets vault, universal
   BYOP providers, streaming, the local memory engine, the real agent loop, backend auth + sync, cloud
-  memory/knowledge, managed inference + router, and real integrations. Each doc is self-contained with
-  a copy-paste kickoff prompt.
+  memory/knowledge, managed inference + router, and real integrations. P1–P10 have all landed; each
+  doc is self-contained with a copy-paste kickoff prompt and stays as the design record.
 - electron-builder packaging (`electron-builder.yml`) is scaffolded but not a focus; add signing
   - icons before shipping installers.
 - Backend auth + sync are **real** (production phase 7): better-auth (email/password + optional

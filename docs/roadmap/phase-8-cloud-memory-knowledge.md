@@ -149,7 +149,7 @@ knowledgeRemove(docId: string): Promise<{ ok: boolean }>;
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-8-cloud-memory-knowledge.md` and `CLAUDE.md`, then implement
+> Read `docs/roadmap/phase-8-cloud-memory-knowledge.md` and `CLAUDE.md`, then implement
 > cloud memory + knowledge for **signed-in** users (opt-in; free/local stays local). Add a backend
 > **Postgres + pgvector** memory store + `knowledge` store reusing the **P5 ports** and shared
 > fusion/scoring code; build `/memory/sync` + `/memory/search` + `/knowledge/*` routes (auth-gated).

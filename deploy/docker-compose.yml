@@ -4,7 +4,7 @@
 # own .env.
 services:
   api:
-    image: ghcr.io/thebloomin/cockpitzero-backend:${API_TAG:-latest}
+    image: ghcr.io/sooraj-baburaj/cockpitzero-backend:${API_TAG:-latest}
     restart: unless-stopped
     environment:
       NODE_ENV: production

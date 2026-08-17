@@ -4,20 +4,22 @@
 
 ### Your keyboard's command center.
 
-**A keyboard-first, cross-platform desktop launcher** — summon a frameless command bar with one
-hotkey, fuzzy-search everything you've configured _and_ everything on your machine, and run it with
-Enter. Spotlight energy, Raycast power, fully yours.
+**A keyboard-first, cross-platform desktop launcher with a real AI cockpit behind it.** Summon a
+frameless command bar with one hotkey, fuzzy-search everything you've configured _and_ everything on
+your machine, and run it with Enter. When a query isn't a command, it's a question — answered by
+_your_ AI provider, with on-device memory.
 
-`Cmd / Ctrl + Shift + Space` → type → **Enter**. That's the whole interaction.
+`Cmd / Ctrl + J` → type → **Enter**. That's the whole interaction.
 
 <br />
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-8A6552)](./LICENSE)
 [![Electron](https://img.shields.io/badge/Electron-2b2b2b?logo=electron&logoColor=9FEAF9)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-20232a?logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind v4](https://img.shields.io/badge/Tailwind_v4-0b1120?logo=tailwindcss&logoColor=38BDF8)](https://tailwindcss.com/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-000?logo=turborepo&logoColor=EF4444)](https://turbo.build/)
-![Platforms](https://img.shields.io/badge/macOS%20%C2%B7%20Windows-555)
+![Platforms](https://img.shields.io/badge/macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-555)
 
 </div>
 
@@ -25,38 +27,59 @@ Enter. Spotlight energy, Raycast power, fully yours.
 
 ## 🎬 See it
 
-> 📸 Screenshots live in [`docs/screenshots/`](./docs/screenshots/). Drop the images in (filenames
-> are listed there) and these previews light up.
-
 <div align="center">
 
-<img src="./docs/screenshots/launcher.png" alt="CockpitZero launcher with results" width="720" />
+<img src="./docs/screenshots/launcher.jpg" alt="CockpitZero launcher searching for “chrome”, showing configured actions, installed applications and files in sectioned results" width="760" />
 
-<br /><br />
-
-<table>
-  <tr>
-    <td align="center"><img src="./docs/screenshots/arguments.png" alt="Parameterized action with live preview" width="360" /><br /><sub><b>Parameterized actions</b> — live preview as you type</sub></td>
-    <td align="center"><img src="./docs/screenshots/system-search.png" alt="System app and file search" width="360" /><br /><sub><b>System search</b> — apps &amp; files, sectioned</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="./docs/screenshots/settings.png" alt="Settings window" width="360" /><br /><sub><b>GUI config</b> — actions, aliases, workflows</sub></td>
-    <td align="center"><img src="./docs/screenshots/hotkey.png" alt="Hotkey settings" width="360" /><br /><sub><b>Hotkey</b> — launch at login &amp; share telemetry</sub></td>
-  </tr>
-</table>
+<sub><b>The bar</b> — one query, sectioned results: Actions → Workflows → Applications → Files</sub>
 
 </div>
 
+<br />
+
+The **Console** is where everything is configured — grouped into Commands, Intelligence,
+Connections and Preferences:
+
+<table>
+  <tr>
+    <td width="50%"><img src="./docs/screenshots/console-ai.jpg" alt="Console AI panel: provider picker, Ask AI from the bar toggle, memory toggle, and per-tool grants" /></td>
+    <td width="50%"><img src="./docs/screenshots/console-memory.jpg" alt="Console Memory panel listing durable facts the assistant learned, each with a date and source" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>AI</b> — bring your own key, pick a provider, grant tools</td>
+    <td align="center"><b>Memory</b> — durable facts, searchable and forgettable, on-device</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="./docs/screenshots/console-integrations.jpg" alt="Console Integrations panel with Slack, Gmail, Google Calendar, GitHub and Linear connectors" /></td>
+    <td width="50%"><img src="./docs/screenshots/console-config.jpg" alt="Console Config panel showing a YAML editor for config.yaml with live schema validation and an outline" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Integrations</b> — real OAuth/token connectors, keys in the OS keychain</td>
+    <td align="center"><b>Config</b> — hand-edit YAML with live schema validation</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="./docs/screenshots/console-account.jpg" alt="Console Account panel offering Google, GitHub and email sign-in, noting an account is optional" /></td>
+    <td width="50%" valign="middle">
+
+**Account is optional.** CockpitZero is fully usable with no account and no
+network — that's the default. Sign in only if you want config, memory and
+knowledge synced across devices.
+
+</td>
+  </tr>
+</table>
+
 ---
 
-## ✨ What it does today
+## ✨ What it does
 
-Everything here is **implemented and working** in this repo.
+Everything in this section is **implemented and working** in this repo — 371 tests across desktop,
+backend and shared cover it.
 
 ### 🚀 Launch anything
 
-Four action types cover the daily essentials — and they're a discriminated union, so adding more is
-trivial:
+Four action types, modeled as a discriminated union so adding a fifth is a schema entry plus a
+handler:
 
 | Type          | Does                                  | Example                        |
 | ------------- | ------------------------------------- | ------------------------------ |
@@ -67,8 +90,8 @@ trivial:
 
 ### 🧩 Parameterized actions — one action, infinite uses
 
-Use `{token}` templates and the launcher captures the rest of your input positionally, with a
-**live preview** as you type:
+Use `{token}` templates and the launcher captures the rest of your input positionally, with a live
+preview as you type:
 
 ```
 g hello world          →  google.com/search?q=hello%20world
@@ -79,60 +102,123 @@ gh anthropic claude    →  github.com/anthropic/claude   (multi-arg, last one g
 Tokens that aren't declared are inferred automatically — "tokens imply parameters." URL values are
 URL-encoded for you.
 
-### 🔗 Workflows — chain actions into one command
+### 🔗 Workflows & routines
 
-Bundle several actions under a single name and run them in sequence. Open three dashboards and start
-your build with one Enter.
+- **Workflows** bundle several actions under one name and run them in sequence.
+- **Routines** are scheduled background jobs. The built-in one is a **notification digest**: it fans
+  out to your connected sources, then summarizes and buckets everything into **now / wait / noise**
+  so you get one ranked briefing instead of five inboxes. If the model call fails, a deterministic
+  on-device ranker still produces the digest.
 
 ### 🔎 System search — apps & files, cross-platform
 
 Type anything that isn't a configured item and CockpitZero also searches your machine:
 
-- **macOS** — `/Applications` + Spotlight (`mdfind`)
-- **Windows** — Start Menu + the Search index
-- Results are **deduped and grouped into sections**: Actions → Workflows → Applications → Files.
+- **macOS** — `/Applications` + Spotlight (`mdfind`), with real icons read from each `.icns` bundle
+- **Windows** — Start Menu + the Search index, `.lnk` icons
+- **Linux** — XDG `.desktop` scan; files via `plocate` when installed
 
-The slow OS index runs on a separate async path, so it **never delays** your instant configured
-matches — the bar fires both lookups in parallel and merges them.
+Results are deduped and section-ordered: Actions → Workflows → Applications → Files. The slow OS
+index runs on a **separate async path**, so it never delays your instant configured matches — the
+bar fires both lookups in parallel and merges them.
 
 ### ⚡ Built to feel instant
 
-- **fzf-powered fuzzy ranking** with match highlighting across actions, apps, and files.
-- **Frecency** (frequency × recency) floats your most-used items to the top and adapts to your
-  habits.
-  **favicons** for URL actions, all cached.
+- **fzf-powered fuzzy ranking** with match highlighting across actions, apps and files.
+- **Frecency** (frequency × recency) floats your most-used items to the top.
+- **Native icons + favicons**, converted once and cached on disk.
 - **Path autocomplete** when configuring file/app targets.
 
-### 🎛️ GUI-first config
+### 🤖 AI, on your terms
 
-No config files to hand-edit. A themed settings window manages **actions, aliases, workflows**, the
-**global hotkey** (with a recorder), **theme** (System / Light / Dark), and a **frosted-glass**
-translucency toggle. Changes persist instantly and the hotkey re-registers on the fly. An optional
-backend can sync your config across devices.
+- **Bring your own key.** One universal provider layer over the [Vercel AI SDK] covers **Anthropic,
+  OpenAI, Google, xAI, Mistral, Groq, Cohere, DeepSeek**, and any **OpenAI-compatible** endpoint
+  (OpenRouter, Ollama, Together, custom `baseUrl`). All provider calls run in the **main process** —
+  keys never reach the renderer.
+- **Streaming end-to-end** for ask and task surfaces, cancellable mid-flight.
+- **Ask from the bar.** When a query matches no action, app or file, treat it as a question.
+
+### 🧠 A real memory engine
+
+Not a keyword JSON blob — an actual pipeline:
+
+```
+extract durable facts  →  embed  →  dedup / merge  →  hybrid recall
+   (generateObject)      (ONNX)      (by similarity)   (semantic ∪ keyword,
+                                                        RRF-fused with recency
+                                                        + importance)
+```
+
+Vectors live in **LanceDB** under `userData`. Embeddings come from on-device
+**transformers.js (ONNX)** — no key, fully offline — or from your provider's embedding model if you
+prefer quality. Memory is browsable, searchable and forgettable in Console → Memory.
+
+### 🛠️ An agent that can actually do things
+
+A bounded AI-SDK tool-calling loop with **ten tools**, each gated by an explicit grant you control:
+
+| Tool                                             | Grant      |
+| ------------------------------------------------ | ---------- |
+| `actions.list` · `actions.run` · `workflows.run` | `actions`  |
+| `apps.search` · `apps.open`                      | `apps`     |
+| `files.read`                                     | `files`    |
+| `memory.recall` · `memory.write`                 | `memory`   |
+| `slack.send`                                     | `slack`    |
+| `calendar.create-event`                          | `calendar` |
+
+Grants are enforced in **one place** (the runner), never inside a tool, and side-effecting tools go
+through a review gate before they commit. The agent runs actions and workflows through the _same_
+execution path as the launcher — there is no second code path to drift.
+
+### 🔌 Real integrations
+
+OAuth (system browser → loopback) or pasted token, against each service's official SDK:
+
+**Slack · Gmail · Google Calendar · GitHub · Linear · Notion**
+
+Credentials are encrypted in the **OS keychain**, never in `config.json`, and never synced in
+plaintext. Connected sources feed the digest and unlock the agent's write tools.
+
+### 🎛️ Console, not "Settings"
+
+A themed, keyboard-navigable configuration window:
+
+- **Commands** — actions, workflows, routines, aliases
+- **Intelligence** — AI provider & grants, memory
+- **Connections** — integrations
+- **Preferences** — general, appearance, config, account
+
+Plus a **YAML editor** (`config.yaml`, `aliases.yaml`, `workflows.yaml`, `routines.yaml`) with live
+Zod-schema validation, an outline, and round-tripping back through the same schemas the GUI uses.
+
+### ☁️ Optional account & sync
+
+Real auth ([better-auth]: email/password + Google/GitHub), real per-user config sync, and — strictly
+opt-in — cloud memory and a knowledge base the assistant can cite, stored in **Postgres + pgvector**.
+Devices never upload vectors; the server re-embeds text itself, and recall fuses local ∪ cloud ∪
+knowledge using **the same fusion math on both sides** ([`memory-fusion.ts`]). Sign out or stay
+signed out and everything degrades cleanly to local-only.
+
+[Vercel AI SDK]: https://sdk.vercel.ai/
+[better-auth]: https://www.better-auth.com/
+[`memory-fusion.ts`]: ./packages/shared/src/memory-fusion.ts
 
 ---
 
-## 🔭 Where CockpitZero is going
+## 🔐 Privacy & security model
 
-Today it's a launcher. Next, it becomes an **AI cockpit** — a single bar from which you _delegate
-work_, not just trigger commands. The short version:
+This is the part worth reading before you trust it with a key.
 
-- 🤖 **AI behind the bar** — ask in natural language; the launcher figures out the rest.
-- 🛠️ **AI-authored workflows** — describe an outcome, and AI drafts the workflow (actions +
-  arguments) for you to edit.
-- 🔁 **Routines** — set-and-forget AI jobs. First up: a **unified notification digest** that pulls
-  email / Slack / Teams and **summarizes + prioritizes** by importance, so you get one ranked
-  briefing instead of five inboxes.
-- 🧠 **Memory, history & tools** — persistent context plus a tool layer the AI can act through, to
-  absorb daily busywork. E.g. a PM could **summarize a meeting**, **build a presentation**, or
-  **fill a spreadsheet** — state the intent, review the result.
-- 💎 **A much more efficient UI** to present richer results, still keyboard-first and out of your
-  way.
+| Guarantee                        | How it's enforced                                                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Local-first by default**       | No account required, ever. Free/BYOP keeps memory, history and knowledge on-device.                                         |
+| **Keys never hit the renderer**  | API keys, session tokens and OAuth tokens live in an OS-keychain-backed vault (Electron `safeStorage`, main process).       |
+| **Keys never hit `config.json`** | `config.json` syncs — the vault does not. The renderer can only ever learn _status_ (set/unset); there is no read path.     |
+| **Renderer is sandboxed**        | Context isolation + sandbox stay on. No `ipcRenderer` in components — every call crosses one typed, contract-tested bridge. |
+| **OS access is quarantined**     | Shelling out (`mdfind`, PowerShell, `plocate`) lives only in `infra/`, always time-boxed, always degrading to `[]`.         |
+| **Nothing leaves silently**      | Cloud memory sync is opt-in _and_ signed-in only. Telemetry defaults to off.                                                |
 
-> **📦 Note on distribution:** CockpitZero has been built in the open until now. **Future releases
-> will be private.** This repo is the open foundation; the AI-era work ships in private builds.
-
-👉 Full details and stage tracking in **[docs/ROADMAP.md](./docs/ROADMAP.md)**.
+Found a security issue? See [SECURITY.md](./SECURITY.md) — please don't open a public issue.
 
 ---
 
@@ -141,12 +227,18 @@ work_, not just trigger commands. The short version:
 **Prereqs:** Node 22 (`.nvmrc`), pnpm 10 (`corepack enable`).
 
 ```bash
+git clone https://github.com/Sooraj-Baburaj/cockpit-zero.git
+cd cockpit-zero
 corepack enable          # ensure pnpm 10
 pnpm install             # install the whole workspace
 pnpm dev                 # run desktop + backend + web via Turborepo
 ```
 
-Then hit **`Cmd / Ctrl + Shift + Space`** to summon the launcher.
+Then hit **`Cmd / Ctrl + J`** to summon the launcher.
+
+CockpitZero starts on the offline `mock` provider, so the AI surfaces are explorable with **no key
+and no network**. To use a real model, open Console → AI, pick a provider, and paste your key — it
+goes straight to the OS keychain.
 
 ### Run an app on its own
 
@@ -156,6 +248,9 @@ Then hit **`Cmd / Ctrl + Shift + Space`** to summon the launcher.
 | Backend (Hono)     | `pnpm --filter @cockpitzero/backend dev` | http://localhost:8787 |
 | Web (Next.js)      | `pnpm --filter @cockpitzero/web dev`     | http://localhost:3000 |
 
+The backend needs Postgres: `pnpm --filter @cockpitzero/backend db:up` (Docker, pgvector image) then
+`db:migrate`. **Tests need no Docker** — they run on PGlite in-process.
+
 ### Everyday scripts
 
 ```bash
@@ -164,7 +259,6 @@ pnpm lint        # eslint across all packages
 pnpm typecheck   # tsc --noEmit across all packages
 pnpm test        # vitest (desktop + backend + shared)
 pnpm format      # prettier --write
-pnpm changeset   # record a version bump for packages/*
 ```
 
 ---
@@ -172,44 +266,77 @@ pnpm changeset   # record a version bump for packages/*
 ## 🧱 How it's built
 
 A **Turborepo + pnpm** monorepo. The desktop main process is layered (app / services / infra /
-windows / ipc); the renderer follows atomic design. The renderer is **sandboxed and
-context-isolated** — it never touches `ipcRenderer` directly. Every main↔renderer call flows
-through one typed bridge whose contract lives in `packages/shared`, so the two sides can't drift.
+windows / ipc); the renderer follows atomic design. The renderer is sandboxed and context-isolated —
+it never touches `ipcRenderer` directly. Every main↔renderer call flows through one typed bridge
+whose contract lives in `packages/shared`, so the two sides can't drift (a contract test fails if
+they do).
 
 ```
 apps/
-  desktop/   Electron launcher (electron-vite, React, Tailwind v4)
-  backend/   Hono API on Node (Drizzle + SQLite, Postgres-swappable) — sync/auth/telemetry
+  desktop/   Electron launcher + Console + AI/task/digest windows (electron-vite, React, Tailwind v4)
+  backend/   Hono API on Node — better-auth, sync, memory/knowledge (pgvector), managed inference
   web/       Next.js 15 marketing + download site
 packages/
-  shared/         Pure TS — Zod schemas (source of truth), inferred types, IPC contract, utils
+  shared/         Pure TS — Zod schemas (source of truth), inferred types, IPC contract, fusion math
   eslint-config/  Shared ESLint 9 flat configs
   tsconfig/       Shared TypeScript base configs
 ```
 
-**Source of truth:** Zod schemas in `packages/shared` define the config shape; every type is
-inferred from them, and every read/write is validated. Apps never import from each other — anything
-cross-cutting lives in `shared`.
+Two rules do most of the architectural work:
 
-📐 Deeper dive: **[CLAUDE.md](./CLAUDE.md)** (conventions + how to extend) and
-**[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** (layers + data flow).
+1. **Zod schemas in `packages/shared` are the source of truth.** Every type is `z.infer`'d from
+   them; every read/write is validated. There are no hand-written parallel types.
+2. **Dependency inversion at every OS/network boundary.** Services define ports (`SearchProvider`,
+   `Connector`, `AiProvider`, `MemoryStore`, `ActionPorts`); `infra/` adapters implement them. That's
+   why the test suite runs in plain Node with no `electron` import and no network.
 
-### What's implemented vs. stubbed
+### 📚 Documentation
 
-| Area                                  | Status                                                  |
-| ------------------------------------- | ------------------------------------------------------- |
-| Launcher, actions, parameterized args | ✅ Implemented                                          |
-| Workflows (sequential)                | ✅ Implemented                                          |
-| System search (macOS + Windows)       | ✅ Implemented · Linux returns empty (unimplemented)    |
-| GUI settings, theming, frosted glass  | ✅ Implemented                                          |
-| Frecency, native icons, favicons      | ✅ Implemented                                          |
-| Backend `/sync` & `/auth`             | 🚧 Shape-validated stubs (no real persistence/auth yet) |
-| electron-builder packaging            | 🚧 Scaffolded, not a current focus                      |
-| The AI cockpit (see roadmap)          | 🔮 Future — and private                                 |
+| Doc                                                        | What's in it                                                                        |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **[CLAUDE.md](./CLAUDE.md)**                               | The deep guide — conventions, gotchas, and how to extend every part of the codebase |
+| **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)**         | Layer breakdown and data flow                                                       |
+| **[docs/roadmap/](./docs/roadmap/)**                       | The P1–P10 design record: what was decided, why, and what each phase had to satisfy |
+| **[docs/roadmap/SHIPPING.md](./docs/roadmap/SHIPPING.md)** | Launch definition, track status, and what's left before a signed release            |
+| **[docs/qa/PLATFORM-QA.md](./docs/qa/PLATFORM-QA.md)**     | Manual Linux/Windows parity checklists                                              |
+| **[CONTRIBUTING.md](./CONTRIBUTING.md)**                   | Setup, commit conventions, and the extension recipes                                |
 
 ---
 
+## 📍 Status
+
+| Area                                                          | Status                                     |
+| ------------------------------------------------------------- | ------------------------------------------ |
+| Launcher, actions, parameterized args, workflows, aliases     | ✅ Shipped                                 |
+| System search — macOS · Windows · Linux                       | ✅ Shipped                                 |
+| Console, theming, YAML config editor                          | ✅ Shipped                                 |
+| Secrets vault, universal BYOP providers, streaming            | ✅ Shipped                                 |
+| Local memory engine (LanceDB + on-device embeddings)          | ✅ Shipped                                 |
+| Agent loop + 10 granted tools, routines & digest              | ✅ Shipped                                 |
+| Backend auth + config sync, cloud memory + knowledge          | ✅ Shipped                                 |
+| Managed inference + complexity router                         | ✅ Shipped (needs our keys deployed)       |
+| Integrations — Slack, Gmail, Calendar, GitHub, Linear, Notion | ✅ Shipped (needs OAuth apps configured)   |
+| Packaging: signing, notarization, auto-update                 | 🚧 Scaffolded — not yet signed/released    |
+| First-run onboarding · opt-in telemetry                       | 🚧 Planned                                 |
+| Linux Wayland global hotkey                                   | ⚠️ Electron limitation — fallback planned  |
+| Billing                                                       | 🔮 Deferred (metering is already in place) |
+
+Full plan and phase-by-phase docs: **[docs/roadmap/](./docs/roadmap/)**.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome — see **[CONTRIBUTING.md](./CONTRIBUTING.md)** for setup, conventions
+(Conventional Commits, enforced), and the recipes for adding an action type, a search provider, an
+agent tool, or a backend route.
+
+## 📄 License
+
+[MIT](./LICENSE).
+
 <div align="center">
+<br />
 
 Built keyboard-first. ⌨️
 

@@ -139,7 +139,7 @@ connectionStatus(): Promise<Array<{ source: string; connected: boolean; account?
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-10-real-integrations.md` and `CLAUDE.md`, then replace the mock
+> Read `docs/roadmap/phase-10-real-integrations.md` and `CLAUDE.md`, then replace the mock
 > routine notification sources (v1 Phase 5) and the stub agent tools (P6) with **real OAuth-backed
 > connectors** using each service's **official SDK** (Slack first, then Gmail/GitHub/Linear/Notion/
 > Calendar). Build a desktop OAuth flow (system browser + loopback, tokens in the **P2 vault**, never

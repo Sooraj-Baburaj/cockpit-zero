@@ -11,29 +11,31 @@ ship-readiness track, and post-launch work. Decisions locked 2026-07-03.
 - **Billing**: designed now, built post-launch — launch offers Free/BYOP plus a
   **Pro waitlist**; the `plan` field (P7) and `usage` metering (P9) are shaped
   for Stripe from day one.
-- **Infra**: self-hosted VPS (Hetzner) — see [`deploy/`](../../../deploy/README.md).
+- **Infra**: self-hosted VPS (Hetzner) — see [`deploy/`](../../deploy/README.md).
 - **Pace**: dependency-ordered waves, no hard date.
 
 ## Status
 
-| Track | Item                                                                                                        | Status                             |
-| ----- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| A     | P1–P6 (Console → agent loop)                                                                                | ✅ done                            |
-| A     | P7 auth + sync (better-auth, Postgres + Docker dev, desktop Account panel)                                  | ✅ done                            |
-| A     | P8 cloud memory + knowledge (pgvector, memory sync, ingestion)                                              | ✅ done                            |
-| A     | P9 managed inference · P10 integrations                                                                     | ⬜ per phase docs                  |
-| B     | B1 CI/CD (`.github/workflows/`)                                                                             | ✅ done                            |
-| B     | B4 deploy stack scaffolding (`deploy/`)                                                                     | ✅ done (VPS provisioning pending) |
-| B     | B2 platform parity · B3 signing/updates · B5 onboarding · B6 telemetry · B7 hardening/perf · B8 docs/launch | ⬜ below                           |
+| Track | Item                                                                                   | Status                             |
+| ----- | -------------------------------------------------------------------------------------- | ---------------------------------- |
+| A     | P1–P6 (Console → agent loop)                                                           | ✅ done                            |
+| A     | P7 auth + sync (better-auth, Postgres + Docker dev, desktop Account panel)             | ✅ done                            |
+| A     | P8 cloud memory + knowledge (pgvector, memory sync, ingestion)                         | ✅ done                            |
+| A     | P9 managed inference + complexity router (`/inference`, `services/router.ts`)          | ✅ done (needs our keys deployed)  |
+| A     | P10 integrations (Slack, Gmail, Calendar, GitHub, Linear, Notion)                      | ✅ done (needs OAuth apps set up)  |
+| B     | B1 CI/CD (`.github/workflows/`)                                                        | ✅ done                            |
+| B     | B2 platform parity (code done; on-device QA in `docs/qa/PLATFORM-QA.md`)               | 🚧 QA pending                      |
+| B     | B4 deploy stack scaffolding (`deploy/`)                                                | ✅ done (VPS provisioning pending) |
+| B     | B3 signing/updates · B5 onboarding · B6 telemetry · B7 hardening/perf · B8 docs/launch | ⬜ below                           |
 
 ## Execution waves
 
 ```
-Wave 1  A0 land P6 · B1 CI/CD · B4 deploy scaffolding          ✅
-Wave 2  A1 = P7 (auth + sync, on Postgres from day one) ✅ · B2 platform parity ⬜
-Wave 3  A2 = P8 ✅ · A3 = P9 (parallel) · B3 signing + auto-update
-Wave 4  A4 = P10 (Slack + Google minimum) · B5 onboarding · B6 telemetry
-Wave 5  B7 security + perf gate · B8 docs + web → LAUNCH
+Wave 1  A0 land P6 · B1 CI/CD · B4 deploy scaffolding                    ✅
+Wave 2  A1 = P7 (auth + sync, on Postgres from day one) ✅ · B2 code      ✅ (QA pending)
+Wave 3  A2 = P8 ✅ · A3 = P9 ✅ · B3 signing + auto-update               ⬜
+Wave 4  A4 = P10 ✅ · B5 onboarding · B6 telemetry                       ⬜
+Wave 5  B7 security + perf gate · B8 docs + web → LAUNCH                 ⬜
 Post    C1 billing (Stripe) · C2 distribution (brew/winget) · C3 more connectors
 ```
 
@@ -63,9 +65,10 @@ and P8 needs pgvector; one migration story, not two.
   `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID` CI secrets.
 - Windows: Azure Trusted Signing (configure `win.azureSignOptions`).
 - Linux: AppImage first.
-- Auto-update: `electron-updater` against GitHub Releases (publish config is
-  in `electron-builder.yml`; **switch owner/repo to the public mirror before
-  launch**). UX: silent check, badge in Console, install on quit.
+- Auto-update: `electron-updater` against GitHub Releases (publish config in
+  `electron-builder.yml` already points at the public repo,
+  `Sooraj-Baburaj/cockpit-zero`). UX: silent check, badge in Console, install
+  on quit.
 - App icons + installer branding still needed under `apps/desktop/build/`.
 
 ### B5 — Onboarding + first-run

@@ -150,7 +150,7 @@ syncPull(): Promise<{ ok: boolean; config: Config | null }>;
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-7-backend-auth-sync.md` and `CLAUDE.md`, then make backend auth +
+> Read `docs/roadmap/phase-7-backend-auth-sync.md` and `CLAUDE.md`, then make backend auth +
 > cloud sync **real** (replacing the stubs). Use **better-auth** (Drizzle adapter over the existing
 > Hono backend) for email/password + OAuth (Google/GitHub) + verification/reset; rewrite `requireAuth`
 > to validate real sessions; rewrite `/sync` to upsert+return the user's `Config` (ConfigSchema-

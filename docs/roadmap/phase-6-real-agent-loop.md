@@ -111,7 +111,7 @@ None new — `taskRun`/`taskGet`/`taskStop`/`taskApprove` + `onTaskUpdate` alrea
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-6-real-agent-loop.md` and `CLAUDE.md`, then replace the scripted
+> Read `docs/roadmap/phase-6-real-agent-loop.md` and `CLAUDE.md`, then replace the scripted
 > mock planner with a **real bounded agent loop** using the Vercel AI SDK tool-calling
 > (`streamText` + `tools` + a hard `maxSteps`/token/tool cap). Build tools from `tools/registry.ts`
 > with Zod params; execute only **granted** tools (ungranted ⇒ `blocked`). Preserve the existing

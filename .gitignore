@@ -35,3 +35,8 @@ coverage/
 
 # CodeGraph index (machine-local code-intelligence DB)
 .codegraph/
+
+# Local agent tooling scratch (machine-local, never shared)
+.impeccable/
+.claude/worktrees/
+.claude/settings.local.json

@@ -114,7 +114,7 @@ secretStatus(): Promise<Record<string, boolean>>;
 
 ### Kickoff prompt
 
-> Read `docs/roadmap/production/phase-2-secrets-vault.md` and `CLAUDE.md`, then implement it. Build a
+> Read `docs/roadmap/phase-2-secrets-vault.md` and `CLAUDE.md`, then implement it. Build a
 > main-process secrets vault using Electron `safeStorage` (OS keychain), persisting **encrypted**
 > blobs under `userData/secrets/` — never in `config.json`, never readable by the renderer in
 > plaintext. Add `setSecret`/`clearSecret`/`secretStatus` IPC (no `getSecret`), a reusable masked
